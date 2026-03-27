@@ -165,9 +165,14 @@ function normalizeTokkoProperty(item) {
   const tokkoId = item?.id?.toString?.() || item?.id_property?.toString?.() || crypto.randomUUID();
   const operationMode = normalizeOperation(item?.operations || [], Boolean(item?.has_temporary_rent));
   const pricing = getMainPrice(item?.operations || [], operationMode);
+
+// 🔥 FILTRO HARD >= 15M
+if (!pricing.price || pricing.price < 15000000) {
+  return null;
+}
   const images = pickImages(item);
   const videos = pickVideos(item);
-  const luxuryEligible = isLuxuryEligible(item, pricing.price);
+  
 
   return {
     id: `tokko-${tokkoId}`,
@@ -223,16 +228,16 @@ function normalizeTokkoProperty(item) {
       lifestyleTags: [],
     },
     status: {
-      published: luxuryEligible,
+      published: false,
       featured: false,
-      luxuryEligible,
+      
     },
   };
 }
 
 async function fetchTokko() {
   const url = `https://www.tokkobroker.com/api/v1/property/?lang=es_ar&format=json&limit=200&key=${API_KEY}`;
-  const res = await fetch(url, { headers: { Accept: "application/json" } });
+  const res = await fetch(url, { headers: { Accept: "application/json" } }).filter(Boolean);
 
   if (!res.ok) {
     const txt = await res.text();
@@ -245,7 +250,7 @@ async function fetchTokko() {
 const data = await fetchTokko();
 const objects = Array.isArray(data?.objects) ? data.objects : [];
 const normalized = objects.map(normalizeTokkoProperty);
-const onlyLuxury = normalized.filter((item) => item.status.luxuryEligible);
+const onlyLuxury = normalized.filter(Boolean);
 
 await fs.writeFile(OUT_FILE, JSON.stringify(onlyLuxury, null, 2), "utf8");
 

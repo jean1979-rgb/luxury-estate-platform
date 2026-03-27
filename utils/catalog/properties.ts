@@ -89,12 +89,13 @@ export async function getAllProperties(): Promise<PropertyUnified[]> {
         item.operationMode === "temporary_rent";
 
       const isRent =
-        item.rental?.enabled === true ||
         item.operationMode === "rent" ||
         item.operationMode === "temporary_rent" ||
         item.operationMode === "sale_and_rent";
 
-      const isSale = !isRent;
+      const isSale =
+        item.operationMode === "sale" ||
+        item.operationMode === "sale_and_rent";
 
       const isLuxurySale =
         isSale &&
@@ -107,6 +108,8 @@ export async function getAllProperties(): Promise<PropertyUnified[]> {
           (monthlyPrice !== null && monthlyPrice >= MIN_LUXURY_RENT_MONTH)
         );
 
+      const isLuxury = isLuxurySale || isLuxuryRental;
+
       return {
         id: item.id,
         title: item.editorial?.title || item.base?.title || "Propiedad",
@@ -115,12 +118,12 @@ export async function getAllProperties(): Promise<PropertyUnified[]> {
         tagline: item.editorial?.descriptionLuxury || item.base?.description || "",
 
         price,
-        operation: isRent ? "rent" : "sale",
-        isLuxury: isLuxurySale || isLuxuryRental,
+        operation: isTemporaryRent || (isRent && !isSale) ? "rent" : "sale",
+        isLuxury,
         isLuxuryRental,
 
         featured: item.editorial?.featuredPlatform || false,
-        published: item.status?.published ?? true,
+        published: (item.status?.published ?? true) && isLuxury,
         source: "tokko",
       };
     });

@@ -76,6 +76,30 @@ function buildHotspot(index: number, pitch: number, yaw: number): AdminHotspot {
 export default function AdminClient() {
   const [showHotspots, setShowHotspots] = useState(false);
   const [items, setItems] = useState<AdminPropertyRecord[]>([]);
+  
+  async function handleTokkoSync() {
+    try {
+      const res = await fetch("/api/admin/tokko", { method: "GET" });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert("Error al sincronizar Tokko");
+        return;
+      }
+
+      alert("Tokko actualizado");
+
+      // refrescar lista admin
+      const refreshed = await fetch("/api/admin/properties", { cache: "no-store" });
+      const json = await refreshed.json();
+      setItems(json.properties || []);
+
+    } catch (err) {
+      console.error(err);
+      alert("Error en sync");
+    }
+  }
+
   const [form, setForm] = useState<AdminPropertyInput>(EMPTY_ADMIN_PROPERTY);
   const [selectedId, setSelectedId] = useState<string>("new");
   const [loading, setLoading] = useState(true);
@@ -221,8 +245,14 @@ export default function AdminClient() {
 
   async function importFromTokko(item: any) {
     try {
+      if (items.some((p) => p.id === `admin-${item.id}`)) {
+        alert("Ya importada");
+        return;
+      }
+
       const payload: AdminPropertyInput = {
-        id: item.id,
+        source: "tokko",
+        id: `admin-${item.id}`,
         title: item.editorial?.title || item.base?.title || "Propiedad",
         slug: slugify(item.editorial?.title || item.base?.title || item.id || "propiedad"),
         status: "draft",
@@ -321,7 +351,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
     setSelectedId(item.id);
     setMessage("");
     setForm({
-      id: item.id,
+      id: `admin-${item.id}`,
       title: item.title,
       slug: item.slug,
       status: item.status,
@@ -349,7 +379,13 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
     setMessage("");
 
     try {
+      if (items.some((p) => p.id === `admin-${item.id}`)) {
+        alert("Ya importada");
+        return;
+      }
+
       const payload: AdminPropertyInput = {
+        source: "tokko",
         ...form,
         id: form.id ? slugify(form.id) : slugify(form.slug || form.title),
         slug: slugify(form.slug || form.title),
@@ -632,6 +668,21 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
           <div className="border-b border-white/10 px-6 py-6">
             <div className="mb-2 text-[11px] uppercase tracking-[0.35em] text-white/45">
               Private Admin
+
+<button
+  onClick={handleTokkoSync}
+  style={{
+    background: "#111",
+    color: "#fff",
+    padding: "10px 16px",
+    borderRadius: "8px",
+    marginBottom: "16px",
+    cursor: "pointer"
+  }}
+>
+  Actualizar desde Tokko
+</button>
+
             </div>
             <h1 className="text-2xl font-semibold tracking-tight">
               Luxury Property Console
