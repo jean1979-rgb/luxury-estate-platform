@@ -1,0 +1,48 @@
+type Props = {
+  price: string;
+  bedrooms: number;
+  bathrooms: number;
+  area: string;
+  location: string;
+};
+
+export default function PropertyFacts({
+  price,
+  bedrooms,
+  bathrooms,
+  area,
+  location,
+}: Props) {
+  const items = [
+    { label: "Precio", value: price },
+    { label: "Recámaras", value: String(bedrooms) },
+    { label: "Baños", value: String(bathrooms) },
+    { label: "Superficie", value: area },
+    { label: "Ubicación", value: location },
+  ];
+
+  return (
+    <div className="rounded-[24px] border border-white/10 bg-[#121212] p-8 md:p-9">
+      <p className="text-[12px] uppercase tracking-[0.35em] text-[#b8afa3]">
+        Property Facts
+      </p>
+
+      <div className="mt-7 space-y-0">
+        {items.map((item) => (
+          <div
+            key={item.label}
+            className="flex items-start justify-between gap-8 border-b border-white/8 py-6"
+          >
+            <span className="text-base leading-7 text-[#b8afa3] md:text-[18px]">
+              {item.label}
+            </span>
+
+            <span className="max-w-[62%] text-right text-base leading-7 text-[#f5f1eb] md:text-[18px]">
+              {item.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

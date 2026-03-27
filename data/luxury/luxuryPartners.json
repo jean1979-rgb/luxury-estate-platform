@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Zibu",
+    "category": "Fine Dining",
+    "city": "Acapulco",
+    "note": "Experiencia gastronómica clave para compradores de alto perfil."
+  },
+  {
+    "name": "Beach Club Reserve",
+    "category": "Private Club",
+    "city": "Acapulco",
+    "note": "Acceso exclusivo frente al mar, lifestyle y hospitalidad."
+  },
+  {
+    "name": "Marina Signature",
+    "category": "Yachting",
+    "city": "Acapulco",
+    "note": "Charters, concierge y vida náutica premium."
+  }
+]

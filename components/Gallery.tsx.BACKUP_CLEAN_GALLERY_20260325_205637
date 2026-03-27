@@ -1,0 +1,69 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+type GalleryProps = {
+  images?: string[];
+  title?: string;
+};
+
+export default function Gallery({ images = [], title = "Propiedad" }: GalleryProps) {
+  const safeImages = useMemo(
+    () => (Array.isArray(images) ? images.filter((img) => typeof img === "string" && img.trim().length > 0) : []),
+    [images]
+  );
+
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  if (safeImages.length === 0) {
+    return (
+      <div className="flex aspect-[16/9] w-full items-center justify-center rounded-[28px] border border-white/10 bg-white/[0.03] text-sm text-white/35">
+        Sin imágenes disponibles
+      </div>
+    );
+  }
+
+  const selectedImage = safeImages[Math.min(selectedIndex, safeImages.length - 1)];
+
+  return (
+    <div className="space-y-4">
+      <div className="overflow-hidden rounded-[28px] border border-white/10 bg-black">
+        <div className="relative aspect-[16/9] w-full">
+          <img
+            src={selectedImage}
+            alt={title}
+            className="absolute inset-0 h-full w-full object-contain"
+          />
+        </div>
+      </div>
+
+      {safeImages.length > 1 ? (
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          {safeImages.map((image, index) => {
+            const active = index === selectedIndex;
+
+            return (
+              <button
+                key={`${image}-${index}`}
+                type="button"
+                onClick={() => setSelectedIndex(index)}
+                className={`relative h-20 w-28 shrink-0 overflow-hidden rounded-[14px] border transition ${
+                  active
+                    ? "border-white/80 ring-1 ring-white/60"
+                    : "border-white/10 opacity-75 hover:opacity-100"
+                }`}
+                aria-label={`Ver imagen ${index + 1}`}
+              >
+                <img
+                  src={image}
+                  alt={`${title} ${index + 1}`}
+                  className="h-full w-full object-cover"
+                />
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}

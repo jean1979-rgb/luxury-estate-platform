@@ -1,0 +1,38 @@
+import Link from "next/link";
+
+type Props = {
+  id: string;
+  title: string;
+  location: string;
+  image: string;
+};
+
+export default function PropertyCard({ id, title, location, image }: Props) {
+  return (
+    <Link
+      href={`/properties/${id}`}
+      className="group block overflow-hidden rounded-[28px] border border-white/10 bg-[#121212]"
+    >
+      <div className="relative overflow-hidden">
+        <img
+          src={image}
+          alt={title}
+          className="h-64 w-full object-cover transition duration-700 group-hover:scale-[1.05]"
+        />
+        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition" />
+      </div>
+
+      <div className="p-5">
+        <p className="text-[10px] uppercase tracking-[0.35em] text-[#d6c3a1]">
+          Curated Listing
+        </p>
+        <h3 className="mt-2 text-xl font-light">{title}</h3>
+        <p className="mt-2 text-sm text-[#b8afa3]">{location}</p>
+
+        <p className="mt-4 text-xs uppercase tracking-[0.28em] text-[#f5f1eb]">
+          Explorar →
+        </p>
+      </div>
+    </Link>
+  );
+}

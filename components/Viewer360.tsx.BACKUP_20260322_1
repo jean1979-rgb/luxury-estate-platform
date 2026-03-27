@@ -1,0 +1,330 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import * as THREE from "three";
+
+type Hotspot = {
+  id: string;
+  label: string;
+  targetSceneId: string;
+  yaw: number;
+  pitch: number;
+};
+
+type SceneItem = {
+  id: string;
+  label: string;
+  image: string;
+  thumbnail?: string;
+  initialYaw?: number;
+  initialPitch?: number;
+  hotspots?: Hotspot[];
+};
+
+type Props = {
+  title?: string;
+  scenes: SceneItem[];
+};
+
+type ScreenHotspot = Hotspot & {
+  x: number;
+  y: number;
+  visible: boolean;
+};
+
+const SPHERE_RADIUS = 500;
+
+function sphericalToVector3(yaw: number, pitch: number, radius = SPHERE_RADIUS) {
+  const phi = THREE.MathUtils.degToRad(90 - pitch);
+  const theta = THREE.MathUtils.degToRad(yaw);
+
+  const x = radius * Math.sin(phi) * Math.cos(theta);
+  const y = radius * Math.cos(phi);
+  const z = radius * Math.sin(phi) * Math.sin(theta);
+
+  return new THREE.Vector3(x, y, z);
+}
+
+export default function Viewer360({ title, scenes }: Props) {
+  const safeScenes = useMemo(() => scenes.filter((scene) => !!scene.image), [scenes]);
+  const [activeSceneId, setActiveSceneId] = useState<string>(safeScenes[0]?.id ?? "");
+  const activeScene =
+    safeScenes.find((scene) => scene.id === activeSceneId) ?? safeScenes[0] ?? null;
+
+  const [screenHotspots, setScreenHotspots] = useState<ScreenHotspot[]>([]);
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const lonRef = useRef(0);
+  const latRef = useRef(0);
+
+  useEffect(() => {
+    if (!activeScene) return;
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    let animationFrameId = 0;
+
+    const scene = new THREE.Scene();
+
+    const width = container.clientWidth || 1200;
+    const height = container.clientHeight || 680;
+
+    const camera = new THREE.PerspectiveCamera(75, width / height, 1, 1100);
+    camera.position.set(0, 0, 0.1);
+    cameraRef.current = camera;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(width, height);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    rendererRef.current = renderer;
+
+    container.innerHTML = "";
+    container.appendChild(renderer.domElement);
+
+    const geometry = new THREE.SphereGeometry(SPHERE_RADIUS, 80, 60);
+    geometry.scale(-1, 1, 1);
+
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load(
+      activeScene.image,
+      () => {
+        renderer.render(scene, camera);
+      },
+      undefined,
+      () => {
+        console.error("No se pudo cargar el panorama:", activeScene.image);
+      }
+    );
+
+    texture.colorSpace = THREE.SRGBColorSpace;
+
+    const material = new THREE.MeshBasicMaterial({ map: texture });
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    let isUserInteracting = false;
+    let onPointerDownPointerX = 0;
+    let onPointerDownPointerY = 0;
+    let onPointerDownLon = 0;
+    let onPointerDownLat = 0;
+
+    lonRef.current = activeScene.initialYaw ?? 0;
+    latRef.current = activeScene.initialPitch ?? 0;
+
+    const updateHotspots = () => {
+      if (!container || !cameraRef.current) return;
+
+      const rect = container.getBoundingClientRect();
+      const nextHotspots: ScreenHotspot[] = (activeScene.hotspots ?? []).map((hotspot) => {
+        const point = sphericalToVector3(hotspot.yaw, hotspot.pitch);
+        const projected = point.clone().project(cameraRef.current!);
+
+        const x = ((projected.x + 1) / 2) * rect.width;
+        const y = ((-projected.y + 1) / 2) * rect.height;
+        const visible = projected.z < 1 && point.dot(cameraRef.current!.getWorldDirection(new THREE.Vector3())) > 0;
+
+        return {
+          ...hotspot,
+          x,
+          y,
+          visible,
+        };
+      });
+
+      setScreenHotspots(nextHotspots);
+    };
+
+    const pointerDown = (event: PointerEvent) => {
+      isUserInteracting = true;
+      onPointerDownPointerX = event.clientX;
+      onPointerDownPointerY = event.clientY;
+      onPointerDownLon = lonRef.current;
+      onPointerDownLat = latRef.current;
+    };
+
+    const pointerMove = (event: PointerEvent) => {
+      if (!isUserInteracting) return;
+      lonRef.current = (onPointerDownPointerX - event.clientX) * 0.12 + onPointerDownLon;
+      latRef.current = (event.clientY - onPointerDownPointerY) * 0.12 + onPointerDownLat;
+    };
+
+    const pointerUp = () => {
+      isUserInteracting = false;
+    };
+
+    const wheel = (event: WheelEvent) => {
+      event.preventDefault();
+      camera.fov += event.deltaY * 0.03;
+      camera.fov = Math.max(40, Math.min(90, camera.fov));
+      camera.updateProjectionMatrix();
+    };
+
+    const resize = () => {
+      const nextWidth = container.clientWidth || 1200;
+      const nextHeight = container.clientHeight || 680;
+      camera.aspect = nextWidth / nextHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(nextWidth, nextHeight);
+      updateHotspots();
+    };
+
+    const animate = () => {
+      latRef.current = Math.max(-85, Math.min(85, latRef.current));
+      const phi = THREE.MathUtils.degToRad(90 - latRef.current);
+      const theta = THREE.MathUtils.degToRad(lonRef.current);
+
+      const x = SPHERE_RADIUS * Math.sin(phi) * Math.cos(theta);
+      const y = SPHERE_RADIUS * Math.cos(phi);
+      const z = SPHERE_RADIUS * Math.sin(phi) * Math.sin(theta);
+
+      camera.lookAt(x, y, z);
+      renderer.render(scene, camera);
+      updateHotspots();
+      animationFrameId = window.requestAnimationFrame(animate);
+    };
+
+    container.addEventListener("pointerdown", pointerDown);
+    window.addEventListener("pointermove", pointerMove);
+    window.addEventListener("pointerup", pointerUp);
+    container.addEventListener("wheel", wheel, { passive: false });
+    window.addEventListener("resize", resize);
+
+    animate();
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+      container.removeEventListener("pointerdown", pointerDown);
+      window.removeEventListener("pointermove", pointerMove);
+      window.removeEventListener("pointerup", pointerUp);
+      container.removeEventListener("wheel", wheel);
+      window.removeEventListener("resize", resize);
+
+      geometry.dispose();
+      material.dispose();
+      texture.dispose();
+      renderer.dispose();
+
+      if (container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement);
+      }
+    };
+  }, [activeScene]);
+
+  if (!activeScene) return null;
+
+  const activeIndex = safeScenes.findIndex((scene) => scene.id === activeScene.id);
+
+  const goToPrev = () => {
+    const nextIndex = activeIndex <= 0 ? safeScenes.length - 1 : activeIndex - 1;
+    setActiveSceneId(safeScenes[nextIndex].id);
+  };
+
+  const goToNext = () => {
+    const nextIndex = activeIndex >= safeScenes.length - 1 ? 0 : activeIndex + 1;
+    setActiveSceneId(safeScenes[nextIndex].id);
+  };
+
+  return (
+    <section className="space-y-5">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.35em] text-[#d6c3a1]">
+            Immersive View
+          </p>
+          <h3 className="mt-2 text-2xl font-light md:text-3xl">
+            Recorrido 360{title ? ` · ${title}` : ""}
+          </h3>
+          <p className="mt-3 text-sm text-[#b8afa3]">
+            Escena activa: {activeScene.label}
+          </p>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={goToPrev}
+            className="rounded-full border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.24em] text-[#f5f1eb] transition hover:border-[#d6c3a1] hover:text-[#d6c3a1]"
+          >
+            Anterior
+          </button>
+
+          <button
+            type="button"
+            onClick={goToNext}
+            className="rounded-full border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.24em] text-[#f5f1eb] transition hover:border-[#d6c3a1] hover:text-[#d6c3a1]"
+          >
+            Siguiente
+          </button>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-[28px] border border-white/10 bg-[#121212]">
+        <div className="relative h-[520px] w-full md:h-[680px]">
+          <div
+            ref={containerRef}
+            className="h-full w-full cursor-grab active:cursor-grabbing"
+          />
+
+          {screenHotspots.map((hotspot) =>
+            hotspot.visible ? (
+              <button
+                key={hotspot.id}
+                type="button"
+                onClick={() => setActiveSceneId(hotspot.targetSceneId)}
+                className="absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#d6c3a1] bg-black/75 px-3 py-2 text-[10px] uppercase tracking-[0.24em] text-[#f5f1eb] backdrop-blur-sm transition hover:bg-[#d6c3a1] hover:text-black"
+                style={{ left: `${hotspot.x}px`, top: `${hotspot.y}px` }}
+              >
+                {hotspot.label}
+              </button>
+            ) : null
+          )}
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-12">
+        {safeScenes.map((sceneItem) => {
+          const isActive = sceneItem.id === activeScene.id;
+
+          return (
+            <button
+              key={sceneItem.id}
+              type="button"
+              onClick={() => setActiveSceneId(sceneItem.id)}
+              className={
+                isActive
+                  ? "overflow-hidden rounded-[22px] border border-[#d6c3a1] bg-[#121212] text-left md:col-span-4"
+                  : "overflow-hidden rounded-[22px] border border-white/10 bg-[#121212] text-left transition hover:border-[#d6c3a1] md:col-span-4"
+              }
+            >
+              <img
+                src={sceneItem.thumbnail || sceneItem.image}
+                alt={sceneItem.label}
+                className="h-28 w-full object-cover md:h-36"
+              />
+              <div className="p-4">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-[#d6c3a1]">
+                  Scene
+                </p>
+                <p className="mt-2 text-sm text-[#f5f1eb]">{sceneItem.label}</p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex flex-wrap gap-3 text-xs uppercase tracking-[0.22em] text-[#b8afa3]">
+        <span>Arrastra para explorar</span>
+        <span>•</span>
+        <span>Scroll para zoom</span>
+        <span>•</span>
+        <span>Hotspots clicables</span>
+        <span>•</span>
+        <span>{safeScenes.length} escenas</span>
+      </div>
+    </section>
+  );
+}

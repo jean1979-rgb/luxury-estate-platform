@@ -1,0 +1,55 @@
+import Link from "next/link";
+import { properties } from "@/data/properties";
+import PropertyCard from "@/components/PropertyCard";
+
+export default function HomePage() {
+  const featured = properties.find((p) => p.featured) ?? properties[0];
+  const secondary = properties.filter((p) => p.id !== featured.id);
+
+  return (
+    <main className="min-h-screen bg-[#0a0a0a] text-[#f5f1eb]">
+      <section className="border-b border-white/10 px-6 py-6 md:px-10">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.35em] text-[#b8afa3]">
+              Curated Luxury Estates
+            </p>
+            <h1 className="mt-2 text-2xl font-light tracking-[0.08em] md:text-3xl">
+              LUXE Estates
+            </h1>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-6 py-8 md:px-10 md:py-10">
+        <Link
+          href={`/properties/${featured.id}`}
+          className="group relative block overflow-hidden rounded-[28px] border border-white/10"
+        >
+          <img
+            src={featured.coverImage}
+            className="h-[520px] w-full object-cover transition duration-700 group-hover:scale-[1.03]"
+          />
+          <div className="absolute inset-0 bg-black/30" />
+
+          <div className="absolute bottom-0 p-8">
+            <h2 className="text-4xl font-light">{featured.title}</h2>
+            <p className="mt-2 text-[#e7dfd4]">{featured.tagline}</p>
+          </div>
+        </Link>
+
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {secondary.map((property) => (
+            <PropertyCard
+              key={property.id}
+              id={property.id}
+              title={property.title}
+              location={property.location}
+              image={property.coverImage}
+            />
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+}

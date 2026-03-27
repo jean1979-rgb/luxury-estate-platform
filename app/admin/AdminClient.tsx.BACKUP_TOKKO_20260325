@@ -1,0 +1,1368 @@
+"use client";
+
+import Image from "next/image";
+import Viewer360 from "@/components/Viewer360";
+import {  useEffect, useMemo, useState } from "react";
+import type {
+  AdminHotspot,
+  AdminPropertyInput,
+  AdminPropertyRecord,
+  AdminScene360,
+} from "@/types/admin";
+import { EMPTY_ADMIN_PROPERTY } from "@/types/admin";
+
+function slugify(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-");
+}
+
+function formatUpdatedAt(value?: string) {
+  if (!value) return "Sin fecha";
+  return new Intl.DateTimeFormat("es-MX", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function yawToPercent(yaw: number) {
+  return ((yaw + 180) / 360) * 100;
+}
+
+function pitchToPercent(pitch: number) {
+  return ((90 - pitch) / 180) * 100;
+}
+
+function percentToYaw(xPercent: number) {
+  return xPercent * 3.6 - 180;
+}
+
+function percentToPitch(yPercent: number) {
+  return 90 - yPercent * 1.8;
+}
+
+type UploadFolder = "cover" | "gallery" | "scenes360";
+
+function buildScene(title = "", image = ""): AdminScene360 {
+  const base = slugify(title || `scene-${Date.now()}`);
+  return {
+    id: base || `scene-${Date.now()}`,
+    title: title || "Nueva escena",
+    image,
+    thumbnail: image,
+    hotspots: [],
+  };
+}
+
+function buildHotspot(index: number, pitch: number, yaw: number): AdminHotspot {
+  return {
+    id: `hotspot-${Date.now()}-${index + 1}`,
+    pitch,
+    yaw,
+    label: `Hotspot ${index + 1}`,
+    targetSceneId: "",
+  };
+}
+
+export default function AdminClient() {
+  const [showHotspots, setShowHotspots] = useState(false);
+  const [items, setItems] = useState<AdminPropertyRecord[]>([]);
+  const [form, setForm] = useState<AdminPropertyInput>(EMPTY_ADMIN_PROPERTY);
+  const [selectedId, setSelectedId] = useState<string>("new");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [uploadingScenes, setUploadingScenes] = useState(false);
+  const [message, setMessage] = useState<string>("");
+
+  async function loadProperties() {
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const res = await fetch("/api/admin/properties", { cache: "no-store" });
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.message || "No se pudo cargar el admin.");
+      }
+
+      setItems(data.properties || []);
+
+      if ((data.properties || []).length > 0 && selectedId === "new") {
+        const first = data.properties[0] as AdminPropertyRecord;
+        setSelectedId(first.id);
+        setForm({
+          id: first.id,
+          title: first.title,
+          slug: first.slug,
+          status: first.status,
+          propertyType: first.propertyType,
+          location: first.location,
+          price: first.price,
+          currency: first.currency,
+          bedrooms: first.bedrooms,
+          bathrooms: first.bathrooms,
+          areaInterior: first.areaInterior,
+          areaTotal: first.areaTotal,
+          tagline: first.tagline,
+          coverImage: first.coverImage,
+          gallery: first.gallery,
+          scenes360: first.scenes360,
+          featured: first.featured,
+          published: first.published,
+          luxuryScore: first.luxuryScore,
+          description: first.description,
+        });
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Error inesperado.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadProperties();
+  }, []);
+
+  async function handleDelete() {
+  if (!selectedId || selectedId === "new") return;
+
+  const confirmDelete = confirm(
+    "¿Seguro que quieres eliminar esta propiedad? Esta acción no se puede deshacer."
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    setSaving(true);
+
+    const res = await fetch(`/api/admin/properties/${selectedId}`, {
+      method: "DELETE",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+      throw new Error(data.message || "Error al eliminar");
+    }
+
+    const refreshed = await fetch("/api/admin/properties", {
+      cache: "no-store",
+    });
+
+    const json = await refreshed.json();
+
+    setItems(json.properties || []);
+    setSelectedId("new");
+    setForm(EMPTY_ADMIN_PROPERTY);
+
+    setMessage("Propiedad eliminada correctamente");
+  } catch (err: any) {
+    console.error(err);
+    setMessage(err.message || "Error eliminando propiedad");
+  } finally {
+    setSaving(false);
+  }
+}
+
+  const selectedRecord = useMemo(() => {
+    return items.find((item) => item.id === selectedId) || null;
+  }, [items, selectedId]);
+
+  function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPropertyInput[K]) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function handleNew() {
+    setSelectedId("new");
+    setMessage("");
+    setForm({
+      ...EMPTY_ADMIN_PROPERTY,
+      id: "",
+      title: "",
+      slug: "",
+    });
+  }
+
+  function handleSelect(item: AdminPropertyRecord) {
+    setSelectedId(item.id);
+    setMessage("");
+    setForm({
+      id: item.id,
+      title: item.title,
+      slug: item.slug,
+      status: item.status,
+      propertyType: item.propertyType,
+      location: item.location,
+      price: item.price,
+      currency: item.currency,
+      bedrooms: item.bedrooms,
+      bathrooms: item.bathrooms,
+      areaInterior: item.areaInterior,
+      areaTotal: item.areaTotal,
+      tagline: item.tagline,
+      coverImage: item.coverImage,
+      gallery: item.gallery,
+      scenes360: item.scenes360,
+      featured: item.featured,
+      published: item.published,
+      luxuryScore: item.luxuryScore,
+      description: item.description,
+    });
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    setMessage("");
+
+    try {
+      const payload: AdminPropertyInput = {
+        ...form,
+        id: form.id ? slugify(form.id) : slugify(form.slug || form.title),
+        slug: slugify(form.slug || form.title),
+        title: form.title.trim(),
+        scenes360: form.scenes360.map((scene, index) => ({
+          ...scene,
+          id: slugify(scene.id || scene.title || `scene-${index + 1}`),
+          title: scene.title?.trim() || `Escena ${index + 1}`,
+          thumbnail: scene.thumbnail || scene.image,
+          hotspots: (Array.isArray(scene.hotspots) ? scene.hotspots : []).map((hotspot, hotspotIndex) => ({
+            id: slugify(hotspot.id || `hotspot-${hotspotIndex + 1}`),
+            pitch: Number.isFinite(Number(hotspot.pitch)) ? Number(hotspot.pitch) : 0,
+            yaw: Number.isFinite(Number(hotspot.yaw)) ? Number(hotspot.yaw) : 0,
+            label: String(hotspot.label || `Hotspot ${hotspotIndex + 1}`).trim(),
+            targetSceneId: hotspot.targetSceneId ? slugify(hotspot.targetSceneId) : "",
+          })),
+        })),
+      };
+
+      const res = await fetch("/api/admin/properties", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.message || "No se pudo guardar.");
+      }
+
+      const saved = data.property as AdminPropertyRecord;
+
+      setItems((prev) => {
+        const exists = prev.some((item) => item.id === saved.id);
+        const next = exists
+          ? prev.map((item) => (item.id === saved.id ? saved : item))
+          : [saved, ...prev];
+
+        return next.sort((a, b) => {
+          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        });
+      });
+
+      setSelectedId(saved.id);
+      setForm({
+        id: saved.id,
+        title: saved.title,
+        slug: saved.slug,
+        status: saved.status,
+        propertyType: saved.propertyType,
+        location: saved.location,
+        price: saved.price,
+        currency: saved.currency,
+        bedrooms: saved.bedrooms,
+        bathrooms: saved.bathrooms,
+        areaInterior: saved.areaInterior,
+        areaTotal: saved.areaTotal,
+        tagline: saved.tagline,
+        coverImage: saved.coverImage,
+        gallery: saved.gallery,
+        scenes360: saved.scenes360,
+        featured: saved.featured,
+        published: saved.published,
+        luxuryScore: saved.luxuryScore,
+        description: saved.description,
+      });
+
+      setMessage("Propiedad guardada correctamente en JSON local.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Error inesperado al guardar.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleUpload(file: File, folder: UploadFolder) {
+    const computedEntityId = slugify(form.id || form.slug || form.title || "temp-property");
+
+    if (folder === "cover") setUploadingCover(true);
+    if (folder === "gallery") setUploadingGallery(true);
+    if (folder === "scenes360") setUploadingScenes(true);
+
+    setMessage("");
+
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      body.append("entityType", "property");
+      body.append("entityId", computedEntityId);
+      body.append("folder", folder);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.message || "No se pudo subir el archivo.");
+      }
+
+      const uploadedUrl = data.file.url as string;
+
+      if (folder === "cover") {
+        setForm((prev) => ({
+          ...prev,
+          id: prev.id || computedEntityId,
+          slug: prev.slug || slugify(prev.title || computedEntityId),
+          coverImage: uploadedUrl,
+        }));
+      }
+
+      if (folder === "gallery") {
+        setForm((prev) => ({
+          ...prev,
+          id: prev.id || computedEntityId,
+          slug: prev.slug || slugify(prev.title || computedEntityId),
+          gallery: [...prev.gallery, uploadedUrl],
+        }));
+      }
+
+      if (folder === "scenes360") {
+        const cleanName = file.name.replace(/\.[^/.]+$/, "");
+        const scene = buildScene(cleanName, uploadedUrl);
+
+        setForm((prev) => ({
+          ...prev,
+          id: prev.id || computedEntityId,
+          slug: prev.slug || slugify(prev.title || computedEntityId),
+          scenes360: [...prev.scenes360, scene],
+        }));
+      }
+
+      setMessage("Archivo subido correctamente. Guarda la propiedad para persistir la ruta en JSON.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Error inesperado al subir archivo.");
+    } finally {
+      if (folder === "cover") setUploadingCover(false);
+      if (folder === "gallery") setUploadingGallery(false);
+      if (folder === "scenes360") setUploadingScenes(false);
+    }
+  }
+
+  function removeGalleryImage(index: number) {
+    setForm((prev) => ({
+      ...prev,
+      gallery: prev.gallery.filter((_, i) => i !== index),
+    }));
+  }
+
+  function addEmptyScene() {
+    setForm((prev) => ({
+      ...prev,
+      scenes360: [...prev.scenes360, buildScene(`escena-${prev.scenes360.length + 1}`, "")],
+    }));
+  }
+
+  function updateScene(index: number, patch: Partial<AdminScene360>) {
+    setForm((prev) => ({
+      ...prev,
+      scenes360: prev.scenes360.map((scene, i) => {
+        if (i !== index) return scene;
+
+        const nextTitle = patch.title ?? scene.title;
+        const nextImage = patch.image ?? scene.image;
+
+        return {
+          ...scene,
+          ...patch,
+          id: patch.id ? slugify(patch.id) : scene.id,
+          title: nextTitle,
+          image: nextImage,
+          thumbnail: patch.thumbnail ?? nextImage ?? scene.thumbnail,
+          hotspots: Array.isArray(patch.hotspots) ? patch.hotspots : scene.hotspots,
+        };
+      }),
+    }));
+  }
+
+  function removeScene(index: number) {
+    setForm((prev) => ({
+      ...prev,
+      scenes360: prev.scenes360.filter((_, i) => i !== index),
+    }));
+  }
+
+  function addHotspotByClick(
+    sceneIndex: number,
+    event: React.MouseEvent<HTMLDivElement>
+  ) {
+    const scene = form.scenes360[sceneIndex];
+    if (!scene) return;
+    if (!scene.image) {
+      setMessage("Primero sube o define una imagen panorámica para esta escena.");
+      return;
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = clamp((event.clientX - rect.left) / rect.width, 0, 1);
+    const y = clamp((event.clientY - rect.top) / rect.height, 0, 1);
+
+    const yaw = Number(percentToYaw(x * 100).toFixed(2));
+    const pitch = Number(percentToPitch(y * 100).toFixed(2));
+    const hotspot = buildHotspot(scene.hotspots.length, pitch, yaw);
+
+    setForm((prev) => ({
+      ...prev,
+      scenes360: prev.scenes360.map((currentScene, i) => {
+        if (i !== sceneIndex) return currentScene;
+        return {
+          ...currentScene,
+          hotspots: [...currentScene.hotspots, hotspot],
+        };
+      }),
+    }));
+
+    setMessage("Hotspot creado. Ajusta label y destino antes de guardar.");
+  }
+
+  function updateHotspot(
+    sceneIndex: number,
+    hotspotIndex: number,
+    patch: Partial<AdminHotspot>
+  ) {
+    setForm((prev) => ({
+      ...prev,
+      scenes360: prev.scenes360.map((scene, i) => {
+        if (i !== sceneIndex) return scene;
+
+        return {
+          ...scene,
+          hotspots: scene.hotspots.map((hotspot, j) => {
+            if (j !== hotspotIndex) return hotspot;
+
+            return {
+              ...hotspot,
+              ...patch,
+              id: patch.id ? slugify(patch.id) : hotspot.id,
+              pitch:
+                patch.pitch !== undefined
+                  ? Number(clamp(Number(patch.pitch), -90, 90).toFixed(2))
+                  : hotspot.pitch,
+              yaw:
+                patch.yaw !== undefined
+                  ? Number(clamp(Number(patch.yaw), -180, 180).toFixed(2))
+                  : hotspot.yaw,
+              label: patch.label !== undefined ? patch.label : hotspot.label,
+              targetSceneId:
+                patch.targetSceneId !== undefined
+                  ? slugify(patch.targetSceneId)
+                  : hotspot.targetSceneId,
+            };
+          }),
+        };
+      }),
+    }));
+  }
+
+  function removeHotspot(sceneIndex: number, hotspotIndex: number) {
+    setForm((prev) => ({
+      ...prev,
+      scenes360: prev.scenes360.map((scene, i) => {
+        if (i !== sceneIndex) return scene;
+        return {
+          ...scene,
+          hotspots: scene.hotspots.filter((_, j) => j !== hotspotIndex),
+        };
+      }),
+    }));
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0a0a0a] text-white">
+      <div className="mx-auto flex min-h-screen w-full max-w-[1600px] gap-6 px-6 py-6">
+        <aside className="flex w-[360px] shrink-0 flex-col overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl">
+          <div className="border-b border-white/10 px-6 py-6">
+            <div className="mb-2 text-[11px] uppercase tracking-[0.35em] text-white/45">
+              Private Admin
+            </div>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Luxury Property Console
+            </h1>
+            <p className="mt-2 text-sm leading-6 text-white/60">
+              Base local premium para crear, editar media, escenas 360 y hotspots.
+            </p>
+          </div>
+
+          <div className="border-b border-white/10 p-4">
+            <button
+              onClick={handleNew}
+              className="w-full rounded-2xl border border-white/15 bg-white px-4 py-3 text-sm font-medium text-black transition hover:opacity-90"
+            >
+              + Nueva propiedad
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="mb-3 text-[11px] uppercase tracking-[0.3em] text-white/35">
+              Inventario local
+            </div>
+
+            {loading ? (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/60">
+                Cargando propiedades...
+              </div>
+            ) : items.length === 0 ? (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/60">
+                Aún no hay propiedades guardadas.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {items.map((item) => {
+                  const active = item.id === selectedId;
+
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleSelect(item)}
+                      className={[
+                        "w-full rounded-2xl border p-4 text-left transition",
+                        active
+                          ? "border-white/30 bg-white/12"
+                          : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06]",
+                      ].join(" ")}
+                    >
+                      <div className="mb-2 flex items-center justify-between gap-3">
+                        <span className="text-xs uppercase tracking-[0.25em] text-white/40">
+                          {item.propertyType}
+                        </span>
+                        <span
+                          className={[
+                            "rounded-full px-2.5 py-1 text-[10px] uppercase tracking-[0.25em]",
+                            item.published
+                              ? "bg-emerald-500/15 text-emerald-300"
+                              : "bg-amber-500/15 text-amber-300",
+                          ].join(" ")}
+                        >
+                          {item.published ? "published" : "draft"}
+                        </span>
+                      </div>
+
+                      <div className="text-base font-medium leading-6 text-white">
+                        {item.title}
+                      </div>
+
+                      <div className="mt-1 text-sm text-white/55">{item.location}</div>
+
+                      <div className="mt-3 flex items-center justify-between text-xs text-white/40">
+                        <span>{item.price || "Sin precio"}</span>
+                        <span>{formatUpdatedAt(item.updatedAt)}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </aside>
+
+        <main className="flex-1">
+          <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl">
+            <div className="border-b border-white/10 px-8 py-7">
+              <div className="mb-2 text-[11px] uppercase tracking-[0.35em] text-white/45">
+                Step 4
+              </div>
+
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                  <h2 className="text-3xl font-semibold tracking-tight">
+                    {selectedRecord ? "Editar propiedad" : "Nueva propiedad"}
+                  </h2>
+                  <p className="mt-2 max-w-3xl text-sm leading-6 text-white/60">
+                    Ahora el admin ya puede crear hotspots visuales sobre el panorama,
+                    con coordenadas listas para tu viewer 360 propio.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => handleChange("slug", slugify(form.title))}
+                    className="rounded-2xl border border-white/15 px-4 py-3 text-sm text-white/80 transition hover:bg-white/10"
+                  >
+                    Generar slug
+                  </button>
+
+                  {selectedId !== "new" && (
+
+                    <button
+
+                      type="button"
+
+                      onClick={handleDelete}
+
+                      className="rounded-2xl border border-red-500/40 bg-red-600/20 px-4 py-3 text-sm font-medium text-red-100 transition hover:bg-red-600/30"
+
+                    >
+
+                      Eliminar propiedad
+
+                    </button>
+
+                  )}
+
+                  <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="rounded-2xl bg-white px-5 py-3 text-sm font-medium text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {saving ? "Guardando..." : "Guardar propiedad"}
+                  </button>
+                </div>
+              </div>
+
+              {message ? (
+                <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/75">
+                  {message}
+                </div>
+              ) : null}
+            </div>
+
+            <div className="grid gap-6 p-8 xl:grid-cols-[1.15fr_0.85fr]">
+              <section className="space-y-6">
+                <div className="rounded-[28px] border border-white/10 bg-black/20 p-6">
+                  <div className="mb-5 text-[11px] uppercase tracking-[0.3em] text-white/35">
+                    Core identity
+                  </div>
+
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <label className="block">
+                      <span className="mb-2 block text-sm text-white/65">Título</span>
+                      <input
+                        value={form.title}
+                        onChange={(e) => handleChange("title", e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
+                        placeholder="Villa frente al mar..."
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-sm text-white/65">Slug</span>
+                      <input
+                        value={form.slug}
+                        onChange={(e) => handleChange("slug", e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
+                        placeholder="villa-frente-al-mar"
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-sm text-white/65">ID interno</span>
+                      <input
+                        value={form.id}
+                        onChange={(e) => handleChange("id", e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
+                        placeholder="villa-frente-al-mar"
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-sm text-white/65">Tipo</span>
+                      <select
+                        value={form.propertyType}
+                        onChange={(e) => handleChange("propertyType", e.target.value as AdminPropertyInput["propertyType"])}
+                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
+                      >
+                        <option value="villa">Villa</option>
+                        <option value="penthouse">Penthouse</option>
+                        <option value="residence">Residence</option>
+                        <option value="estate">Estate</option>
+                        <option value="condo">Condo</option>
+                        <option value="land">Land</option>
+                      </select>
+                    </label>
+
+                    <label className="block md:col-span-2">
+                      <span className="mb-2 block text-sm text-white/65">Ubicación</span>
+                      <input
+                        value={form.location}
+                        onChange={(e) => handleChange("location", e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
+                        placeholder="Acapulco Diamante, Guerrero"
+                      />
+                    </label>
+
+                    <label className="block md:col-span-2">
+                      <span className="mb-2 block text-sm text-white/65">Tagline editorial</span>
+                      <input
+                        value={form.tagline}
+                        onChange={(e) => handleChange("tagline", e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
+                        placeholder="Una narrativa de lujo con mar, arquitectura y privacidad."
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="rounded-[28px] border border-white/10 bg-black/20 p-6">
+                  <div className="mb-5 text-[11px] uppercase tracking-[0.3em] text-white/35">
+                    Comercial
+                  </div>
+
+                  <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+                    <label className="block lg:col-span-2">
+                      <span className="mb-2 block text-sm text-white/65">Precio</span>
+                      <input
+                        value={form.price}
+                        onChange={(e) => handleChange("price", e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
+                        placeholder="MXN 38,500,000"
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-sm text-white/65">Moneda</span>
+                      <input
+                        value={form.currency}
+                        onChange={(e) => handleChange("currency", e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
+                        placeholder="MXN"
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-sm text-white/65">Luxury Score</span>
+                      <input
+                        type="number"
+                        value={form.luxuryScore}
+                        onChange={(e) => handleChange("luxuryScore", Number(e.target.value))}
+                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-sm text-white/65">Recámaras</span>
+                      <input
+                        type="number"
+                        value={form.bedrooms}
+                        onChange={(e) => handleChange("bedrooms", Number(e.target.value))}
+                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-sm text-white/65">Baños</span>
+                      <input
+                        type="number"
+                        value={form.bathrooms}
+                        onChange={(e) => handleChange("bathrooms", Number(e.target.value))}
+                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-sm text-white/65">Área interior</span>
+                      <input
+                        value={form.areaInterior}
+                        onChange={(e) => handleChange("areaInterior", e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
+                        placeholder="850 m²"
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-sm text-white/65">Área total</span>
+                      <input
+                        value={form.areaTotal}
+                        onChange={(e) => handleChange("areaTotal", e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
+                        placeholder="1200 m²"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="rounded-[28px] border border-white/10 bg-black/20 p-6">
+                  <div className="mb-5 text-[11px] uppercase tracking-[0.3em] text-white/35">
+                    Media manager
+                  </div>
+
+                  <div className="grid gap-6">
+                    <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+                      <div className="mb-3 flex items-center justify-between gap-4">
+                        <div>
+                          <div className="text-sm font-medium text-white">Cover image</div>
+                          <div className="mt-1 text-xs text-white/45">
+                            Imagen principal editorial de la propiedad.
+                          </div>
+                        </div>
+
+                        <label className="inline-flex cursor-pointer items-center rounded-2xl border border-white/15 px-4 py-3 text-sm text-white transition hover:bg-white/10">
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleUpload(file, "cover");
+                              e.currentTarget.value = "";
+                            }}
+                          />
+                          {uploadingCover ? "Subiendo..." : "Subir cover"}
+                        </label>
+                      </div>
+
+                      <input
+                        value={form.coverImage}
+                        onChange={(e) => handleChange("coverImage", e.target.value)}
+                        className="mb-4 w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
+                        placeholder="/uploads/properties/mi-propiedad/cover/imagen.jpg"
+                      />
+
+                      <div className={`relative aspect-[16/9] overflow-hidden rounded-[24px] border border-white/10 bg-black/30 ${
+                                  showHotspots ? "cursor-crosshair" : ""
+                                }`}>
+                        {form.coverImage ? (
+                          <Image
+                            src={form.coverImage}
+                            alt="Cover preview"
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-sm text-white/35">
+                            Sin cover image
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div
+                      className="rounded-3xl border border-white/10 bg-white/[0.03] p-5"
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                      }}
+                      onDrop={async (e) => {
+                        e.preventDefault();
+                        const files = Array.from(e.dataTransfer.files || []).filter((file) =>
+                          file.type.startsWith("image/")
+                        );
+                        if (files.length === 0) return;
+                        for (const file of files) {
+                          await handleUpload(file, "gallery");
+                        }
+                      }}
+                    >
+                      <div className="mb-4 flex items-center justify-between gap-4">
+                        <div>
+                          <div className="text-sm font-medium text-white">Gallery</div>
+                          <div className="mt-1 text-xs text-white/45">
+                            Colección editorial visual de la propiedad.
+                          </div>
+                          <div className="mt-2 text-[11px] text-white/30">
+                            Puedes seleccionar varias imágenes o arrastrarlas aquí.
+                          </div>
+                        </div>
+
+                        <label className="inline-flex cursor-pointer items-center rounded-2xl border border-white/15 px-4 py-3 text-sm text-white transition hover:bg-white/10">
+                          <input
+                            type="file"
+                            multiple
+                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const input = e.currentTarget;
+                              const files = Array.from(input.files || []);
+                              input.value = "";
+                              if (files.length === 0) return;
+                              for (const file of files) {
+                                await handleUpload(file, "gallery");
+                              }
+                            }}
+                          />
+                          {uploadingGallery ? "Subiendo..." : "Agregar imágenes"}
+                        </label>
+                      </div>
+
+                      {form.gallery.length === 0 ? (
+                        <div className="rounded-2xl border border-dashed border-white/10 px-4 py-8 text-center text-sm text-white/35">
+                          Aún no hay imágenes en galería.
+                        </div>
+                      ) : (
+                        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                          {form.gallery.map((imageUrl, index) => (
+                            <div
+                              key={`${imageUrl}-${index}`}
+                              className="overflow-hidden rounded-[24px] border border-white/10 bg-black/30"
+                            >
+                              <div className="relative aspect-[4/3]">
+                                <Image
+                                  src={imageUrl}
+                                  alt={`Gallery ${index + 1}`}
+                                  fill
+                                  className="object-cover"
+                                  unoptimized
+                                />
+                              </div>
+
+                              <div className="space-y-3 p-3">
+                                <div className="truncate text-xs text-white/45">
+                                  {imageUrl}
+                                </div>
+
+                                <button
+                                  onClick={() => removeGalleryImage(index)}
+                                  className="w-full rounded-2xl border border-white/10 px-3 py-2 text-xs text-white/75 transition hover:bg-white/10"
+                                >
+                                  Quitar imagen
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[28px] border border-white/10 bg-black/20 p-6">
+                  <div className="mb-5 flex items-center justify-between gap-4">
+                    <div>
+                      <div className="text-[11px] uppercase tracking-[0.3em] text-white/35">
+                        Scene manager 360
+                      </div>
+
+<div className="mb-4">
+</div>
+                      <div className="mt-2 text-sm text-white/55">
+                        Administra panoramas y escenas del visor 360 propio.
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <label className="inline-flex cursor-pointer items-center rounded-2xl border border-white/15 px-4 py-3 text-sm text-white transition hover:bg-white/10">
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/jpg,image/webp"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleUpload(file, "scenes360");
+                            e.currentTarget.value = "";
+                          }}
+                        />
+                        {uploadingScenes ? "Subiendo..." : "Subir panorama"}
+
+                      </label>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowHotspots((prev) => !prev)}
+                        className="rounded-2xl border border-white/15 px-4 py-3 text-sm text-white transition hover:bg-white/10"
+                      >
+                        {showHotspots ? "Ocultar hotspots" : "Hotspots"}
+                      </button>
+
+                      <button
+                        onClick={addEmptyScene}
+                        className="rounded-2xl border border-white/15 px-4 py-3 text-sm text-white transition hover:bg-white/10"
+                      >
+                        + Escena vacía
+                      </button>
+                    </div>
+                  </div>
+
+                  {form.scenes360.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-white/10 px-4 py-8 text-center text-sm text-white/35">
+                      Aún no hay escenas 360.
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {form.scenes360.map((scene, sceneIndex) => (
+                        <div
+                          key={`${scene.id}-${sceneIndex}`}
+                          className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4"
+                        >
+                          <div className="mb-4 grid gap-4 md:grid-cols-2">
+                            <label className="block">
+                              <span className="mb-2 block text-sm text-white/65">Título escena</span>
+                              <input
+                                value={scene.title}
+                                onChange={(e) => updateScene(sceneIndex, { title: e.target.value })}
+                                className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
+                                placeholder="Terraza principal"
+                              />
+                            </label>
+
+                            <label className="block">
+                              <span className="mb-2 block text-sm text-white/65">ID escena</span>
+                              <input
+                                value={scene.id}
+                                onChange={(e) => updateScene(sceneIndex, { id: e.target.value })}
+                                className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
+                                placeholder="terraza-principal"
+                              />
+                            </label>
+                          </div>
+
+                          <label className="mb-4 block">
+                            <span className="mb-2 block text-sm text-white/65">Ruta panorama</span>
+                            <input
+                              value={scene.image}
+                              onChange={(e) =>
+                                updateScene(sceneIndex, {
+                                  image: e.target.value,
+                                  thumbnail: e.target.value,
+                                })
+                              }
+                              className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
+                              placeholder="/uploads/properties/mi-propiedad/scenes360/panorama.jpg"
+                            />
+                          </label>
+
+                          <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="text-sm text-white/65">
+                                  Visor 360 simple activo. Los hotspots se activarán después.
+                                </div>
+
+                                <button
+                                  onClick={() => removeScene(sceneIndex)}
+                                  className="rounded-2xl border border-white/10 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
+                                >
+                                  Eliminar escena
+                                </button>
+                              </div>
+
+                              <div
+                                className="relative aspect-[16/9] overflow-hidden rounded-[24px] border border-white/10 bg-black/30"
+                                onClick={(event) => {
+                                  if (showHotspots) addHotspotByClick(sceneIndex, event);
+                                }}
+                              >
+                                {scene.image ? (
+                                  <>
+                                    <Viewer360 image={scene.image} />
+
+                                    <div className="absolute left-3 top-3 rounded-full border border-white/15 bg-black/55 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-white/75">
+                                      Visor 360
+                                    </div>
+
+                                    {showHotspots &&
+                                      scene.hotspots.map((hotspot, hotspotIndex) => (
+                                        <button
+                                          key={`${hotspot.id}-${hotspotIndex}-marker`}
+                                          type="button"
+                                          title={hotspot.label || `Hotspot ${hotspotIndex + 1}`}
+                                          className="absolute z-20 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_0_6px_rgba(255,255,255,0.2)] hover:scale-110 transition-transform"
+                                          style={{
+                                            left: `${yawToPercent(hotspot.yaw)}%`,
+                                            top: `${pitchToPercent(hotspot.pitch)}%`,
+                                          }}
+                                        />
+                                      ))}
+                                  </>
+                                ) : (
+                                  <div className="flex h-full items-center justify-center text-sm text-white/35">
+                                    Sin panorama
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="grid gap-3 md:grid-cols-3">
+                                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/70">
+                                  {showHotspots && <>Hotspots: <span className="text-white">{scene.hotspots.length}</span></>}
+                                </div>
+
+                                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/70">
+                                  Thumb: <span className="text-white">{scene.thumbnail ? "Sí" : "No"}</span>
+                                </div>
+
+                                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/70">
+                                  {showHotspots && <>Destinos válidos: <span className="text-white">{form.scenes360.length - 1 >= 0 ? form.scenes360.length - 1 : 0}</span></>}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-4">
+                              {showHotspots && (<>
+
+                              {scene.hotspots.length === 0 ? (
+                                <div className="rounded-2xl border border-dashed border-white/10 px-4 py-8 text-center text-sm text-white/35">
+                                  No hay hotspots todavía.
+                                </div>
+                              ) : (
+                                <div className="space-y-4">
+                                  {scene.hotspots.map((hotspot, hotspotIndex) => (
+                                    <div
+                                      key={`${hotspot.id}-${hotspotIndex}`}
+                                      className="rounded-[20px] border border-white/10 bg-black/20 p-4"
+                                    >
+                                      <div className="mb-4 flex items-center justify-between gap-3">
+                                        <div className="text-sm font-medium text-white">
+                                          Hotspot {hotspotIndex + 1}
+                                        </div>
+
+                                        <button
+                                          onClick={() => removeHotspot(sceneIndex, hotspotIndex)}
+                                          className="rounded-2xl border border-white/10 px-3 py-2 text-xs text-white/75 transition hover:bg-white/10"
+                                        >
+                                          Eliminar
+                                        </button>
+                                      </div>
+
+                                      <div className="grid gap-4">
+                                        <label className="block">
+                                          <span className="mb-2 block text-sm text-white/65">Label</span>
+                                          <input
+                                            value={hotspot.label}
+                                            onChange={(e) =>
+                                              updateHotspot(sceneIndex, hotspotIndex, {
+                                                label: e.target.value,
+                                              })
+                                            }
+                                            className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
+                                            placeholder="Ir a terraza"
+                                          />
+                                        </label>
+
+                                        <label className="block">
+                                          <span className="mb-2 block text-sm text-white/65">Destino</span>
+                                          <select
+                                            value={hotspot.targetSceneId || ""}
+                                            onChange={(e) =>
+                                              updateHotspot(sceneIndex, hotspotIndex, {
+                                                targetSceneId: e.target.value,
+                                              })
+                                            }
+                                            className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
+                                          >
+                                            <option value="">Sin destino</option>
+                                            {form.scenes360
+                                              .filter((candidate) => candidate.id !== scene.id)
+                                              .map((candidate) => (
+                                                <option key={candidate.id} value={candidate.id}>
+                                                  {candidate.title || candidate.id}
+                                                </option>
+                                              ))}
+                                          </select>
+                                        </label>
+
+                                        <div className="grid gap-4 md:grid-cols-2">
+                                          <label className="block">
+                                            <span className="mb-2 block text-sm text-white/65">Pitch</span>
+                                            <input
+                                              type="number"
+                                              step="0.01"
+                                              min="-90"
+                                              max="90"
+                                              value={hotspot.pitch}
+                                              onChange={(e) =>
+                                                updateHotspot(sceneIndex, hotspotIndex, {
+                                                  pitch: Number(e.target.value),
+                                                })
+                                              }
+                                              className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
+                                            />
+                                          </label>
+
+                                          <label className="block">
+                                            <span className="mb-2 block text-sm text-white/65">Yaw</span>
+                                            <input
+                                              type="number"
+                                              step="0.01"
+                                              min="-180"
+                                              max="180"
+                                              value={hotspot.yaw}
+                                              onChange={(e) =>
+                                                updateHotspot(sceneIndex, hotspotIndex, {
+                                                  yaw: Number(e.target.value),
+                                                })
+                                              }
+                                              className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
+                                            />
+                                          </label>
+                                        </div>
+
+                                        <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs text-white/55">
+                                          Posición visual: X {yawToPercent(hotspot.yaw).toFixed(1)}% · Y {pitchToPercent(hotspot.pitch).toFixed(1)}%
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}</>)}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="rounded-[28px] border border-white/10 bg-black/20 p-6">
+                  <div className="mb-5 text-[11px] uppercase tracking-[0.3em] text-white/35">
+                    Editorial
+                  </div>
+
+                  <div className="grid gap-5">
+                    <label className="block">
+                      <span className="mb-2 block text-sm text-white/65">Descripción</span>
+                      <textarea
+                        value={form.description}
+                        onChange={(e) => handleChange("description", e.target.value)}
+                        rows={7}
+                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
+                        placeholder="Describe la narrativa, arquitectura, ubicación y experiencia de la propiedad."
+                      />
+                    </label>
+                  </div>
+                </div>
+              </section>
+
+              <section className="space-y-6">
+                <div className="rounded-[28px] border border-white/10 bg-black/20 p-6">
+                  <div className="mb-5 text-[11px] uppercase tracking-[0.3em] text-white/35">
+                    Estado
+                  </div>
+
+                  <div className="grid gap-5">
+                    <label className="block">
+                      <span className="mb-2 block text-sm text-white/65">Status interno</span>
+                      <select
+                        value={form.status}
+                        onChange={(e) => handleChange("status", e.target.value as AdminPropertyInput["status"])}
+                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
+                      >
+                        <option value="draft">Draft</option>
+                        <option value="published">Published</option>
+                        <option value="archived">Archived</option>
+                      </select>
+                    </label>
+
+                    <label className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
+                      <div>
+                        <div className="text-sm font-medium text-white">Featured</div>
+                        <div className="mt-1 text-xs text-white/45">
+                          Marca la propiedad como destacada.
+                        </div>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={form.featured}
+                        onChange={(e) => handleChange("featured", e.target.checked)}
+                        className="h-5 w-5"
+                      />
+                    </label>
+
+                    <label className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
+                      <div>
+                        <div className="text-sm font-medium text-white">Published</div>
+                        <div className="mt-1 text-xs text-white/45">
+                          Control editorial de salida.
+                        </div>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={form.published}
+                        onChange={(e) => handleChange("published", e.target.checked)}
+                        className="h-5 w-5"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="rounded-[28px] border border-white/10 bg-black/20 p-6">
+                  <div className="mb-5 text-[11px] uppercase tracking-[0.3em] text-white/35">
+                    Snapshot
+                  </div>
+
+                  <div className="space-y-3 text-sm text-white/65">
+                    <div className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">
+                      <span>Escenas 360</span>
+                      <span className="text-white">{form.scenes360.length}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">
+                      <span>Galería</span>
+                      <span className="text-white">{form.gallery.length}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">
+                      <span>Cover</span>
+                      <span className="text-white">{form.coverImage ? "Sí" : "No"}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">
+                      <span>"Resumen 360"</span>
+                      <span className="text-white">
+                        form.scenes360.length
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">
+                      <span>Última edición</span>
+                      <span className="text-white">
+                        {selectedRecord ? formatUpdatedAt(selectedRecord.updatedAt) : "Nueva"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[28px] border border-white/10 bg-black/20 p-6">
+                  <div className="mb-5 text-[11px] uppercase tracking-[0.3em] text-white/35">
+                    Siguiente escalado
+                  </div>
+
+                  <div className="space-y-4 text-sm leading-6 text-white/65">
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                      El siguiente step debe conectar estos hotspots al viewer Three.js
+                      inmersivo dentro del admin.
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                      Después podemos activar preview real de transición entre escenas
+                      usando targetSceneId.
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                      Con eso ya tendrías un admin boutique casi listo para pasar a
+                      backend y multiusuario.
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}

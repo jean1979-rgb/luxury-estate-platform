@@ -1,0 +1,311 @@
+import Link from "next/link";
+import luxuryPartners from "@/data/luxury/luxuryPartners.json";
+import experiences from "@/data/luxury/experiences.json";
+import PropertyCard from "@/components/PropertyCard";
+import { getLuxuryProperties, getPropertyBadge } from "@/utils/catalog/properties";
+
+export default async function HomePage() {
+  const properties = await getLuxuryProperties();
+  const featured = properties.find((p) => p.featured) ?? properties[0];
+  const showcase = properties
+    .filter((p) => p.id !== featured?.id)
+    .sort((a, b) => (b.price ?? 0) - (a.price ?? 0))
+    .slice(0, 2);
+
+  if (!featured) {
+    return (
+      <main className="min-h-screen bg-[#0a0a0a] px-6 py-20 text-white md:px-10">
+        <div className="mx-auto max-w-5xl">
+          <p className="text-[10px] uppercase tracking-[0.38em] text-white/45">
+            Private Estates Mexico
+          </p>
+          <h1 className="mt-4 text-4xl font-light md:text-6xl">
+            Aún no hay propiedades de lujo publicadas
+          </h1>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-[#0a0a0a] text-[#f5f1eb]">
+      <section className="relative min-h-screen w-full overflow-hidden">
+        <img
+          src={featured.coverImage}
+          alt={featured.title}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+
+        <div className="absolute inset-0 bg-black/52" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/15 to-black/82" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/58 via-black/8 to-black/22" />
+
+        <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[1600px] flex-col justify-between px-[clamp(20px,4vw,56px)] py-[clamp(20px,3vw,40px)]">
+          <div className="max-w-[clamp(320px,42vw,760px)] pt-[clamp(24px,5vw,72px)]">
+            <p className="text-[clamp(10px,0.85vw,12px)] uppercase tracking-[0.38em] text-white/72">
+              Private Estates Mexico
+            </p>
+
+            <h1 className="mt-[clamp(14px,2vw,28px)] max-w-[12ch] text-[clamp(42px,5.8vw,88px)] font-light leading-[0.95] text-white">
+              La plataforma nacional de propiedades de lujo en México
+            </h1>
+
+            <p className="mt-[clamp(14px,1.8vw,26px)] max-w-[52ch] text-[clamp(15px,1.25vw,22px)] leading-[1.55] text-white/86">
+              Residencias curadas, narrativa editorial, video, 360 y una experiencia premium para venta y renta de ultra lujo.
+            </p>
+
+            <div className="mt-[clamp(20px,2.5vw,36px)] flex flex-wrap gap-3">
+              <a
+                href="#collection"
+                className="border border-white/30 bg-white/10 px-[clamp(16px,1.5vw,24px)] py-[clamp(10px,0.9vw,14px)] text-[clamp(11px,0.8vw,13px)] uppercase tracking-[0.22em] text-white backdrop-blur-md transition hover:bg-white hover:text-black"
+              >
+                Explorar selección
+              </a>
+
+              <Link
+                href="/acapulco"
+                className="border border-white/25 bg-black/25 px-[clamp(16px,1.5vw,24px)] py-[clamp(10px,0.9vw,14px)] text-[clamp(11px,0.8vw,13px)] uppercase tracking-[0.22em] text-white backdrop-blur-md transition hover:bg-white hover:text-black"
+              >
+                Descubrir Acapulco
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid items-end gap-[clamp(20px,2.4vw,44px)] pb-[clamp(10px,2vw,28px)] md:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+            <div className="max-w-[clamp(320px,48vw,900px)]">
+              <p className="text-[clamp(10px,0.8vw,12px)] uppercase tracking-[0.34em] text-[#f0dfbb]">
+                Featured Residence
+              </p>
+
+              <h2 className="mt-[clamp(10px,1.4vw,20px)] max-w-[11ch] text-[clamp(38px,5vw,86px)] font-light leading-[0.92] text-white">
+                {featured.title}
+              </h2>
+
+              <p className="mt-[clamp(12px,1.6vw,22px)] max-w-[55ch] text-[clamp(14px,1.15vw,21px)] leading-[1.55] text-white/88">
+                {featured.tagline ?? "Residencias curadas con narrativa, imagen y experiencia."}
+              </p>
+
+              <div className="mt-[clamp(14px,1.8vw,24px)] flex flex-wrap gap-3">
+                <span className="border border-white/20 bg-black/45 px-[clamp(12px,1vw,18px)] py-[clamp(8px,0.75vw,12px)] text-[clamp(10px,0.72vw,12px)] uppercase tracking-[0.22em] text-white backdrop-blur-md">
+                  {getPropertyBadge(featured)}
+                </span>
+
+                <span className="border border-white/20 bg-black/45 px-[clamp(12px,1vw,18px)] py-[clamp(8px,0.75vw,12px)] text-[clamp(10px,0.72vw,12px)] uppercase tracking-[0.22em] text-white backdrop-blur-md">
+                  Private Estates Mexico
+                </span>
+              </div>
+
+              <Link
+                href={`/properties/${featured.id}`}
+                className="mt-[clamp(18px,2vw,30px)] inline-block border border-white/30 bg-black/40 px-[clamp(16px,1.4vw,24px)] py-[clamp(10px,0.9vw,14px)] text-[clamp(12px,0.85vw,14px)] tracking-[0.12em] text-white backdrop-blur-md transition hover:bg-white hover:text-black"
+              >
+                Explorar propiedad
+              </Link>
+            </div>
+
+            <div className="md:justify-self-end">
+              <div className="max-w-[min(100%,520px)] border border-white/18 bg-black/38 p-[clamp(18px,1.8vw,30px)] backdrop-blur-md">
+                <p className="text-[clamp(10px,0.72vw,12px)] uppercase tracking-[0.32em] text-white/58">
+                  La capa plataforma
+                </p>
+
+                <h3 className="mt-[clamp(12px,1.2vw,18px)] text-[clamp(24px,2vw,38px)] font-light leading-[1.05] text-white">
+                  Una sola entrada al lujo inmobiliario en México
+                </h3>
+
+                <p className="mt-[clamp(12px,1.2vw,18px)] text-[clamp(13px,1vw,17px)] leading-[1.7] text-white/80">
+                  La plataforma construye deseo. La experiencia de destino organiza el descubrimiento. La capa operativa añade media, 360, overrides y narrativa premium.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="partners" className="border-t border-white/10 bg-[#0c0c0c] px-6 py-16 md:px-10 md:py-20">
+        <div className="mx-auto max-w-7xl">
+          <div className="max-w-3xl">
+            <p className="text-[10px] uppercase tracking-[0.4em] text-white/40">
+              Luxury Partners
+            </p>
+
+            <h3 className="mt-4 text-3xl font-light leading-tight md:text-5xl">
+              Marcas y experiencias que elevan el ecosistema del lujo
+            </h3>
+
+            <p className="mt-5 max-w-2xl text-white/60 md:text-lg">
+              La publicidad dentro de la plataforma no debe sentirse como banner. Debe sentirse como una extensión natural del estilo de vida que rodea cada residencia.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {luxuryPartners.map((partner) => (
+              <article
+                key={partner.name}
+                className="border border-white/10 bg-[#101010] p-6 transition hover:bg-[#141414]"
+              >
+                <p className="text-[10px] uppercase tracking-[0.34em] text-white/45">
+                  {partner.category}
+                </p>
+
+                <h4 className="mt-4 text-2xl font-light text-white">
+                  {partner.name}
+                </h4>
+
+                <p className="mt-4 text-sm leading-relaxed text-white/65">
+                  {partner.note}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t border-white/10 bg-[#090909] px-6 py-16 md:px-10 md:py-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-10 max-w-3xl">
+            <p className="text-[10px] uppercase tracking-[0.4em] text-white/40">
+              Experiencias
+            </p>
+
+            <h3 className="mt-4 text-3xl font-light leading-tight md:text-5xl">
+              Una sección tipo revista para vender el lujo completo
+            </h3>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {experiences.map((item) => (
+              <article
+                key={item.title}
+                className="flex min-h-[320px] flex-col justify-between border border-white/10 bg-[#0f0f0f] p-7"
+              >
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.34em] text-white/40">
+                    {item.eyebrow}
+                  </p>
+
+                  <h4 className="mt-4 text-2xl font-light leading-tight">
+                    {item.title}
+                  </h4>
+
+                  <p className="mt-5 text-sm leading-relaxed text-white/62">
+                    {item.text}
+                  </p>
+                </div>
+
+                <div className="mt-8 h-px w-16 bg-white/20" />
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-white/10 bg-[#0d0d0d]" id="collection">
+        <div className="mx-auto max-w-7xl px-6 py-14 md:px-10">
+          <div className="mb-8 max-w-2xl">
+            <p className="text-[10px] uppercase tracking-[0.38em] text-white/40">
+              Destinations
+            </p>
+
+            <h3 className="mt-3 text-3xl font-light tracking-[0.04em] md:text-5xl">
+              Mercados de lujo que definirán la plataforma
+            </h3>
+
+            <p className="mt-4 text-sm leading-relaxed text-white/58 md:text-base">
+              Acapulco abre la primera experiencia de destino. Después creceremos hacia los mercados más relevantes del lujo en México.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <Link
+              href="/acapulco"
+              className="group border border-white/10 bg-[#111111] p-6 transition hover:border-white/30 hover:bg-[#151515]"
+            >
+              <p className="text-[10px] uppercase tracking-[0.34em] text-[#d8c7a6]">
+                Live Destination
+              </p>
+              <h4 className="mt-4 text-2xl font-light text-white">
+                Acapulco
+              </h4>
+              <p className="mt-3 text-sm leading-relaxed text-white/58">
+                El primer mercado premium activo de Private Estates Mexico.
+              </p>
+            </Link>
+
+            {["Los Cabos", "Punta Mita", "Riviera Maya", "CDMX", "Valle de Bravo"].map((city) => (
+              <div
+                key={city}
+                className="border border-white/10 bg-[#101010] p-6"
+              >
+                <p className="text-[10px] uppercase tracking-[0.34em] text-white/35">
+                  Coming Soon
+                </p>
+                <h4 className="mt-4 text-2xl font-light text-white/88">
+                  {city}
+                </h4>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-6 py-16 md:px-10 md:py-20">
+        <div className="mb-10 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-[10px] uppercase tracking-[0.38em] text-white/40">
+              Curated luxury selection
+            </p>
+
+            <h3 className="mt-3 text-3xl font-light tracking-[0.04em] md:text-5xl">
+              Solo unas cuantas residencias, las más altas del catálogo
+            </h3>
+
+            <p className="mt-4 text-sm leading-relaxed text-white/58 md:text-base">
+              Una muestra breve de propiedades premium para mantener la portada limpia, aspiracional y editorial.
+            </p>
+          </div>
+
+          <Link
+            href="/acapulco"
+            className="inline-flex items-center border border-white/15 px-5 py-3 text-[11px] uppercase tracking-[0.28em] text-white/70 transition hover:border-white/35 hover:bg-white hover:text-black"
+          >
+            Descubrir Acapulco
+          </Link>
+        </div>
+
+        <div className="grid gap-8 md:grid-cols-2">
+          {showcase.map((property) => (
+            <PropertyCard
+              key={property.id}
+              id={property.id}
+              title={property.title}
+              location={property.location}
+              image={property.coverImage}
+              badge={getPropertyBadge(property)}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="border-t border-white/10 px-6 py-20 md:px-10">
+        <div className="mx-auto max-w-4xl text-center">
+          <p className="text-[11px] uppercase tracking-[0.4em] text-white/40">
+            Filosofía
+          </p>
+
+          <h3 className="mt-6 text-3xl font-light leading-relaxed md:text-5xl">
+            Primero la plataforma.
+            <br />
+            Después la residencia.
+            <br />
+            Después el lifestyle.
+          </h3>
+
+          <p className="mx-auto mt-6 max-w-3xl text-white/60 md:text-lg">
+            Private Estates Mexico no solo muestra propiedades. Construye una percepción completa de lujo, pertenencia, destino y estilo de vida.
+          </p>
+        </div>
+      </section>
+    </main>
+  );
+}

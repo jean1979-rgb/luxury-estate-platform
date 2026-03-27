@@ -1,0 +1,76 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import * as THREE from "three";
+
+type Hotspot = {
+  id: string;
+  pitch: number;
+  yaw: number;
+  label: string;
+  targetSceneId?: string;
+};
+
+type Scene = {
+  id: string;
+  image: string;
+  hotspots: Hotspot[];
+};
+
+type Props = {
+  scene: Scene;
+};
+
+export default function Viewer360({ scene }: Props) {
+  const mountRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!mountRef.current || !scene?.image) return;
+
+    const container = mountRef.current;
+
+    const sceneThree = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      container.clientWidth / container.clientHeight,
+      1,
+      1100
+    );
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
+
+    const geometry = new THREE.SphereGeometry(500, 60, 40);
+    geometry.scale(-1, 1, 1);
+
+    const texture = new THREE.TextureLoader().load(scene.image);
+
+    const material = new THREE.MeshBasicMaterial({ map: texture });
+
+    const mesh = new THREE.Mesh(geometry, material);
+    sceneThree.add(mesh);
+
+    camera.position.set(0, 0, 0.1);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(sceneThree, camera);
+    }
+
+    animate();
+
+    return () => {
+      container.removeChild(renderer.domElement);
+      renderer.dispose();
+    };
+  }, [scene]);
+
+  return (
+    <div
+      ref={mountRef}
+      className="w-full h-[500px] bg-black rounded-2xl overflow-hidden"
+    />
+  );
+}

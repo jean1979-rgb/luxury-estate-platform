@@ -1,0 +1,37 @@
+import PropertyCard from "@/components/PropertyCard";
+import { getCasaDePlayaProperties, getPropertyBadge } from "@/utils/catalog/properties";
+
+export default async function CasaDePlayaPage() {
+  const properties = await getCasaDePlayaProperties();
+
+  return (
+    <main className="min-h-screen bg-black px-6 py-12 text-white md:px-10">
+      <div className="mx-auto max-w-7xl">
+        <p className="text-[10px] uppercase tracking-[0.38em] text-white/45">
+          Inmobiliaria
+        </p>
+
+        <h1 className="mt-4 text-4xl font-light md:text-6xl">
+          Casa de Playa
+        </h1>
+
+        <p className="mt-4 max-w-3xl text-white/65 md:text-lg">
+          Inventario de la inmobiliaria con propiedades propias y de Tokko, listo para separar venta y renta sin romper la capa editorial premium.
+        </p>
+
+        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
+          {properties.map((p) => (
+            <PropertyCard
+              key={p.id}
+              id={p.id}
+              title={p.title}
+              location={p.location}
+              image={p.coverImage}
+              badge={getPropertyBadge(p)}
+            />
+          ))}
+        </div>
+      </div>
+    </main>
+  );
+}
