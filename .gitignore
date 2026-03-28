@@ -5,3 +5,9 @@ node_modules
 BACKUP_GLOBAL_*.tar.gz
 _BACKUPS*
 tsconfig.tsbuildinfo
+
+# backups
+*.BACKUP_*
+
+# uploads
+public/uploads/

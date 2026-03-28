@@ -380,13 +380,8 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
     setMessage("");
 
     try {
-      if (items.some((p) => p.id === `admin-${item.id}`)) {
-        alert("Ya importada");
-        return;
-      }
-
       const payload: AdminPropertyInput = {
-        source: "tokko",
+        source: { provider: "manual" },
         ...form,
         id: form.id ? slugify(form.id) : slugify(form.slug || form.title),
         slug: slugify(form.slug || form.title),
