@@ -1,6 +1,6 @@
 [
   {
-    "id": "admin-admin-tokko-3782521",
+    "id": "admin-admin-admin-tokko-3782521",
     "title": "DEPARTAMENTO DE LUJO EN VENTA ACAPULCO DIAMANTE",
     "slug": "departamento-de-lujo-en-venta-acapulco-diamante",
     "status": "draft",
@@ -37,7 +37,6 @@
       "https://static.tokkobroker.com/pictures/105887479218751455645472770409478911445664959277083252704077980099435033549611.jpg",
       "https://static.tokkobroker.com/pictures/93669916377647471334237079674827271839126555035896490086469950430949823253068.jpg",
       "https://static.tokkobroker.com/pictures/110612963360590941264765334781188719438128435572333734034889569271498800845527.jpg",
-      "https://static.tokkobroker.com/pictures/55878523201067041837051348180802372427088529005669821022349458080767483943847.jpg",
       "https://static.tokkobroker.com/pictures/2762157616124001398944362801687398429921200898834152509615763988610992747692.jpg",
       "https://static.tokkobroker.com/pictures/115719083837423270479918966845778587572446110938520076235316718011257638123512.jpg",
       "https://static.tokkobroker.com/pictures/81580096078693404464259332874563234970102337330945163238784076575897649518518.jpg",
@@ -77,18 +76,56 @@
     ],
     "scenes360": [
       {
-        "id": "dji-fly-20250514-134034-774-1747251897695-pano-optimized",
-        "title": "dji_fly_20250514_134034_774_1747251897695_pano_optimized",
-        "image": "/uploads/properties/admin-tokko-3782521/scenes360/dji-fly-20250514-134034-774-1747251897695-pano-optimized-1774664644112.jpg",
-        "thumbnail": "/uploads/properties/admin-tokko-3782521/scenes360/dji-fly-20250514-134034-774-1747251897695-pano-optimized-1774664644112.jpg",
-        "hotspots": []
-      },
-      {
-        "id": "dji-fly-20250514-133620-772-1747252202771-pano-optimized",
-        "title": "dji_fly_20250514_133620_772_1747252202771_pano_optimized",
+        "id": "1",
+        "title": "Palapas exterior",
         "image": "/uploads/properties/admin-admin-tokko-3782521/scenes360/dji-fly-20250514-133620-772-1747252202771-pano-optimized-1774673970621.jpg",
         "thumbnail": "/uploads/properties/admin-admin-tokko-3782521/scenes360/dji-fly-20250514-133620-772-1747252202771-pano-optimized-1774673970621.jpg",
-        "hotspots": []
+        "hotspots": [
+          {
+            "id": "hotspot-1774740001718-1",
+            "pitch": -5.82,
+            "yaw": -66.74,
+            "label": "Hotspot 1",
+            "targetSceneId": "dji-fly-20250514-134034-774-1747251897695-pano-optimized"
+          },
+          {
+            "id": "hotspot-1774740128918-2",
+            "pitch": -3.71,
+            "yaw": 140.57,
+            "label": "Hotspot 2",
+            "targetSceneId": "dji-fly-20250514-134400-776-1747252261316-pano-optimized"
+          }
+        ]
+      },
+      {
+        "id": "dji-fly-20250514-134400-776-1747252261316-pano-optimized",
+        "title": "Palappas interior",
+        "image": "/uploads/properties/admin-admin-admin-tokko-3782521/scenes360/dji-fly-20250514-134400-776-1747252261316-pano-optimized-1774727829517.jpg",
+        "thumbnail": "/uploads/properties/admin-admin-admin-tokko-3782521/scenes360/dji-fly-20250514-134400-776-1747252261316-pano-optimized-1774727829517.jpg",
+        "hotspots": [
+          {
+            "id": "hotspot-1774740101966-1",
+            "pitch": 0.35,
+            "yaw": 8.65,
+            "label": "Hotspot 1",
+            "targetSceneId": "1"
+          }
+        ]
+      },
+      {
+        "id": "dji-fly-20250514-134034-774-1747251897695-pano-optimized",
+        "title": "Celeste",
+        "image": "/uploads/properties/admin-admin-admin-tokko-3782521/scenes360/dji-fly-20250514-134034-774-1747251897695-pano-optimized-1774739941590.jpg",
+        "thumbnail": "/uploads/properties/admin-admin-admin-tokko-3782521/scenes360/dji-fly-20250514-134034-774-1747251897695-pano-optimized-1774739941590.jpg",
+        "hotspots": [
+          {
+            "id": "hotspot-1774740068552-1",
+            "pitch": 6.58,
+            "yaw": 37.09,
+            "label": "Hotspot 1",
+            "targetSceneId": "1"
+          }
+        ]
       }
     ],
     "source": {
@@ -99,7 +136,7 @@
     "luxuryScore": 80,
     "description": "Quinta del Mar es un exclusivo y lujoso conjunto residencial compuesto por dos imponentes torres, que ofrecen una espectacular vista panorámica hacia Acapulco Diamante. Ubicado en la prestigiosa y segura zona de Real Diamante, una de las más codiciadas de Acapulco, este desarrollo garantiza privacidad y tranquilidad gracias a sus tres filtros de acceso. Además, dispone de acceso directo a la playa de Real Diamante, permitiendo disfrutar de la belleza natural de la zona en todo su esplendor.\nAmenidades:\nGimnasio totalmente equipado.Bar en la alberca con vista a mar y Acapulco Diamante.Seguridad las 24 horas del día.Cancha de padel para los amantes del deporte.Cuatro albercas para relajarse y disfrutar del sol.Un lugar ideal para quienes buscan un estilo de vida refinado, rodeado de confort y seguridad.",
     "createdAt": "2026-03-28T01:18:44.661Z",
-    "updatedAt": "2026-03-28T04:59:39.878Z"
+    "updatedAt": "2026-03-28T23:22:16.838Z"
   },
   {
     "id": "villa-frente-al-mar",
