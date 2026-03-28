@@ -74,7 +74,7 @@ function buildHotspot(index: number, pitch: number, yaw: number): AdminHotspot {
 }
 
 export default function AdminClient() {
-  const [showHotspots, setShowHotspots] = useState(false);
+  const [activeHotspotScene, setActiveHotspotScene] = useState<string | null>(null);
   const [items, setItems] = useState<AdminPropertyRecord[]>([]);
   
   async function handleTokkoSync() {
@@ -572,9 +572,9 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
     }));
   }
 
-  function addHotspotByClick(
+  function addHotspotAtCoords(
     sceneIndex: number,
-    event: React.MouseEvent<HTMLDivElement>
+    coords: { pitch: number; yaw: number }
   ) {
     const scene = form.scenes360[sceneIndex];
     if (!scene) return;
@@ -583,12 +583,8 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
       return;
     }
 
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = clamp((event.clientX - rect.left) / rect.width, 0, 1);
-    const y = clamp((event.clientY - rect.top) / rect.height, 0, 1);
-
-    const yaw = Number(percentToYaw(x * 100).toFixed(2));
-    const pitch = Number(percentToPitch(y * 100).toFixed(2));
+    const pitch = Number(clamp(Number(coords.pitch), -90, 90).toFixed(2));
+    const yaw = Number(clamp(Number(coords.yaw), -180, 180).toFixed(2));
     const hotspot = buildHotspot(scene.hotspots.length, pitch, yaw);
 
     setForm((prev) => ({
@@ -602,7 +598,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
       }),
     }));
 
-    setMessage("Hotspot creado. Ajusta label y destino antes de guardar.");
+    setMessage("Hotspot creado en el visor 360. Ajusta label y destino antes de guardar.");
   }
 
   function updateHotspot(
@@ -1056,7 +1052,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                       />
 
                       <div className={`relative aspect-[16/9] overflow-hidden rounded-[24px] border border-white/10 bg-black/30 ${
-                                  showHotspots ? "cursor-crosshair" : ""
+                                  ""
                                 }`}>
                         {form.coverImage ? (
                           <Image
@@ -1189,18 +1185,10 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                           }}
                         />
                         {uploadingScenes ? "Subiendo..." : "Subir panorama"}
-
                       </label>
 
                       <button
                         type="button"
-                        onClick={() => setShowHotspots((prev) => !prev)}
-                        className="rounded-2xl border border-white/15 px-4 py-3 text-sm text-white transition hover:bg-white/10"
-                      >
-                        {showHotspots ? "Ocultar hotspots" : "Hotspots"}
-                      </button>
-
-                      <button
                         onClick={addEmptyScene}
                         className="rounded-2xl border border-white/15 px-4 py-3 text-sm text-white transition hover:bg-white/10"
                       >
@@ -1215,7 +1203,16 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                     </div>
                   ) : (
                     <div className="space-y-6">
-                      {form.scenes360.map((scene, sceneIndex) => (
+                      {form.scenes360.map((scene, sceneIndex) => {
+  const safeScene = {
+    id: scene?.id ?? "",
+    title: scene?.title ?? "",
+    image: scene?.image ?? "",
+    hotspots: Array.isArray(scene?.hotspots) ? scene.hotspots : [],
+  };
+                        const isEditingHotspots = activeHotspotScene === scene.id;
+
+                        return (
                         <div
                           key={`${scene.id}-${sceneIndex}`}
                           className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4"
@@ -1224,7 +1221,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                             <label className="block">
                               <span className="mb-2 block text-sm text-white/65">Título escena</span>
                               <input
-                                value={scene.title}
+                                value={safeScene.title}
                                 onChange={(e) => updateScene(sceneIndex, { title: e.target.value })}
                                 className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
                                 placeholder="Terraza principal"
@@ -1234,7 +1231,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                             <label className="block">
                               <span className="mb-2 block text-sm text-white/65">ID escena</span>
                               <input
-                                value={scene.id}
+                                value={safeScene.id}
                                 onChange={(e) => updateScene(sceneIndex, { id: e.target.value })}
                                 className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
                                 placeholder="terraza-principal"
@@ -1245,7 +1242,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                           <label className="mb-4 block">
                             <span className="mb-2 block text-sm text-white/65">Ruta panorama</span>
                             <input
-                              value={scene.image}
+                              value={safeScene.image}
                               onChange={(e) =>
                                 updateScene(sceneIndex, {
                                   image: e.target.value,
@@ -1261,44 +1258,49 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                             <div className="space-y-4">
                               <div className="flex items-center justify-between gap-3">
                                 <div className="text-sm text-white/65">
-                                  Visor 360 simple activo. Los hotspots se activarán después.
+                                  {isEditingHotspots
+                                    ? "Modo hotspots activo para esta escena."
+                                    : "Visor 360 simple activo. Los hotspots se editan por escena."}
                                 </div>
 
-                                <button
-                                  onClick={() => removeScene(sceneIndex)}
-                                  className="rounded-2xl border border-white/10 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
-                                >
-                                  Eliminar escena
-                                </button>
+                                <div className="flex items-center gap-3">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setActiveHotspotScene((prev) =>
+                                        prev === scene.id ? null : scene.id
+                                      )
+                                    }
+                                    className="rounded-2xl border border-white/10 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
+                                  >
+                                    {isEditingHotspots ? "Ocultar hotspots" : "Editar hotspots"}
+                                  </button>
+
+                                  <button
+                                    onClick={() => removeScene(sceneIndex)}
+                                    className="rounded-2xl border border-white/10 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
+                                  >
+                                    Eliminar escena
+                                  </button>
+                                </div>
                               </div>
 
-                              <div
-                                className="relative aspect-[16/9] overflow-hidden rounded-[24px] border border-white/10 bg-black/30"
-                                onClick={(event) => {
-                                  if (showHotspots) addHotspotByClick(sceneIndex, event);
-                                }}
-                              >
+                              <div className="relative aspect-[16/9] overflow-hidden rounded-[24px] border border-white/10 bg-black/30">
                                 {scene.image ? (
                                   <>
-                                    <Viewer360 image={scene.image} />
+                                    <Viewer360
+                                      image={scene.image}
+                                      hotspots={scene.hotspots}
+                                      editable={isEditingHotspots}
+                                      onSceneClick={({ pitch, yaw }) => {
+                                        if (!isEditingHotspots) return;
+                                        addHotspotAtCoords(sceneIndex, { pitch, yaw });
+                                      }}
+                                    />
 
                                     <div className="absolute left-3 top-3 rounded-full border border-white/15 bg-black/55 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-white/75">
-                                      Visor 360
+                                      {isEditingHotspots ? "Editar hotspots 360" : "Visor 360"}
                                     </div>
-
-                                    {showHotspots &&
-                                      scene.hotspots.map((hotspot, hotspotIndex) => (
-                                        <button
-                                          key={`${hotspot.id}-${hotspotIndex}-marker`}
-                                          type="button"
-                                          title={hotspot.label || `Hotspot ${hotspotIndex + 1}`}
-                                          className="absolute z-20 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_0_6px_rgba(255,255,255,0.2)] hover:scale-110 transition-transform"
-                                          style={{
-                                            left: `${yawToPercent(hotspot.yaw)}%`,
-                                            top: `${pitchToPercent(hotspot.pitch)}%`,
-                                          }}
-                                        />
-                                      ))}
                                   </>
                                 ) : (
                                   <div className="flex h-full items-center justify-center text-sm text-white/35">
@@ -1309,7 +1311,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
 
                               <div className="grid gap-3 md:grid-cols-3">
                                 <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/70">
-                                  {showHotspots && <>Hotspots: <span className="text-white">{scene.hotspots.length}</span></>}
+                                  {isEditingHotspots && <>Hotspots: <span className="text-white">{scene.hotspots.length}</span></>}
                                 </div>
 
                                 <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/70">
@@ -1317,13 +1319,13 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                                 </div>
 
                                 <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/70">
-                                  {showHotspots && <>Destinos válidos: <span className="text-white">{form.scenes360.length - 1 >= 0 ? form.scenes360.length - 1 : 0}</span></>}
+                                  {isEditingHotspots && <>Destinos válidos: <span className="text-white">{form.scenes360.length - 1 >= 0 ? form.scenes360.length - 1 : 0}</span></>}
                                 </div>
                               </div>
                             </div>
 
                             <div className="space-y-4">
-                              {showHotspots && (<>
+                              {isEditingHotspots && (<>
 
                               {scene.hotspots.length === 0 ? (
                                 <div className="rounded-2xl border border-dashed border-white/10 px-4 py-8 text-center text-sm text-white/35">
@@ -1433,7 +1435,8 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                             </div>
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>

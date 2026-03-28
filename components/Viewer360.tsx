@@ -4,7 +4,99 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-export default function Viewer360({ image }: { image: string }) {
+type Hotspot360 = {
+  id: string;
+  pitch: number;
+  yaw: number;
+  label?: string;
+  targetSceneId?: string;
+};
+
+type Viewer360Props = {
+  image: string;
+  hotspots?: Hotspot360[];
+  onHotspotClick?: (targetSceneId?: string) => void;
+  editable?: boolean;
+  onSceneClick?: (coords: { yaw: number; pitch: number }) => void;
+};
+
+function hotspotToVector3(yaw: number, pitch: number, radius: number) {
+  const yawRad = THREE.MathUtils.degToRad(yaw);
+  const pitchRad = THREE.MathUtils.degToRad(pitch);
+
+  const x = radius * Math.cos(pitchRad) * Math.cos(yawRad);
+  const y = radius * Math.sin(pitchRad);
+  const z = radius * Math.cos(pitchRad) * Math.sin(yawRad);
+
+  return new THREE.Vector3(x, y, z);
+}
+
+function vector3ToHotspot(point: THREE.Vector3) {
+  const normalized = point.clone().normalize();
+  const pitch = THREE.MathUtils.radToDeg(Math.asin(normalized.y));
+  const yaw = THREE.MathUtils.radToDeg(Math.atan2(normalized.z, normalized.x));
+
+  return {
+    yaw: Number(yaw.toFixed(2)),
+    pitch: Number(pitch.toFixed(2)),
+  };
+}
+
+function createHotspotTexture(label = "GO", editable = false) {
+  const size = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  ctx.clearRect(0, 0, size, size);
+
+  const cx = size / 2;
+  const cy = size / 2;
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, 108, 0, Math.PI * 2);
+  ctx.fillStyle = editable ? "rgba(180,180,180,0.58)" : "rgba(0,0,0,0.58)";
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, 108, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(255,255,255,0.82)";
+  ctx.lineWidth = 5;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, 82, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(255,255,255,0.20)";
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, 56, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(255,255,255,0.14)";
+  ctx.fill();
+
+  ctx.font = "700 38px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "rgba(255,255,255,0.98)";
+  ctx.fillText(label.toUpperCase(), cx, cy + 2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+export default function Viewer360({
+  image,
+  hotspots = [],
+  onHotspotClick,
+  editable = false,
+  onSceneClick,
+}: Viewer360Props) {
   const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -12,6 +104,11 @@ export default function Viewer360({ image }: { image: string }) {
     if (!container || !image) return;
 
     let animationId = 0;
+    let isPointerDown = false;
+    let pointerMoved = false;
+
+    const hotspotSprites: THREE.Sprite[] = [];
+    const hotspotTextures: THREE.Texture[] = [];
 
     const scene = new THREE.Scene();
 
@@ -25,7 +122,10 @@ export default function Viewer360({ image }: { image: string }) {
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setSize(Math.max(container.clientWidth, 1), Math.max(container.clientHeight, 1));
+    renderer.setSize(
+      Math.max(container.clientWidth, 1),
+      Math.max(container.clientHeight, 1)
+    );
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.domElement.style.display = "block";
     renderer.domElement.style.width = "100%";
@@ -46,8 +146,8 @@ export default function Viewer360({ image }: { image: string }) {
     texture.magFilter = THREE.LinearFilter;
 
     const material = new THREE.MeshBasicMaterial({ map: texture });
-    const mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
+    const sphereMesh = new THREE.Mesh(geometry, material);
+    scene.add(sphereMesh);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -63,6 +163,49 @@ export default function Viewer360({ image }: { image: string }) {
     const target = new THREE.Vector3(1, 0, 0);
     controls.target.copy(target);
     controls.update();
+
+    const hotspotGroup = new THREE.Group();
+    scene.add(hotspotGroup);
+
+    const visibleHotspots = Array.isArray(hotspots) ? hotspots : [];
+
+    for (const hotspot of visibleHotspots) {
+      const texture = createHotspotTexture(
+        hotspot.label || (editable ? "EDIT" : "GO"),
+        editable
+      );
+      if (!texture) continue;
+
+      hotspotTextures.push(texture);
+
+      const spriteMaterial = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+      });
+
+      const sprite = new THREE.Sprite(spriteMaterial);
+      const position = hotspotToVector3(
+        Number(hotspot.yaw || 0),
+        Number(hotspot.pitch || 0),
+        440
+      );
+
+      sprite.position.copy(position);
+      sprite.scale.set(126, 126, 1);
+      sprite.userData = {
+        hotspotId: hotspot.id,
+        targetSceneId: hotspot.targetSceneId,
+        label: hotspot.label,
+      };
+
+      hotspotGroup.add(sprite);
+      hotspotSprites.push(sprite);
+    }
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
 
     function onResize() {
       const width = Math.max(container.clientWidth, 1);
@@ -88,7 +231,82 @@ export default function Viewer360({ image }: { image: string }) {
       }
     }
 
+    function getPointer(event: PointerEvent) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    }
+
+    function updateHover(event: PointerEvent) {
+      getPointer(event);
+      raycaster.setFromCamera(pointer, camera);
+      const intersections = raycaster.intersectObjects(hotspotSprites);
+
+      if (intersections.length > 0) {
+        renderer.domElement.style.cursor = "pointer";
+        return;
+      }
+
+      renderer.domElement.style.cursor = editable ? "crosshair" : "grab";
+    }
+
+    function onPointerDown() {
+      isPointerDown = true;
+      pointerMoved = false;
+      renderer.domElement.style.cursor = editable ? "crosshair" : "grabbing";
+    }
+
+    function onPointerMove(event: PointerEvent) {
+      if (isPointerDown) {
+        pointerMoved = true;
+      }
+      updateHover(event);
+    }
+
+    function onPointerUp(event: PointerEvent) {
+      const wasDragging = pointerMoved;
+      isPointerDown = false;
+
+      updateHover(event);
+
+      if (wasDragging) return;
+
+      getPointer(event);
+      raycaster.setFromCamera(pointer, camera);
+
+      const hotspotIntersections = raycaster.intersectObjects(hotspotSprites);
+      if (hotspotIntersections.length > 0) {
+        const first = hotspotIntersections[0]?.object;
+        const targetSceneId = first?.userData?.targetSceneId;
+
+        if (targetSceneId) {
+          onHotspotClick?.(targetSceneId);
+        }
+        return;
+      }
+
+      if (!editable || !onSceneClick) return;
+
+      const sphereIntersections = raycaster.intersectObject(sphereMesh);
+      if (sphereIntersections.length === 0) return;
+
+      const point = sphereIntersections[0].point;
+      const coords = vector3ToHotspot(point);
+      onSceneClick(coords);
+    }
+
+    function onPointerLeave() {
+      isPointerDown = false;
+      pointerMoved = false;
+      renderer.domElement.style.cursor = editable ? "crosshair" : "grab";
+    }
+
     renderer.domElement.addEventListener("wheel", onWheel, { passive: false });
+    renderer.domElement.addEventListener("pointerdown", onPointerDown);
+    renderer.domElement.addEventListener("pointermove", onPointerMove);
+    renderer.domElement.addEventListener("pointerup", onPointerUp);
+    renderer.domElement.addEventListener("pointerleave", onPointerLeave);
+
     window.addEventListener("resize", onResize);
 
     function animate() {
@@ -97,24 +315,40 @@ export default function Viewer360({ image }: { image: string }) {
       renderer.render(scene, camera);
     }
 
+    renderer.domElement.style.cursor = editable ? "crosshair" : "grab";
     animate();
 
     return () => {
       window.cancelAnimationFrame(animationId);
       window.removeEventListener("resize", onResize);
+
       renderer.domElement.removeEventListener("wheel", onWheel);
+      renderer.domElement.removeEventListener("pointerdown", onPointerDown);
+      renderer.domElement.removeEventListener("pointermove", onPointerMove);
+      renderer.domElement.removeEventListener("pointerup", onPointerUp);
+      renderer.domElement.removeEventListener("pointerleave", onPointerLeave);
 
       controls.dispose();
       geometry.dispose();
       material.dispose();
       texture.dispose();
+
+      hotspotSprites.forEach((sprite) => {
+        const spriteMaterial = sprite.material;
+        if (spriteMaterial instanceof THREE.SpriteMaterial) {
+          spriteMaterial.dispose();
+        }
+      });
+
+      hotspotTextures.forEach((item) => item.dispose());
+
       renderer.dispose();
 
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
     };
-  }, [image]);
+  }, [image, hotspots, onHotspotClick, editable, onSceneClick]);
 
   return (
     <div
