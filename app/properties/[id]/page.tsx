@@ -7,7 +7,7 @@ import Gallery from "@/components/Gallery";
 import LuxuryScore from "@/components/LuxuryScore";
 import PropertyFacts from "@/components/PropertyFacts";
 import PropertyStory from "@/components/PropertyStory";
-import Viewer360 from "@/components/Viewer360";
+import Viewer360Carousel from "@/components/Viewer360Carousel";
 import ContactCTA from "@/components/ContactCTA";
 
 type PageProps = {
@@ -110,8 +110,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       ? property.gallery
       : [property.coverImage];
 
-  const primaryScene = property.scenes360?.[0]?.image;
-  console.log("EOX_PRIMARY_SCENE", primaryScene);
+  const scenes360 = Array.isArray(property.scenes360) ? property.scenes360 : [];
   const areaLabel = property.area ?? property.areaInterior ?? property.areaTotal ?? "N/D";
 
   return (
@@ -198,20 +197,8 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          {primaryScene ? (
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.4em] text-white/30">
-                Experiencia inmersiva
-              </p>
-
-              <h2 className="mt-3 text-3xl font-light">
-                Vista 360
-              </h2>
-
-              <div className="mt-6 h-[420px] overflow-hidden rounded-[28px] border border-white/10 bg-black md:h-[560px]">
-                <Viewer360 image={primaryScene} />
-              </div>
-            </div>
+          {scenes360.length > 0 ? (
+            <Viewer360Carousel scenes={scenes360} />
           ) : null}
         </div>
 
