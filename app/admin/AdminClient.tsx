@@ -319,6 +319,7 @@ export default function AdminClient() {
         coverImage: saved.coverImage,
         gallery: saved.gallery,
         scenes360: saved.scenes360,
+        source: saved.source || { provider: "manual" },
         featured: saved.featured,
         published: saved.published,
         luxuryScore: saved.luxuryScore,

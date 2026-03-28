@@ -1,6 +1,10 @@
 import { promises as fs } from "fs";
 import path from "path";
-import type { AdminPropertyInput, AdminPropertyRecord } from "@/types/admin";
+import type {
+  AdminPropertyInput,
+  AdminPropertyRecord,
+  AdminPropertySource,
+} from "@/types/admin";
 
 const ADMIN_DIR = path.join(process.cwd(), "data", "admin");
 const ADMIN_PROPERTIES_PATH = path.join(ADMIN_DIR, "properties.json");
@@ -31,6 +35,27 @@ async function ensureStore() {
   }
 }
 
+function normalizeSource(input: AdminPropertyInput): AdminPropertySource {
+  const provider = input.source?.provider;
+
+  if (
+    provider === "manual" ||
+    provider === "tokko" ||
+    provider === "csv" ||
+    provider === "xml"
+  ) {
+    return {
+      provider,
+      externalId:
+        typeof input.source?.externalId === "string" && input.source.externalId.trim()
+          ? input.source.externalId.trim()
+          : undefined,
+    };
+  }
+
+  return { provider: "manual" };
+}
+
 function normalizeRecord(
   input: AdminPropertyInput,
   existingCreatedAt?: string
@@ -57,6 +82,7 @@ function normalizeRecord(
     coverImage: String(input.coverImage || "").trim(),
     gallery: Array.isArray(input.gallery) ? input.gallery : [],
     scenes360: Array.isArray(input.scenes360) ? input.scenes360 : [],
+    source: normalizeSource(input),
     featured: Boolean(input.featured),
     published: Boolean(input.published),
     luxuryScore: safeNumber(input.luxuryScore, 85),

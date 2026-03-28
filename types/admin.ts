@@ -24,6 +24,11 @@ export type AdminScene360 = {
   hotspots: AdminHotspot[];
 };
 
+export type AdminPropertySource = {
+  provider: "manual" | "tokko" | "csv" | "xml";
+  externalId?: string;
+};
+
 export type AdminPropertyRecord = {
   id: string;
   title: string;
@@ -41,6 +46,7 @@ export type AdminPropertyRecord = {
   coverImage: string;
   gallery: string[];
   scenes360: AdminScene360[];
+  source?: AdminPropertySource;
   featured: boolean;
   published: boolean;
   luxuryScore: number;
@@ -68,6 +74,7 @@ export const EMPTY_ADMIN_PROPERTY: AdminPropertyInput = {
   coverImage: "",
   gallery: [],
   scenes360: [],
+  source: { provider: "manual" },
   featured: false,
   published: false,
   luxuryScore: 85,

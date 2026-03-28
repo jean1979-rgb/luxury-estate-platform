@@ -1,30 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
-import path from "path";
-import { promises as fs } from "fs";
-import {
-  readAdminProperties,
-  writeAdminProperties,
-} from "@/utils/adminProperties";
+import { NextResponse } from "next/server";
+import { readAdminProperties, writeAdminProperties } from "@/utils/adminProperties";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+type RouteContext = {
+  params: Promise<{ id: string }> | { id: string };
+};
 
-export async function DELETE(req: NextRequest) {
+export async function DELETE(_: Request, context: RouteContext) {
   try {
-    const url = new URL(req.url);
-    const parts = url.pathname.split("/");
-    const id = parts[parts.length - 1];
+    const resolvedParams = await context.params;
+    const id = decodeURIComponent(resolvedParams?.id || "").trim();
 
     if (!id) {
       return NextResponse.json(
-        { ok: false, message: "ID requerido" },
+        { ok: false, message: "ID inválido" },
         { status: 400 }
       );
     }
 
     const current = await readAdminProperties();
-
-    const exists = current.find((p) => p.id === id);
+    const exists = current.some((item) => item.id === id);
 
     if (!exists) {
       return NextResponse.json(
@@ -33,31 +27,18 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const next = current.filter((p) => p.id !== id);
-
+    const next = current.filter((item) => item.id !== id);
     await writeAdminProperties(next);
-
-    const folderPath = path.join(
-      process.cwd(),
-      "public",
-      "uploads",
-      "properties",
-      id
-    );
-
-    try {
-      await fs.rm(folderPath, { recursive: true, force: true });
-    } catch {}
 
     return NextResponse.json({
       ok: true,
       deletedId: id,
     });
   } catch (error) {
-    console.error("DELETE property error", error);
+    console.error("DELETE /api/admin/properties/[id] error", error);
 
     return NextResponse.json(
-      { ok: false, message: "Error eliminando propiedad" },
+      { ok: false, message: "Error al eliminar propiedad" },
       { status: 500 }
     );
   }
