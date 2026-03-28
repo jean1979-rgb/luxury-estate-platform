@@ -75,8 +75,8 @@ async function getProperties(): Promise<AdminProperty[]> {
         area: item.base?.areaLabel || item.base?.totalAreaLabel || item.base?.coveredAreaLabel || "N/D",
         areaInterior: item.base?.coveredAreaLabel || "",
         areaTotal: item.base?.totalAreaLabel || "",
-        scenes360: Array.isArray(item.media?.scenes360) 
-        ? item.media.scenes360.filter((s: any) => s?.image && s.image.includes("pano"))
+        scenes360: Array.isArray(item.media?.scenes360)
+        ? item.media.scenes360.filter((scene: any) => typeof scene?.image === "string" && scene.image.trim().length > 0)
         : [],
         featured: Boolean(item.editorial?.featuredPlatform),
         published: item.status?.published ?? true,
@@ -111,6 +111,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       : [property.coverImage];
 
   const primaryScene = property.scenes360?.[0]?.image;
+  console.log("EOX_PRIMARY_SCENE", primaryScene);
   const areaLabel = property.area ?? property.areaInterior ?? property.areaTotal ?? "N/D";
 
   return (
@@ -207,7 +208,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
                 Vista 360
               </h2>
 
-              <div className="mt-6 overflow-hidden rounded-[28px] border border-white/10">
+              <div className="mt-6 h-[420px] overflow-hidden rounded-[28px] border border-white/10 bg-black md:h-[560px]">
                 <Viewer360 image={primaryScene} />
               </div>
             </div>

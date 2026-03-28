@@ -2,96 +2,125 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 export default function Viewer360({ image }: { image: string }) {
   const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!mountRef.current || !image) return;
-
     const container = mountRef.current;
+    if (!container || !image) return;
+
+    let animationId = 0;
 
     const scene = new THREE.Scene();
 
     const camera = new THREE.PerspectiveCamera(
-      75,
-      container.clientWidth / container.clientHeight,
-      1,
-      1100
+      90,
+      Math.max(container.clientWidth, 1) / Math.max(container.clientHeight, 1),
+      0.1,
+      2000
     );
+    camera.position.set(0, 0, 0.1);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(Math.max(container.clientWidth, 1), Math.max(container.clientHeight, 1));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.domElement.style.display = "block";
+    renderer.domElement.style.width = "100%";
+    renderer.domElement.style.height = "100%";
+
     container.innerHTML = "";
     container.appendChild(renderer.domElement);
 
-    const geometry = new THREE.SphereGeometry(500, 60, 40);
+    const geometry = new THREE.SphereGeometry(500, 96, 64);
     geometry.scale(-1, 1, 1);
 
-    const texture = new THREE.TextureLoader().load(image);
-    const material = new THREE.MeshBasicMaterial({ map: texture });
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.setCrossOrigin("anonymous");
 
+    const texture = textureLoader.load(image);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+
+    const material = new THREE.MeshBasicMaterial({ map: texture });
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    let isUserInteracting = false;
-    let lon = 0;
-    let lat = 0;
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.rotateSpeed = -0.35;
+    controls.zoomSpeed = 0.8;
+    controls.enablePan = false;
+    controls.minDistance = 0.1;
+    controls.maxDistance = 0.1;
+    controls.minPolarAngle = 0.15;
+    controls.maxPolarAngle = Math.PI - 0.15;
 
-    let onPointerDownLon = 0;
-    let onPointerDownLat = 0;
-    let onPointerDownX = 0;
-    let onPointerDownY = 0;
+    const target = new THREE.Vector3(1, 0, 0);
+    controls.target.copy(target);
+    controls.update();
 
-    function onPointerDown(event: any) {
-      isUserInteracting = true;
-      onPointerDownX = event.clientX;
-      onPointerDownY = event.clientY;
-      onPointerDownLon = lon;
-      onPointerDownLat = lat;
+    function onResize() {
+      const width = Math.max(container.clientWidth, 1);
+      const height = Math.max(container.clientHeight, 1);
+
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
     }
 
-    function onPointerMove(event: any) {
-      if (isUserInteracting) {
-        lon = (onPointerDownX - event.clientX) * 0.1 + onPointerDownLon;
-        lat = (event.clientY - onPointerDownY) * 0.1 + onPointerDownLat;
+    function onWheel(event: WheelEvent) {
+      event.preventDefault();
+
+      const nextFov = THREE.MathUtils.clamp(
+        camera.fov + (event.deltaY > 0 ? 4 : -4),
+        45,
+        100
+      );
+
+      if (nextFov !== camera.fov) {
+        camera.fov = nextFov;
+        camera.updateProjectionMatrix();
       }
     }
 
-    function onPointerUp() {
-      isUserInteracting = false;
-    }
-
-    container.addEventListener("pointerdown", onPointerDown);
-    container.addEventListener("pointermove", onPointerMove);
-    container.addEventListener("pointerup", onPointerUp);
+    renderer.domElement.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("resize", onResize);
 
     function animate() {
-      requestAnimationFrame(animate);
-
-      lat = Math.max(-85, Math.min(85, lat));
-
-      const phi = THREE.MathUtils.degToRad(90 - lat);
-      const theta = THREE.MathUtils.degToRad(lon);
-
-      const x = 500 * Math.sin(phi) * Math.cos(theta);
-      const y = 500 * Math.cos(phi);
-      const z = 500 * Math.sin(phi) * Math.sin(theta);
-
-      camera.lookAt(new THREE.Vector3(x, y, z));
-
+      animationId = window.requestAnimationFrame(animate);
+      controls.update();
       renderer.render(scene, camera);
     }
 
     animate();
 
     return () => {
-      container.removeEventListener("pointerdown", onPointerDown);
-      container.removeEventListener("pointermove", onPointerMove);
-      container.removeEventListener("pointerup", onPointerUp);
+      window.cancelAnimationFrame(animationId);
+      window.removeEventListener("resize", onResize);
+      renderer.domElement.removeEventListener("wheel", onWheel);
+
+      controls.dispose();
+      geometry.dispose();
+      material.dispose();
+      texture.dispose();
       renderer.dispose();
+
+      if (container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement);
+      }
     };
   }, [image]);
 
-  return <div ref={mountRef} className="w-full h-full" />;
+  return (
+    <div
+      ref={mountRef}
+      className="h-full w-full overflow-hidden"
+      style={{ touchAction: "none" }}
+    />
+  );
 }
