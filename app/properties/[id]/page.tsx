@@ -204,7 +204,14 @@ export default async function PropertyDetailPage({ params }: PageProps) {
 
         <aside className="h-fit space-y-8 md:sticky md:top-24">
           <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6">
-            <LuxuryScore score={property.luxuryScore ?? 0} />
+            <div className="rounded-[24px] border border-white/10 bg-[#121212] p-6">
+              <p className="text-[10px] uppercase tracking-[0.35em] text-white/45">
+                Luxury Score
+              </p>
+              <div className="mt-3 text-4xl font-light text-white">
+                {property.luxuryScore ?? 0}
+              </div>
+            </div>
           </div>
 
           <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6">

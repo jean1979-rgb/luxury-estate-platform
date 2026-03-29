@@ -253,12 +253,11 @@ export default function AdminClient() {
       }
 
       const payload: AdminPropertyInput = {
-        source: "tokko",
-        id: `admin-${item.id}`,
+                id: `admin-${item.id}`,
         title: item.editorial?.title || item.base?.title || "Propiedad",
         slug: slugify(item.editorial?.title || item.base?.title || item.id || "propiedad"),
         status: "draft",
-        propertyType: "",
+        propertyType: "residence",
         location: item.base?.locationLabel || "",
         price: item.base?.price || "",
         currency: item.base?.currency || "MXN",

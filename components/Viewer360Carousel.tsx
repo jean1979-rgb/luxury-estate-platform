@@ -16,8 +16,18 @@ type Scene360 = {
   title?: string;
   image: string;
   thumbnail?: string;
-  hotspots?: Hotspot360[];
+  hotspots?: unknown[];
 };
+
+function isHotspot(value: unknown): value is Hotspot360 {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.id === "string" &&
+    typeof v.pitch === "number" &&
+    typeof v.yaw === "number"
+  );
+}
 
 export default function Viewer360Carousel({ scenes }: { scenes: Scene360[] }) {
   const [index, setIndex] = useState(0);
@@ -35,7 +45,7 @@ export default function Viewer360Carousel({ scenes }: { scenes: Scene360[] }) {
   const current = safeScenes[index] ?? safeScenes[0];
 
   const currentHotspots = Array.isArray(current.hotspots)
-    ? current.hotspots
+    ? current.hotspots.filter(isHotspot)
     : [];
 
   const visibleHotspots = currentHotspots.filter(
