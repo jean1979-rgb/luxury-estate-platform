@@ -144,6 +144,7 @@ export default function Viewer360({
 
   useEffect(() => {
     const container = mountRef.current;
+    if (!container) return;
     if (!container || !image) return;
 
     let animationId = 0;
@@ -252,8 +253,11 @@ export default function Viewer360({
     const pointer = new THREE.Vector2();
 
     function onResize() {
-      const width = Math.max(container.clientWidth, 1);
-      const height = Math.max(container.clientHeight, 1);
+      const safeContainer = mountRef.current;
+      if (!safeContainer) return;
+
+      const width = Math.max(safeContainer.clientWidth, 1);
+      const height = Math.max(safeContainer.clientHeight, 1);
 
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
