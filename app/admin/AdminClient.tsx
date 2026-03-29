@@ -1129,36 +1129,38 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                           Aún no hay imágenes en galería.
                         </div>
                       ) : (
-                        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                          {form.gallery.map((imageUrl, index) => (
-                            <div
-                              key={`${imageUrl}-${index}`}
-                              className="overflow-hidden rounded-[24px] border border-white/10 bg-black/30"
-                            >
-                              <div className="relative aspect-[4/3]">
-                                <Image
-                                  src={imageUrl}
-                                  alt={`Gallery ${index + 1}`}
-                                  fill
-                                  className="object-cover"
-                                  unoptimized
-                                />
-                              </div>
-
-                              <div className="space-y-3 p-3">
-                                <div className="truncate text-xs text-white/45">
-                                  {imageUrl}
+                        <div className="max-h-[540px] overflow-y-auto pr-2">
+                          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                            {form.gallery.map((imageUrl, index) => (
+                              <div
+                                key={`${imageUrl}-${index}`}
+                                className="overflow-hidden rounded-[20px] border border-white/10 bg-black/30"
+                              >
+                                <div className="relative aspect-[4/3]">
+                                  <Image
+                                    src={imageUrl}
+                                    alt={`Gallery ${index + 1}`}
+                                    fill
+                                    className="object-cover"
+                                    unoptimized
+                                  />
                                 </div>
 
-                                <button
-                                  onClick={() => removeGalleryImage(index)}
-                                  className="w-full rounded-2xl border border-white/10 px-3 py-2 text-xs text-white/75 transition hover:bg-white/10"
-                                >
-                                  Quitar imagen
-                                </button>
+                                <div className="space-y-2 p-2.5">
+                                  <div className="truncate text-[11px] text-white/45">
+                                    {imageUrl}
+                                  </div>
+
+                                  <button
+                                    onClick={() => removeGalleryImage(index)}
+                                    className="w-full rounded-2xl border border-white/10 px-3 py-2 text-xs text-white/75 transition hover:bg-white/10"
+                                  >
+                                    Quitar imagen
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
