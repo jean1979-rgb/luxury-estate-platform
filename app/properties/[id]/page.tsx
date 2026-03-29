@@ -168,7 +168,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-[1680px] gap-12 px-6 py-14 md:grid-cols-[1.25fr_0.75fr] md:px-10">
+      <section className="mx-auto grid max-w-[1680px] gap-12 px-6 py-14 md:grid-cols-2 xl:grid-cols-[1.2fr_0.8fr] md:px-10">
         <div className="space-y-12">
           <div>
             <p className="text-[10px] uppercase tracking-[0.4em] text-white/30">

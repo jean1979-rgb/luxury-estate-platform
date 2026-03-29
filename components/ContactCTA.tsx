@@ -11,7 +11,7 @@ export default function ContactCTA({ title }: Props) {
 
       <div className="mt-5 flex flex-col gap-6 xl:grid xl:grid-cols-12 xl:items-center">
         <div className="xl:col-span-7">
-          <h3 className="max-w-[12ch] text-3xl font-light leading-[0.98] md:text-3xl xl:text-[44px]">
+          <h3 className="max-w-[18ch] md:max-w-[14ch] text-3xl font-light leading-[0.98] md:text-3xl xl:text-[44px]">
             Solicita acceso privado a {title}
           </h3>
 

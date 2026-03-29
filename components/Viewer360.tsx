@@ -4,12 +4,22 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
+type HotspotType =
+  | "nav"
+  | "stairs-up"
+  | "stairs-down"
+  | "terrace"
+  | "room"
+  | "amenity"
+  | "kitchen";
+
 type Hotspot360 = {
   id: string;
   pitch: number;
   yaw: number;
   label?: string;
   targetSceneId?: string;
+  type?: HotspotType;
 };
 
 type Viewer360Props = {
@@ -42,8 +52,12 @@ function vector3ToHotspot(point: THREE.Vector3) {
   };
 }
 
-function createHotspotTexture(label = "GO", editable = false) {
-  const size = 256;
+function createHotspotTexture(
+  label = "GO",
+  editable = false,
+  type: HotspotType = "nav"
+) {
+  const size = 320;
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -51,38 +65,67 @@ function createHotspotTexture(label = "GO", editable = false) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
+  const presets: Record<HotspotType, { icon: string; accent: string }> = {
+    nav: { icon: "➜", accent: "#D4AF37" },
+    "stairs-up": { icon: "↑", accent: "#7DD3FC" },
+    "stairs-down": { icon: "↓", accent: "#38BDF8" },
+    terrace: { icon: "T", accent: "#34D399" },
+    room: { icon: "R", accent: "#C084FC" },
+    amenity: { icon: "★", accent: "#F472B6" },
+    kitchen: { icon: "K", accent: "#FB923C" },
+  };
+
+  const preset = presets[type] || presets.nav;
+
   ctx.clearRect(0, 0, size, size);
 
   const cx = size / 2;
-  const cy = size / 2;
+  const cy = 128;
+  const outerRadius = 92;
+  const innerRadius = 70;
 
   ctx.beginPath();
-  ctx.arc(cx, cy, 108, 0, Math.PI * 2);
-  ctx.fillStyle = editable ? "rgba(180,180,180,0.58)" : "rgba(0,0,0,0.58)";
+  ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2);
+  ctx.fillStyle = editable ? "rgba(160,160,160,0.58)" : "rgba(0,0,0,0.62)";
   ctx.fill();
 
-  ctx.beginPath();
-  ctx.arc(cx, cy, 108, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(255,255,255,0.82)";
-  ctx.lineWidth = 5;
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = editable ? "rgba(255,255,255,0.78)" : preset.accent;
   ctx.stroke();
 
   ctx.beginPath();
-  ctx.arc(cx, cy, 82, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(255,255,255,0.20)";
-  ctx.lineWidth = 4;
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.arc(cx, cy, 56, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(255,255,255,0.14)";
+  ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2);
+  ctx.fillStyle = editable ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.08)";
   ctx.fill();
 
-  ctx.font = "700 38px sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "700 64px Arial, sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillStyle = "rgba(255,255,255,0.98)";
-  ctx.fillText(label.toUpperCase(), cx, cy + 2);
+  ctx.fillText(preset.icon, cx, cy + 2);
+
+  const safeLabel = String(label || "").trim().slice(0, 18);
+  if (safeLabel) {
+    const pillWidth = 220;
+    const pillHeight = 46;
+    const pillX = (size - pillWidth) / 2;
+    const pillY = 236;
+
+    ctx.beginPath();
+    ctx.roundRect(pillX, pillY, pillWidth, pillHeight, 18);
+    ctx.fillStyle = "rgba(0,0,0,0.62)";
+    ctx.fill();
+
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = editable ? "rgba(255,255,255,0.38)" : "rgba(255,255,255,0.18)";
+    ctx.stroke();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "600 22px Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(safeLabel, cx, pillY + pillHeight / 2 + 1);
+  }
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -172,7 +215,8 @@ export default function Viewer360({
     for (const hotspot of visibleHotspots) {
       const texture = createHotspotTexture(
         hotspot.label || (editable ? "EDIT" : "GO"),
-        editable
+        editable,
+        hotspot.type || "nav"
       );
       if (!texture) continue;
 

@@ -5,6 +5,7 @@ import Viewer360 from "@/components/Viewer360";
 import {  useEffect, useMemo, useState } from "react";
 import type {
   AdminHotspot,
+  AdminHotspotType,
   AdminPropertyInput,
   AdminPropertyRecord,
   AdminScene360,
@@ -70,6 +71,7 @@ function buildHotspot(index: number, pitch: number, yaw: number): AdminHotspot {
     yaw,
     label: `Hotspot ${index + 1}`,
     targetSceneId: "",
+    type: "nav",
   };
 }
 
@@ -397,6 +399,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
             yaw: Number.isFinite(Number(hotspot.yaw)) ? Number(hotspot.yaw) : 0,
             label: String(hotspot.label || `Hotspot ${hotspotIndex + 1}`).trim(),
             targetSceneId: hotspot.targetSceneId ? slugify(hotspot.targetSceneId) : "",
+            type: hotspot.type || "nav",
           })),
         })),
       };
@@ -633,6 +636,10 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                 patch.targetSceneId !== undefined
                   ? slugify(patch.targetSceneId)
                   : hotspot.targetSceneId,
+              type:
+                patch.type !== undefined
+                  ? patch.type
+                  : hotspot.type || "nav",
             };
           }),
         };
@@ -1187,13 +1194,6 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                         {uploadingScenes ? "Subiendo..." : "Subir panorama"}
                       </label>
 
-                      <button
-                        type="button"
-                        onClick={addEmptyScene}
-                        className="rounded-2xl border border-white/15 px-4 py-3 text-sm text-white transition hover:bg-white/10"
-                      >
-                        + Escena vacía
-                      </button>
                     </div>
                   </div>
 
@@ -1390,42 +1390,33 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
 
                                         <div className="grid gap-4 md:grid-cols-2">
                                           <label className="block">
-                                            <span className="mb-2 block text-sm text-white/65">Pitch</span>
-                                            <input
-                                              type="number"
-                                              step="0.01"
-                                              min="-90"
-                                              max="90"
-                                              value={hotspot.pitch}
+                                            <span className="mb-2 block text-sm text-white/65">Tipo</span>
+                                            <select
+                                              value={hotspot.type || "nav"}
                                               onChange={(e) =>
                                                 updateHotspot(sceneIndex, hotspotIndex, {
-                                                  pitch: Number(e.target.value),
+                                                  type: e.target.value as AdminHotspotType,
                                                 })
                                               }
                                               className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
-                                            />
+                                            >
+                                              <option value="nav">Navegación</option>
+                                              <option value="stairs-up">Escaleras arriba</option>
+                                              <option value="stairs-down">Escaleras abajo</option>
+                                              <option value="terrace">Terraza</option>
+                                              <option value="room">Recámara</option>
+                                              <option value="amenity">Amenidad</option>
+                                              <option value="kitchen">Cocina</option>
+                                            </select>
                                           </label>
 
-                                          <label className="block">
-                                            <span className="mb-2 block text-sm text-white/65">Yaw</span>
-                                            <input
-                                              type="number"
-                                              step="0.01"
-                                              min="-180"
-                                              max="180"
-                                              value={hotspot.yaw}
-                                              onChange={(e) =>
-                                                updateHotspot(sceneIndex, hotspotIndex, {
-                                                  yaw: Number(e.target.value),
-                                                })
-                                              }
-                                              className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
-                                            />
-                                          </label>
+                                          <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-sm text-white/65">
+                                            Posición fijada desde el visor 360
+                                          </div>
                                         </div>
 
                                         <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs text-white/55">
-                                          Posición visual: X {yawToPercent(hotspot.yaw).toFixed(1)}% · Y {pitchToPercent(hotspot.pitch).toFixed(1)}%
+                                          Para mover este hotspot, elimínalo y vuelve a colocarlo con click sobre el panorama.
                                         </div>
                                       </div>
                                     </div>

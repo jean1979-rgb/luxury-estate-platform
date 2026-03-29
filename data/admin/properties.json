@@ -86,14 +86,24 @@
             "pitch": -5.82,
             "yaw": -66.74,
             "label": "Hotspot 1",
-            "targetSceneId": "dji-fly-20250514-134034-774-1747251897695-pano-optimized"
+            "targetSceneId": "dji-fly-20250514-134034-774-1747251897695-pano-optimized",
+            "type": "nav"
           },
           {
             "id": "hotspot-1774740128918-2",
             "pitch": -3.71,
             "yaw": 140.57,
             "label": "Hotspot 2",
-            "targetSceneId": "dji-fly-20250514-134400-776-1747252261316-pano-optimized"
+            "targetSceneId": "dji-fly-20250514-134400-776-1747252261316-pano-optimized",
+            "type": "nav"
+          },
+          {
+            "id": "hotspot-1774753765808-3",
+            "pitch": -42.26,
+            "yaw": -169.92,
+            "label": "Hotspot 3",
+            "targetSceneId": "dji-fly-20250513-211700-746-1747192823999-pano-optimized",
+            "type": "room"
           }
         ]
       },
@@ -108,7 +118,8 @@
             "pitch": 0.35,
             "yaw": 8.65,
             "label": "Hotspot 1",
-            "targetSceneId": "1"
+            "targetSceneId": "1",
+            "type": "nav"
           }
         ]
       },
@@ -123,7 +134,24 @@
             "pitch": 6.58,
             "yaw": 37.09,
             "label": "Hotspot 1",
-            "targetSceneId": "1"
+            "targetSceneId": "1",
+            "type": "nav"
+          }
+        ]
+      },
+      {
+        "id": "dji-fly-20250513-211700-746-1747192823999-pano-optimized",
+        "title": "Rec 4",
+        "image": "/uploads/properties/admin-admin-admin-tokko-3782521/scenes360/dji-fly-20250513-211700-746-1747192823999-pano-optimized-1774748027967.jpg",
+        "thumbnail": "/uploads/properties/admin-admin-admin-tokko-3782521/scenes360/dji-fly-20250513-211700-746-1747192823999-pano-optimized-1774748027967.jpg",
+        "hotspots": [
+          {
+            "id": "hotspot-1774748047504-1",
+            "pitch": 2.3,
+            "yaw": -175.69,
+            "label": "Hotspot 1",
+            "targetSceneId": "1",
+            "type": "nav"
           }
         ]
       }
@@ -136,7 +164,7 @@
     "luxuryScore": 80,
     "description": "Quinta del Mar es un exclusivo y lujoso conjunto residencial compuesto por dos imponentes torres, que ofrecen una espectacular vista panorámica hacia Acapulco Diamante. Ubicado en la prestigiosa y segura zona de Real Diamante, una de las más codiciadas de Acapulco, este desarrollo garantiza privacidad y tranquilidad gracias a sus tres filtros de acceso. Además, dispone de acceso directo a la playa de Real Diamante, permitiendo disfrutar de la belleza natural de la zona en todo su esplendor.\nAmenidades:\nGimnasio totalmente equipado.Bar en la alberca con vista a mar y Acapulco Diamante.Seguridad las 24 horas del día.Cancha de padel para los amantes del deporte.Cuatro albercas para relajarse y disfrutar del sol.Un lugar ideal para quienes buscan un estilo de vida refinado, rodeado de confort y seguridad.",
     "createdAt": "2026-03-28T01:18:44.661Z",
-    "updatedAt": "2026-03-28T23:22:16.838Z"
+    "updatedAt": "2026-03-29T03:09:40.056Z"
   },
   {
     "id": "villa-frente-al-mar",

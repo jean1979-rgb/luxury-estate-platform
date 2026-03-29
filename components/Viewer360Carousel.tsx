@@ -100,7 +100,7 @@ export default function Viewer360Carousel({ scenes }: { scenes: Scene360[] }) {
       </div>
 
       <div className="mt-6">
-        <div className="relative h-[420px] overflow-hidden rounded-[28px] border border-white/10 bg-black md:h-[560px]">
+        <div className="relative w-full aspect-[16/9] overflow-hidden rounded-[28px] border border-white/10 bg-black">
           <Viewer360
             key={current.id || current.image}
             image={current.image}

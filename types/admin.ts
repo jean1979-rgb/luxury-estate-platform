@@ -8,12 +8,22 @@ export type AdminPropertyType =
   | "condo"
   | "land";
 
+export type AdminHotspotType =
+  | "nav"
+  | "stairs-up"
+  | "stairs-down"
+  | "terrace"
+  | "room"
+  | "amenity"
+  | "kitchen";
+
 export type AdminHotspot = {
   id: string;
   pitch: number;
   yaw: number;
   label: string;
   targetSceneId?: string;
+  type?: AdminHotspotType;
 };
 
 export type AdminScene360 = {

@@ -37,7 +37,7 @@ export default function PropertyFacts({
               {item.label}
             </span>
 
-            <span className="max-w-[65%] text-right text-[20px] font-light text-[#f5f1eb]">
+            <span className="max-w-[60%] break-words text-right text-[20px] font-light text-[#f5f1eb]">
               {item.value}
             </span>
           </div>
