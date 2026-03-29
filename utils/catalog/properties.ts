@@ -225,13 +225,27 @@ export function getPropertyBadge(property: PropertyUnified) {
 export async function getCasaDePlayaProperties(): Promise<PropertyUnified[]> {
   const properties = await getAdminPublishedProperties();
 
-  const demo = properties.find((p) => p.id === "sample-villa-diamante");
-
-  return demo ? [demo] : [];
+  return properties
+    .filter((item) => item.operation === "sale")
+    .filter((item) => item.zone === "playa" || item.zone === "real-diamante" || item.zone === "las-brisas")
+    .sort((a, b) => {
+      if (Number(b.featured) !== Number(a.featured)) {
+        return Number(b.featured) - Number(a.featured);
+      }
+      return (b.price || 0) - (a.price || 0);
+    });
 }
-
 
 export async function getAcapulcoRentalProperties(): Promise<PropertyUnified[]> {
-  return [];
-}
+  const properties = await getAdminPublishedProperties();
 
+  return properties
+    .filter((item) => item.operation === "rent")
+    .filter((item) => item.zone === "playa" || item.zone === "real-diamante" || item.zone === "las-brisas")
+    .sort((a, b) => {
+      if (Number(b.featured) !== Number(a.featured)) {
+        return Number(b.featured) - Number(a.featured);
+      }
+      return (b.price || 0) - (a.price || 0);
+    });
+}
