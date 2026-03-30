@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "LUXE Estates",
-  description: "Luxury editorial real estate platform"
+  title: "Private Estates Mexico",
+  description: "Luxury editorial real estate platform for destinations, brokers and premium properties in Mexico"
 };
 
 export default function RootLayout({

@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id             String   @id @default(cuid())
+  name           String
+  email          String   @unique
+  passwordHash   String
+  role           String   @default("BROKER")
+  status         String   @default("ACTIVE")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  brokerProfile  BrokerProfile?
+}
+
+model BrokerProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  businessName  String
+  slug          String   @unique
+  phone         String?
+  city          String
+  approved      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BrokerProperty {
+  id                String   @id @default(cuid())
+  ownerBrokerId     String
+  title             String
+  slug              String
+  publicationStatus String   @default("DRAFT")
+  source            String   @default("MANUAL")
+  sourceExternalId  String?
+  city              String
+  location          String?
+  price             String?
+  currency          String?  @default("MXN")
+  coverImage        String?
+  gallery           Json?
+  tagline           String?
+  description       String?
+  featured          Boolean  @default(false)
+  published         Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([ownerBrokerId])
+  @@unique([ownerBrokerId, slug])
+}

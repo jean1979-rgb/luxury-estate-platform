@@ -75,6 +75,18 @@ export default function HomePage() {
                 Experiencias
               </a>
               <Link
+                href="/broker/login"
+                className="text-sm text-white/78 transition hover:text-white"
+              >
+                Acceso brokers
+              </Link>
+              <Link
+                href="/broker/register"
+                className="text-sm text-white/78 transition hover:text-white"
+              >
+                Crear cuenta
+              </Link>
+              <Link
                 href="/acapulco"
                 className="border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:bg-white hover:text-black"
               >

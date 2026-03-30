@@ -81,6 +81,15 @@ export default async function AcapulcoPage({
 
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white md:px-10">
+      <div className="mx-auto max-w-[1680px] px-6 pt-6 md:px-10">
+        <Link
+          href="/"
+          className="inline-flex border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:bg-white hover:text-black"
+        >
+          Volver al inicio
+        </Link>
+      </div>
+
       <div className="mx-auto max-w-7xl">
         <p className="text-[10px] uppercase tracking-[0.38em] text-white/45">
           Destination

@@ -463,7 +463,13 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
   }
 
   async function handleUpload(file: File, folder: UploadFolder) {
-    const computedEntityId = slugify(form.id || form.slug || form.title || "temp-property");
+    const computedEntityId = slugify(
+      form.slug ||
+      form.id ||
+      (selectedId !== "new" ? selectedId : "") ||
+      form.title ||
+      "temp-property"
+    );
 
     if (folder === "cover") setUploadingCover(true);
     if (folder === "gallery") setUploadingGallery(true);
@@ -495,7 +501,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
         setForm((prev) => ({
           ...prev,
           id: prev.id || computedEntityId,
-          slug: prev.slug || slugify(prev.title || computedEntityId),
+          slug: prev.slug || prev.id || computedEntityId,
           coverImage: uploadedUrl,
         }));
       }
@@ -504,7 +510,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
         setForm((prev) => ({
           ...prev,
           id: prev.id || computedEntityId,
-          slug: prev.slug || slugify(prev.title || computedEntityId),
+          slug: prev.slug || computedEntityId,
           gallery: [...prev.gallery, uploadedUrl],
         }));
       }
@@ -516,7 +522,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
         setForm((prev) => ({
           ...prev,
           id: prev.id || computedEntityId,
-          slug: prev.slug || slugify(prev.title || computedEntityId),
+          slug: prev.slug || computedEntityId,
           scenes360: [...prev.scenes360, scene],
         }));
       }
