@@ -1209,7 +1209,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                       Aún no hay escenas 360.
                     </div>
                   ) : (
-                    <div className="space-y-6">
+                    <div className="max-h-[960px] space-y-6 overflow-y-auto pr-2">
                       {form.scenes360.map((scene, sceneIndex) => {
   const safeScene = {
     id: scene?.id ?? "",
@@ -1222,9 +1222,9 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                         return (
                         <div
                           key={`${scene.id}-${sceneIndex}`}
-                          className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4"
+                          className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4 overflow-hidden"
                         >
-                          <div className="mb-4 grid gap-4 md:grid-cols-2">
+                          <div className="mb-4 grid gap-4 lg:grid-cols-2">
                             <label className="block">
                               <span className="mb-2 block text-sm text-white/65">Título escena</span>
                               <input
@@ -1261,7 +1261,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                             />
                           </label>
 
-                          <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+                          <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
                             <div className="space-y-4">
                               <div className="flex items-center justify-between gap-3">
                                 <div className="text-sm text-white/65">
@@ -1339,7 +1339,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                                   No hay hotspots todavía.
                                 </div>
                               ) : (
-                                <div className="space-y-4">
+                                <div className="max-h-[440px] space-y-4 overflow-y-auto pr-2">
                                   {scene.hotspots.map((hotspot, hotspotIndex) => (
                                     <div
                                       key={`${hotspot.id}-${hotspotIndex}`}
@@ -1387,8 +1387,8 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                                             <option value="">Sin destino</option>
                                             {form.scenes360
                                               .filter((candidate) => candidate.id !== scene.id)
-                                              .map((candidate) => (
-                                                <option key={candidate.id} value={candidate.id}>
+                                              .map((candidate, candidateIndex) => (
+                                                <option key={`${candidate.id}-${candidateIndex}`} value={candidate.id}>
                                                   {candidate.title || candidate.id}
                                                 </option>
                                               ))}
@@ -1555,18 +1555,6 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
 
                   <div className="space-y-4 text-sm leading-6 text-white/65">
                     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                      El siguiente step debe conectar estos hotspots al viewer Three.js
-                      inmersivo dentro del admin.
-                    </div>
-
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                      Después podemos activar preview real de transición entre escenas
-                      usando targetSceneId.
-                    </div>
-
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                      Con eso ya tendrías un admin boutique casi listo para pasar a
-                      backend y multiusuario.
                     </div>
                   </div>
                 </div>

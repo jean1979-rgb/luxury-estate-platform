@@ -10,8 +10,8 @@
     "currency": "MXN",
     "bedrooms": 0,
     "bathrooms": 0,
-    "areaInterior": "",
-    "areaTotal": "",
+    "areaInterior": "850",
+    "areaTotal": "1200",
     "tagline": "",
     "coverImage": "https://static.tokkobroker.com/pictures/6998502_60054242770634154015966271111156712232713556689277087525218786700481906750551.jpg",
     "gallery": [
@@ -135,30 +135,6 @@
         ]
       },
       {
-        "id": "dji-fly-20250514-134400-776-1747252261316-pano-optimized",
-        "title": "Estancia",
-        "image": "/uploads/properties/casa-en-venta-a-pie-de-playa-acapulco-diamante/scenes360/dji-fly-20250514-134400-776-1747252261316-pano-optimized-1774822958942.jpg",
-        "thumbnail": "/uploads/properties/casa-en-venta-a-pie-de-playa-acapulco-diamante/scenes360/dji-fly-20250514-134400-776-1747252261316-pano-optimized-1774822958942.jpg",
-        "hotspots": [
-          {
-            "id": "hotspot-1774824250546-1",
-            "pitch": -1.2,
-            "yaw": -4.89,
-            "label": "Hotspot 1",
-            "targetSceneId": "dji-fly-20250514-133620-772-1747252202771-pano-optimized",
-            "type": "nav"
-          },
-          {
-            "id": "hotspot-1774826037385-2",
-            "pitch": 0.94,
-            "yaw": -111.73,
-            "label": "Hotspot 2",
-            "targetSceneId": "dji-fly-20250513-205718-740-1747191684855-pano-optimized",
-            "type": "room"
-          }
-        ]
-      },
-      {
         "id": "dji-fly-20250513-211700-746-1747192823999-pano-optimized",
         "title": "Rec 4",
         "image": "/uploads/properties/casa-en-venta-a-pie-de-playa-acapulco-diamante/scenes360/dji-fly-20250513-211700-746-1747192823999-pano-optimized-1774822993099.jpg",
@@ -223,7 +199,7 @@
         ]
       },
       {
-        "id": "dji-fly-20250513-211700-746-1747192823999-pano-optimized",
+        "id": "dji-fly-20250513-211700-746-1747192823999-pano-optimized-2",
         "title": "Rec 4",
         "image": "/uploads/properties/casa-en-venta-a-pie-de-playa-acapulco-diamante/scenes360/dji-fly-20250513-211700-746-1747192823999-pano-optimized-1774823717511.jpg",
         "thumbnail": "/uploads/properties/casa-en-venta-a-pie-de-playa-acapulco-diamante/scenes360/dji-fly-20250513-211700-746-1747192823999-pano-optimized-1774823717511.jpg",
@@ -249,7 +225,7 @@
             "pitch": -10.41,
             "yaw": 125.8,
             "label": "Hotspot 1",
-            "targetSceneId": "dji-fly-20250514-134400-776-1747252261316-pano-optimized",
+            "targetSceneId": "dji-fly-20250513-205516-738-1747191532625-pano-optimized",
             "type": "terrace"
           },
           {
@@ -307,7 +283,16 @@
         "title": "Real Diamante Luna llena",
         "image": "/uploads/properties/casa-en-venta-a-pie-de-playa-acapulco-diamante/scenes360/dji-fly-20250513-212732-751-1747193490297-pano-optimized-1774825118898.jpg",
         "thumbnail": "/uploads/properties/casa-en-venta-a-pie-de-playa-acapulco-diamante/scenes360/dji-fly-20250513-212732-751-1747193490297-pano-optimized-1774825118898.jpg",
-        "hotspots": []
+        "hotspots": [
+          {
+            "id": "hotspot-1774851496350-1",
+            "pitch": -7.9,
+            "yaw": 175.77,
+            "label": "Hotspot 1",
+            "targetSceneId": "dji-fly-20250514-133620-772-1747252202771-pano-optimized",
+            "type": "amenity"
+          }
+        ]
       },
       {
         "id": "dji-fly-20250513-211136-744-1747192679419-pano-optimized",
@@ -332,6 +317,30 @@
             "type": "nav"
           }
         ]
+      },
+      {
+        "id": "dji-fly-20250513-205516-738-1747191532625-pano-optimized",
+        "title": "Estancia",
+        "image": "/uploads/properties/casa-en-venta-a-pie-de-playa-acapulco-diamante/scenes360/dji-fly-20250513-205516-738-1747191532625-pano-optimized-1774851372784.jpg",
+        "thumbnail": "/uploads/properties/casa-en-venta-a-pie-de-playa-acapulco-diamante/scenes360/dji-fly-20250513-205516-738-1747191532625-pano-optimized-1774851372784.jpg",
+        "hotspots": [
+          {
+            "id": "hotspot-1774851389992-1",
+            "pitch": -2.71,
+            "yaw": 164.8,
+            "label": "Hotspot 1",
+            "targetSceneId": "dji-fly-20250513-212732-751-1747193490297-pano-optimized",
+            "type": "nav"
+          },
+          {
+            "id": "hotspot-1774851435441-2",
+            "pitch": -3.24,
+            "yaw": 53.14,
+            "label": "Hotspot 2",
+            "targetSceneId": "dji-fly-20250513-205718-740-1747191684855-pano-optimized",
+            "type": "room"
+          }
+        ]
       }
     ],
     "source": {
@@ -342,7 +351,7 @@
     "luxuryScore": 100,
     "description": "PLAYA DIAMANTE\n            \n        \nEs uno de los destinos más icónicos y turísticos de la ciudad. Se distingue por su extensa franja de más de4 kilómetros de fina arena suave, aguas cristalinas en tonos turquesa y una vibrante oferta turística que incluye hoteles, restaurantes, bares, centros comerciales y tiendas. Además, es ideal para disfrutar de actividades como voleibol de playa, paseos en banana boat y jet ski. Sus espectaculares atardeceres, enmarcados por la sierra de Acapulco, son un deleite para los sentidos.\n\nDESCUBRE LA VIDA FRENTE AL MAR EN UNA CASA QUE LO TIENE TODO\nSituada en el corazón de Acapulco, más que una residencia, Casa Palapas es el espacio perfecto para disfrutar del lujo frente al mar.\nCon acceso privado a la playa y espacios diseñados para que cada día sea una experiencia única, esta es la casa de tus sueños hecha realidad.\nCon una arquitectura espectacular que se despliega sobre seis niveles,\nCasa Palapas ofrece un sinfín de amenidades, como alberca, home theater, bar al aire libre y asoleaderos, ideales para crear momentos inolvidables con familia y amigos.\nLUJO, PRIVACIDAD Y EL MAR A TUS PIES\n• 700 m2 de terreno, 1,200 m2 de construcción.• 4 recámaras con terrazas privadas y espectaculares vistas al mar.• Elevador privado para mayor comodidad.• Family room con baño completo, adaptable a una 5ta recámara.• 6.5 baños con acabados de lujo.• Cocina equipada con cubiertas de cuarzo y electrodomésticos de alta gama.• Estacionamiento para 4 vehículos.• Recámaras independientes para servicio y escoltas, ambas con baño propio.• Sistema Lutron y audio de última generación.• Cancelería Schucco con cristales anti-huracán para mayor seguridad.",
     "createdAt": "2026-03-29T21:59:28.855Z",
-    "updatedAt": "2026-03-30T02:53:49.731Z"
+    "updatedAt": "2026-03-30T06:19:42.175Z"
   },
   {
     "id": "viila-frente-al-mar",

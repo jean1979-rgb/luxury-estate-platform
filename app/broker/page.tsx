@@ -10,10 +10,10 @@ export default async function BrokerDashboardPage() {
           Cuenta
         </p>
         <h2 className="mt-4 text-2xl font-light text-white">
-          {(session?.user as any)?.businessName || session?.user?.name}
+          {session?.user?.businessName || session?.user?.name}
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-white/62">
-          Ciudad asignada: {(session?.user as any)?.brokerCity || "Pendiente"}
+          Ciudad asignada: {session?.user?.brokerCity || "Pendiente"}
         </p>
       </div>
 
@@ -22,7 +22,7 @@ export default async function BrokerDashboardPage() {
           Estado
         </p>
         <h2 className="mt-4 text-2xl font-light text-white">
-          {(session?.user as any)?.status || "ACTIVE"}
+          {session?.user?.status || "ACTIVE"}
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-white/62">
           Base lista para inventario, auth y panel broker.

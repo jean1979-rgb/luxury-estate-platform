@@ -23,10 +23,16 @@ export default async function BrokerLayout({
             El acceso broker sigue en configuración. Usa login o vuelve al portal.
           </p>
           <div className="mt-6 flex gap-3">
-            <Link href="/broker/login" className="border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:bg-white hover:text-black">
+            <Link
+              href="/broker/login"
+              className="border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:bg-white hover:text-black"
+            >
               Ir a login
             </Link>
-            <Link href="/" className="border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:bg-white hover:text-black">
+            <Link
+              href="/"
+              className="border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:bg-white hover:text-black"
+            >
               Volver al portal
             </Link>
           </div>
@@ -44,7 +50,7 @@ export default async function BrokerLayout({
               Broker Backoffice
             </p>
             <h1 className="mt-2 text-2xl font-light text-white">
-              {(session.user as any).businessName || session.user.name || "Broker"}
+              {session.user.businessName || session.user.name || "Broker"}
             </h1>
           </div>
 

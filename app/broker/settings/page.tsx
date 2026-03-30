@@ -17,18 +17,14 @@ export default async function BrokerSettingsPage() {
           <div className="text-xs uppercase tracking-[0.24em] text-white/35">
             Nombre
           </div>
-          <div className="mt-2 text-white">
-            {session?.user?.name}
-          </div>
+          <div className="mt-2 text-white">{session?.user?.name}</div>
         </div>
 
         <div className="border border-white/10 p-4">
           <div className="text-xs uppercase tracking-[0.24em] text-white/35">
             Email
           </div>
-          <div className="mt-2 text-white">
-            {session?.user?.email}
-          </div>
+          <div className="mt-2 text-white">{session?.user?.email}</div>
         </div>
 
         <div className="border border-white/10 p-4">
@@ -36,7 +32,7 @@ export default async function BrokerSettingsPage() {
             Empresa
           </div>
           <div className="mt-2 text-white">
-            {(session?.user as any)?.businessName || "N/D"}
+            {session?.user?.businessName || "N/D"}
           </div>
         </div>
 
@@ -45,7 +41,7 @@ export default async function BrokerSettingsPage() {
             Ciudad
           </div>
           <div className="mt-2 text-white">
-            {(session?.user as any)?.brokerCity || "N/D"}
+            {session?.user?.brokerCity || "N/D"}
           </div>
         </div>
       </div>
