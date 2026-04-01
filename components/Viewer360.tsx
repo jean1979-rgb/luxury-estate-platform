@@ -28,6 +28,8 @@ type Viewer360Props = {
   onHotspotClick?: (targetSceneId?: string) => void;
   editable?: boolean;
   onSceneClick?: (coords: { yaw: number; pitch: number }) => void;
+  initialYaw?: number;
+  initialPitch?: number;
 };
 
 function hotspotToVector3(yaw: number, pitch: number, radius: number) {
@@ -139,12 +141,13 @@ export default function Viewer360({
   onHotspotClick,
   editable = false,
   onSceneClick,
+  initialYaw = 0,
+  initialPitch = 0,
 }: Viewer360Props) {
   const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = mountRef.current;
-    if (!container) return;
     if (!container || !image) return;
 
     let animationId = 0;
@@ -204,7 +207,15 @@ export default function Viewer360({
     controls.minPolarAngle = 0.15;
     controls.maxPolarAngle = Math.PI - 0.15;
 
-    const target = new THREE.Vector3(1, 0, 0);
+    const yawRad = THREE.MathUtils.degToRad(initialYaw);
+    const pitchRad = THREE.MathUtils.degToRad(initialPitch);
+
+    const target = new THREE.Vector3(
+      Math.cos(pitchRad) * Math.cos(yawRad),
+      Math.sin(pitchRad),
+      Math.cos(pitchRad) * Math.sin(yawRad)
+    );
+
     controls.target.copy(target);
     controls.update();
 
@@ -214,17 +225,17 @@ export default function Viewer360({
     const visibleHotspots = Array.isArray(hotspots) ? hotspots : [];
 
     for (const hotspot of visibleHotspots) {
-      const texture = createHotspotTexture(
+      const hotspotTexture = createHotspotTexture(
         hotspot.label || (editable ? "EDIT" : "GO"),
         editable,
         hotspot.type || "nav"
       );
-      if (!texture) continue;
+      if (!hotspotTexture) continue;
 
-      hotspotTextures.push(texture);
+      hotspotTextures.push(hotspotTexture);
 
       const spriteMaterial = new THREE.SpriteMaterial({
-        map: texture,
+        map: hotspotTexture,
         transparent: true,
         depthTest: false,
         depthWrite: false,
@@ -262,6 +273,17 @@ export default function Viewer360({
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
+    }
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+            onResize();
+          })
+        : null;
+
+    if (resizeObserver) {
+      resizeObserver.observe(container);
     }
 
     function onWheel(event: WheelEvent) {
@@ -364,11 +386,13 @@ export default function Viewer360({
     }
 
     renderer.domElement.style.cursor = editable ? "crosshair" : "grab";
+    onResize();
     animate();
 
     return () => {
       window.cancelAnimationFrame(animationId);
       window.removeEventListener("resize", onResize);
+      resizeObserver?.disconnect();
 
       renderer.domElement.removeEventListener("wheel", onWheel);
       renderer.domElement.removeEventListener("pointerdown", onPointerDown);
@@ -396,7 +420,7 @@ export default function Viewer360({
         container.removeChild(renderer.domElement);
       }
     };
-  }, [image, hotspots, onHotspotClick, editable, onSceneClick]);
+  }, [image, hotspots, onHotspotClick, editable, onSceneClick, initialYaw, initialPitch]);
 
   return (
     <div

@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Viewer360 from "@/components/Viewer360";
-import {  useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type {
   AdminHotspot,
   AdminHotspotType,
@@ -76,6 +77,8 @@ function buildHotspot(index: number, pitch: number, yaw: number): AdminHotspot {
 }
 
 export default function AdminClient() {
+  const searchParams = useSearchParams();
+  const propertyIdFromUrl = searchParams.get("propertyId");
   const [activeHotspotScene, setActiveHotspotScene] = useState<string | null>(null);
   const [items, setItems] = useState<AdminPropertyRecord[]>([]);
   
@@ -166,6 +169,16 @@ export default function AdminClient() {
     loadProperties();
     loadTokko();
   }, []);
+
+  useEffect(() => {
+    if (!propertyIdFromUrl) return;
+    if (!items.length) return;
+
+    const target = items.find((item) => item.id === propertyIdFromUrl);
+    if (!target) return;
+
+    handleSelect(target);
+  }, [propertyIdFromUrl, items]);
 
   async function loadTokko() {
     try {
@@ -1419,6 +1432,62 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
 
                                           <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-sm text-white/65">
                                             Posición fijada desde el visor 360
+                                          </div>
+                                        </div>
+
+
+                                        <div className="grid gap-4 md:grid-cols-2">
+                                          <label className="block">
+                                            <span className="mb-2 block text-sm text-white/65">Pitch</span>
+                                            <input
+                                              type="number"
+                                              step="0.01"
+                                              min="-90"
+                                              max="90"
+                                              value={hotspot.pitch}
+                                              onChange={(e) =>
+                                                updateHotspot(sceneIndex, hotspotIndex, {
+                                                  pitch: Number(e.target.value),
+                                                })
+                                              }
+                                              className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white"
+                                            />
+                                          </label>
+
+                                          <label className="block">
+                                            <span className="mb-2 block text-sm text-white/65">Yaw</span>
+                                            <input
+                                              type="number"
+                                              step="0.01"
+                                              min="-180"
+                                              max="180"
+                                              value={hotspot.yaw}
+                                              onChange={(e) =>
+                                                updateHotspot(sceneIndex, hotspotIndex, {
+                                                  yaw: Number(e.target.value),
+                                                })
+                                              }
+                                              className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white"
+                                            />
+                                          </label>
+                                        </div>
+
+                                        <div className="grid gap-3 md:grid-cols-4">
+                                          <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-center">
+                                            <div className="text-xs text-white/40">Pitch</div>
+                                            <div className="text-white">{Number(hotspot.pitch).toFixed(2)}</div>
+                                          </div>
+                                          <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-center">
+                                            <div className="text-xs text-white/40">Yaw</div>
+                                            <div className="text-white">{Number(hotspot.yaw).toFixed(2)}</div>
+                                          </div>
+                                          <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-center">
+                                            <div className="text-xs text-white/40">X visor</div>
+                                            <div className="text-white">{yawToPercent(hotspot.yaw).toFixed(1)}%</div>
+                                          </div>
+                                          <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-center">
+                                            <div className="text-xs text-white/40">Y visor</div>
+                                            <div className="text-white">{pitchToPercent(hotspot.pitch).toFixed(1)}%</div>
                                           </div>
                                         </div>
 
