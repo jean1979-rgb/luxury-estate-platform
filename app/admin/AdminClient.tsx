@@ -1,17 +1,15 @@
 "use client";
 
-import Image from "next/image";
-import Viewer360 from "@/components/Viewer360";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type {
   AdminHotspot,
-  AdminHotspotType,
   AdminPropertyInput,
   AdminPropertyRecord,
   AdminScene360,
 } from "@/types/admin";
 import { EMPTY_ADMIN_PROPERTY } from "@/types/admin";
+import AdminMediaTabs from "@/components/admin/AdminMediaTabs";
 
 function slugify(value: string) {
   return value
@@ -61,6 +59,8 @@ function buildScene(title = "", image = ""): AdminScene360 {
     title: title || "Nueva escena",
     image,
     thumbnail: image,
+    initialYaw: 0,
+    initialPitch: 0,
     hotspots: [],
   };
 }
@@ -1039,494 +1039,12 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                   </div>
                 </div>
 
-                <div className="rounded-[28px] border border-white/10 bg-black/20 p-6">
-                  <div className="mb-5 text-[11px] uppercase tracking-[0.3em] text-white/35">
-                    Media manager
-                  </div>
-
-                  <div className="grid gap-6">
-                    <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
-                      <div className="mb-3 flex items-center justify-between gap-4">
-                        <div>
-                          <div className="text-sm font-medium text-white">Cover image</div>
-                          <div className="mt-1 text-xs text-white/45">
-                            Imagen principal editorial de la propiedad.
-                          </div>
-                        </div>
-
-                        <label className="inline-flex cursor-pointer items-center rounded-2xl border border-white/15 px-4 py-3 text-sm text-white transition hover:bg-white/10">
-                          <input
-                            type="file"
-                            accept="image/png,image/jpeg,image/jpg,image/webp"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleUpload(file, "cover");
-                              e.currentTarget.value = "";
-                            }}
-                          />
-                          {uploadingCover ? "Subiendo..." : "Subir cover"}
-                        </label>
-                      </div>
-
-                      <input
-                        value={form.coverImage}
-                        onChange={(e) => handleChange("coverImage", e.target.value)}
-                        className="mb-4 w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
-                        placeholder="/uploads/properties/mi-propiedad/cover/imagen.jpg"
-                      />
-
-                      <div className={`relative aspect-[16/9] overflow-hidden rounded-[24px] border border-white/10 bg-black/30 ${
-                                  ""
-                                }`}>
-                        {form.coverImage ? (
-                          <Image
-                            src={form.coverImage}
-                            alt="Cover preview"
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center text-sm text-white/35">
-                            Sin cover image
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div
-                      className="rounded-3xl border border-white/10 bg-white/[0.03] p-5"
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                      }}
-                      onDrop={async (e) => {
-                        e.preventDefault();
-                        const files = Array.from(e.dataTransfer.files || []).filter((file) =>
-                          file.type.startsWith("image/")
-                        );
-                        if (files.length === 0) return;
-                        for (const file of files) {
-                          await handleUpload(file, "gallery");
-                        }
-                      }}
-                    >
-                      <div className="mb-4 flex items-center justify-between gap-4">
-                        <div>
-                          <div className="text-sm font-medium text-white">Gallery</div>
-                          <div className="mt-1 text-xs text-white/45">
-                            Colección editorial visual de la propiedad.
-                          </div>
-                          <div className="mt-2 text-[11px] text-white/30">
-                            Puedes seleccionar varias imágenes o arrastrarlas aquí.
-                          </div>
-                        </div>
-
-                        <label className="inline-flex cursor-pointer items-center rounded-2xl border border-white/15 px-4 py-3 text-sm text-white transition hover:bg-white/10">
-                          <input
-                            type="file"
-                            multiple
-                            accept="image/png,image/jpeg,image/jpg,image/webp"
-                            className="hidden"
-                            onChange={async (e) => {
-                              const input = e.currentTarget;
-                              const files = Array.from(input.files || []);
-                              input.value = "";
-                              if (files.length === 0) return;
-                              for (const file of files) {
-                                await handleUpload(file, "gallery");
-                              }
-                            }}
-                          />
-                          {uploadingGallery ? "Subiendo..." : "Agregar imágenes"}
-                        </label>
-                      </div>
-
-                      {form.gallery.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed border-white/10 px-4 py-8 text-center text-sm text-white/35">
-                          Aún no hay imágenes en galería.
-                        </div>
-                      ) : (
-                        <div className="max-h-[540px] overflow-y-auto pr-2">
-                          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                            {form.gallery.map((imageUrl, index) => (
-                              <div
-                                key={`${imageUrl}-${index}`}
-                                className="overflow-hidden rounded-[20px] border border-white/10 bg-black/30"
-                              >
-                                <div className="relative aspect-[4/3]">
-                                  <Image
-                                    src={imageUrl}
-                                    alt={`Gallery ${index + 1}`}
-                                    fill
-                                    className="object-cover"
-                                    unoptimized
-                                  />
-                                </div>
-
-                                <div className="space-y-2 p-2.5">
-                                  <div className="truncate text-[11px] text-white/45">
-                                    {imageUrl}
-                                  </div>
-
-                                  <button
-                                    onClick={() => removeGalleryImage(index)}
-                                    className="w-full rounded-2xl border border-white/10 px-3 py-2 text-xs text-white/75 transition hover:bg-white/10"
-                                  >
-                                    Quitar imagen
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-[28px] border border-white/10 bg-black/20 p-6">
-                  <div className="mb-5 flex items-center justify-between gap-4">
-                    <div>
-                      <div className="text-[11px] uppercase tracking-[0.3em] text-white/35">
-                        Scene manager 360
-                      </div>
-
-<div className="mb-4">
-</div>
-                      <div className="mt-2 text-sm text-white/55">
-                        Administra panoramas y escenas del visor 360 propio.
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <label className="inline-flex cursor-pointer items-center rounded-2xl border border-white/15 px-4 py-3 text-sm text-white transition hover:bg-white/10">
-                        <input
-                          type="file"
-                          accept="image/png,image/jpeg,image/jpg,image/webp"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleUpload(file, "scenes360");
-                            e.currentTarget.value = "";
-                          }}
-                        />
-                        {uploadingScenes ? "Subiendo..." : "Subir panorama"}
-                      </label>
-
-                    </div>
-                  </div>
-
-                  {form.scenes360.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-white/10 px-4 py-8 text-center text-sm text-white/35">
-                      Aún no hay escenas 360.
-                    </div>
-                  ) : (
-                    <div className="max-h-[960px] space-y-6 overflow-y-auto pr-2">
-                      {form.scenes360.map((scene, sceneIndex) => {
-  const safeScene = {
-    id: scene?.id ?? "",
-    title: scene?.title ?? "",
-    image: scene?.image ?? "",
-    hotspots: Array.isArray(scene?.hotspots) ? scene.hotspots : [],
-  };
-                        const isEditingHotspots = activeHotspotScene === scene.id;
-
-                        return (
-                        <div
-                          key={`${scene.id}-${sceneIndex}`}
-                          className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4 overflow-hidden"
-                        >
-                          <div className="mb-4 grid gap-4 lg:grid-cols-2">
-                            <label className="block">
-                              <span className="mb-2 block text-sm text-white/65">Título escena</span>
-                              <input
-                                value={safeScene.title}
-                                onChange={(e) => updateScene(sceneIndex, { title: e.target.value })}
-                                className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
-                                placeholder="Terraza principal"
-                              />
-                            </label>
-
-                            <label className="block">
-                              <span className="mb-2 block text-sm text-white/65">ID escena</span>
-                              <input
-                                value={safeScene.id}
-                                onChange={(e) => updateScene(sceneIndex, { id: e.target.value })}
-                                className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
-                                placeholder="terraza-principal"
-                              />
-                            </label>
-                          </div>
-
-                          <label className="mb-4 block">
-                            <span className="mb-2 block text-sm text-white/65">Ruta panorama</span>
-                            <input
-                              value={safeScene.image}
-                              onChange={(e) =>
-                                updateScene(sceneIndex, {
-                                  image: e.target.value,
-                                  thumbnail: e.target.value,
-                                })
-                              }
-                              className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
-                              placeholder="/uploads/properties/mi-propiedad/scenes360/panorama.jpg"
-                            />
-                          </label>
-
-                          <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
-                            <div className="space-y-4">
-                              <div className="flex items-center justify-between gap-3">
-                                <div className="text-sm text-white/65">
-                                  {isEditingHotspots
-                                    ? "Modo hotspots activo para esta escena."
-                                    : "Visor 360 simple activo. Los hotspots se editan por escena."}
-                                </div>
-
-                                <div className="flex items-center gap-3">
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      setActiveHotspotScene((prev) =>
-                                        prev === scene.id ? null : scene.id
-                                      )
-                                    }
-                                    className="rounded-2xl border border-white/10 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
-                                  >
-                                    {isEditingHotspots ? "Ocultar hotspots" : "Editar hotspots"}
-                                  </button>
-
-                                  <button
-                                    onClick={() => removeScene(sceneIndex)}
-                                    className="rounded-2xl border border-white/10 px-4 py-3 text-sm text-white/75 transition hover:bg-white/10"
-                                  >
-                                    Eliminar escena
-                                  </button>
-                                </div>
-                              </div>
-
-                              <div className="relative aspect-[16/9] overflow-hidden rounded-[24px] border border-white/10 bg-black/30">
-                                {scene.image ? (
-                                  <>
-                                    <Viewer360
-                                      image={scene.image}
-                                      hotspots={scene.hotspots}
-                                      editable={isEditingHotspots}
-                                      onSceneClick={({ pitch, yaw }) => {
-                                        if (!isEditingHotspots) return;
-                                        addHotspotAtCoords(sceneIndex, { pitch, yaw });
-                                      }}
-                                    />
-
-                                    <div className="absolute left-3 top-3 rounded-full border border-white/15 bg-black/55 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-white/75">
-                                      {isEditingHotspots ? "Editar hotspots 360" : "Visor 360"}
-                                    </div>
-                                  </>
-                                ) : (
-                                  <div className="flex h-full items-center justify-center text-sm text-white/35">
-                                    Sin panorama
-                                  </div>
-                                )}
-                              </div>
-
-                              <div className="grid gap-3 md:grid-cols-3">
-                                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/70">
-                                  {isEditingHotspots && <>Hotspots: <span className="text-white">{scene.hotspots.length}</span></>}
-                                </div>
-
-                                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/70">
-                                  Thumb: <span className="text-white">{scene.thumbnail ? "Sí" : "No"}</span>
-                                </div>
-
-                                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/70">
-                                  {isEditingHotspots && <>Destinos válidos: <span className="text-white">{form.scenes360.length - 1 >= 0 ? form.scenes360.length - 1 : 0}</span></>}
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="space-y-4">
-                              {isEditingHotspots && (<>
-
-                              {scene.hotspots.length === 0 ? (
-                                <div className="rounded-2xl border border-dashed border-white/10 px-4 py-8 text-center text-sm text-white/35">
-                                  No hay hotspots todavía.
-                                </div>
-                              ) : (
-                                <div className="max-h-[440px] space-y-4 overflow-y-auto pr-2">
-                                  {scene.hotspots.map((hotspot, hotspotIndex) => (
-                                    <div
-                                      key={`${hotspot.id}-${hotspotIndex}`}
-                                      className="rounded-[20px] border border-white/10 bg-black/20 p-4"
-                                    >
-                                      <div className="mb-4 flex items-center justify-between gap-3">
-                                        <div className="text-sm font-medium text-white">
-                                          Hotspot {hotspotIndex + 1}
-                                        </div>
-
-                                        <button
-                                          onClick={() => removeHotspot(sceneIndex, hotspotIndex)}
-                                          className="rounded-2xl border border-white/10 px-3 py-2 text-xs text-white/75 transition hover:bg-white/10"
-                                        >
-                                          Eliminar
-                                        </button>
-                                      </div>
-
-                                      <div className="grid gap-4">
-                                        <label className="block">
-                                          <span className="mb-2 block text-sm text-white/65">Label</span>
-                                          <input
-                                            value={hotspot.label}
-                                            onChange={(e) =>
-                                              updateHotspot(sceneIndex, hotspotIndex, {
-                                                label: e.target.value,
-                                              })
-                                            }
-                                            className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
-                                            placeholder="Ir a terraza"
-                                          />
-                                        </label>
-
-                                        <label className="block">
-                                          <span className="mb-2 block text-sm text-white/65">Destino</span>
-                                          <select
-                                            value={hotspot.targetSceneId || ""}
-                                            onChange={(e) =>
-                                              updateHotspot(sceneIndex, hotspotIndex, {
-                                                targetSceneId: e.target.value,
-                                              })
-                                            }
-                                            className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
-                                          >
-                                            <option value="">Sin destino</option>
-                                            {form.scenes360
-                                              .filter((candidate) => candidate.id !== scene.id)
-                                              .map((candidate, candidateIndex) => (
-                                                <option key={`${candidate.id}-${candidateIndex}`} value={candidate.id}>
-                                                  {candidate.title || candidate.id}
-                                                </option>
-                                              ))}
-                                          </select>
-                                        </label>
-
-                                        <div className="grid gap-4 md:grid-cols-2">
-                                          <label className="block">
-                                            <span className="mb-2 block text-sm text-white/65">Tipo</span>
-                                            <select
-                                              value={hotspot.type || "nav"}
-                                              onChange={(e) =>
-                                                updateHotspot(sceneIndex, hotspotIndex, {
-                                                  type: e.target.value as AdminHotspotType,
-                                                })
-                                              }
-                                              className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
-                                            >
-                                              <option value="nav">Navegación</option>
-                                              <option value="stairs-up">Escaleras arriba</option>
-                                              <option value="stairs-down">Escaleras abajo</option>
-                                              <option value="terrace">Terraza</option>
-                                              <option value="room">Recámara</option>
-                                              <option value="amenity">Amenidad</option>
-                                              <option value="kitchen">Cocina</option>
-                                            </select>
-                                          </label>
-
-                                          <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-sm text-white/65">
-                                            Posición fijada desde el visor 360
-                                          </div>
-                                        </div>
-
-
-                                        <div className="grid gap-4 md:grid-cols-2">
-                                          <label className="block">
-                                            <span className="mb-2 block text-sm text-white/65">Pitch</span>
-                                            <input
-                                              type="number"
-                                              step="0.01"
-                                              min="-90"
-                                              max="90"
-                                              value={hotspot.pitch}
-                                              onChange={(e) =>
-                                                updateHotspot(sceneIndex, hotspotIndex, {
-                                                  pitch: Number(e.target.value),
-                                                })
-                                              }
-                                              className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white"
-                                            />
-                                          </label>
-
-                                          <label className="block">
-                                            <span className="mb-2 block text-sm text-white/65">Yaw</span>
-                                            <input
-                                              type="number"
-                                              step="0.01"
-                                              min="-180"
-                                              max="180"
-                                              value={hotspot.yaw}
-                                              onChange={(e) =>
-                                                updateHotspot(sceneIndex, hotspotIndex, {
-                                                  yaw: Number(e.target.value),
-                                                })
-                                              }
-                                              className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white"
-                                            />
-                                          </label>
-                                        </div>
-
-                                        <div className="grid gap-3 md:grid-cols-4">
-                                          <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-center">
-                                            <div className="text-xs text-white/40">Pitch</div>
-                                            <div className="text-white">{Number(hotspot.pitch).toFixed(2)}</div>
-                                          </div>
-                                          <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-center">
-                                            <div className="text-xs text-white/40">Yaw</div>
-                                            <div className="text-white">{Number(hotspot.yaw).toFixed(2)}</div>
-                                          </div>
-                                          <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-center">
-                                            <div className="text-xs text-white/40">X visor</div>
-                                            <div className="text-white">{yawToPercent(hotspot.yaw).toFixed(1)}%</div>
-                                          </div>
-                                          <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-center">
-                                            <div className="text-xs text-white/40">Y visor</div>
-                                            <div className="text-white">{pitchToPercent(hotspot.pitch).toFixed(1)}%</div>
-                                          </div>
-                                        </div>
-
-                                        <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs text-white/55">
-                                          Para mover este hotspot, elimínalo y vuelve a colocarlo con click sobre el panorama.
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}</>)}
-                            </div>
-                          </div>
-                        </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                <div className="rounded-[28px] border border-white/10 bg-black/20 p-6">
-                  <div className="mb-5 text-[11px] uppercase tracking-[0.3em] text-white/35">
-                    Editorial
-                  </div>
-
-                  <div className="grid gap-5">
-                    <label className="block">
-                      <span className="mb-2 block text-sm text-white/65">Descripción</span>
-                      <textarea
-                        value={form.description}
-                        onChange={(e) => handleChange("description", e.target.value)}
-                        rows={7}
-                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
-                        placeholder="Describe la narrativa, arquitectura, ubicación y experiencia de la propiedad."
-                      />
-                    </label>
-                  </div>
-                </div>
+                
               </section>
+
+
+
+
 
               <section className="space-y-6">
                 <div className="rounded-[28px] border border-white/10 bg-black/20 p-6">
@@ -1602,11 +1120,9 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                     </div>
 
                     <div className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">
-                      <span>"Resumen 360"</span>
-                      <span className="text-white">
-                        form.scenes360.length
-                      </span>
-                    </div>
+  <span>Resumen 360</span>
+  <span className="text-white">{form.scenes360.length}</span>
+</div>
 
                     <div className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">
                       <span>Última edición</span>
@@ -1616,19 +1132,34 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                     </div>
                   </div>
                 </div>
-
-                <div className="rounded-[28px] border border-white/10 bg-black/20 p-6">
-                  <div className="mb-5 text-[11px] uppercase tracking-[0.3em] text-white/35">
-                    Siguiente escalado
-                  </div>
-
-                  <div className="space-y-4 text-sm leading-6 text-white/65">
-                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-                    </div>
-                  </div>
-                </div>
               </section>
             </div>
+
+            <div className="mt-8">
+              <AdminMediaTabs
+                  form={form}
+                  uploadingCover={uploadingCover}
+                  uploadingGallery={uploadingGallery}
+                  uploadingScenes={uploadingScenes}
+                  activeHotspotScene={activeHotspotScene}
+                  onSetActiveHotspotScene={setActiveHotspotScene}
+                  onChange={handleChange}
+                  onUpload={handleUpload}
+                  onRemoveGalleryImage={removeGalleryImage}
+                  onAddScene={addEmptyScene}
+                  onUpdateScene={updateScene}
+                  onRemoveScene={removeScene}
+                  onAddHotspot={addHotspotAtCoords}
+                  onUpdateHotspot={updateHotspot}
+                  onRemoveHotspot={removeHotspot}
+                  yawToPercent={yawToPercent}
+                  pitchToPercent={pitchToPercent}
+                />
+            </div>
+
+
+
+
           </div>
         </main>
       </div>
