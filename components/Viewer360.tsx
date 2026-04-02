@@ -382,7 +382,10 @@ export default function Viewer360({
       const point = sphereHits[0]?.point;
       if (!point) return;
 
-      onSceneClickRef.current?.(vector3ToHotspot(point));
+      const localPoint = sphereMeshCurrent.worldToLocal(point.clone());
+      localPoint.x *= -1;
+
+      onSceneClickRef.current?.(vector3ToHotspot(localPoint));
     }
 
     const handleControlsChange = () => {
@@ -522,7 +525,7 @@ export default function Viewer360({
       );
 
       sprite.position.copy(position);
-      sprite.scale.set(168, 168, 1);
+      sprite.scale.set(220, 220, 1);
       sprite.userData = {
         hotspotId: hotspot.id,
         targetSceneId: hotspot.targetSceneId,

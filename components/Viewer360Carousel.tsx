@@ -306,6 +306,7 @@ export default function Viewer360Carousel({ scenes }: { scenes: Scene360[] }) {
             style={panelStyle}
           >
             <div className="absolute inset-0">
+
               <Viewer360
                 key={`${fullscreenCurrent.id}-immersive-${fullscreenSeed}`}
                 image={fullscreenCurrent.image}
@@ -314,6 +315,7 @@ export default function Viewer360Carousel({ scenes }: { scenes: Scene360[] }) {
                 initialYaw={fullscreenCurrent.initialYaw || 0}
                 initialPitch={fullscreenViewerPitch}
               />
+
             </div>
 
             <div

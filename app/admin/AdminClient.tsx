@@ -76,9 +76,9 @@ function buildHotspot(index: number, pitch: number, yaw: number): AdminHotspot {
   };
 }
 
-export default function AdminClient() {
+export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: string } = {}) {
   const searchParams = useSearchParams();
-  const propertyIdFromUrl = searchParams.get("propertyId");
+  const propertyIdFromUrl = forcedPropertyId || searchParams.get("propertyId");
   const [activeHotspotScene, setActiveHotspotScene] = useState<string | null>(null);
   const [items, setItems] = useState<AdminPropertyRecord[]>([]);
   
