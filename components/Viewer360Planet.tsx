@@ -11,92 +11,14 @@ type Viewer360PlanetProps = {
   targetPitch?: number;
 };
 
-const VERTEX_SHADER = `
-varying vec2 vUv;
-
-void main() {
-  vUv = uv;
-  gl_Position = vec4(position.xy, 0.0, 1.0);
-}
-`;
-
-const FRAGMENT_SHADER = `
-precision highp float;
-
-uniform sampler2D uTexture;
-uniform vec2 uResolution;
-uniform float uZoom;
-uniform float uYaw;
-uniform float uTilt;
-uniform float uOpacity;
-
-varying vec2 vUv;
-
-const float PI = 3.1415926535897932384626433832795;
-
-mat3 rotateY(float a) {
-  float s = sin(a);
-  float c = cos(a);
-  return mat3(
-     c, 0.0, s,
-    0.0, 1.0, 0.0,
-    -s, 0.0, c
-  );
-}
-
-mat3 rotateX(float a) {
-  float s = sin(a);
-  float c = cos(a);
-  return mat3(
-    1.0, 0.0, 0.0,
-    0.0, c, -s,
-    0.0, s,  c
-  );
-}
-
-void main() {
-  vec2 p = vUv * 2.0 - 1.0;
-  float aspect = uResolution.x / max(uResolution.y, 1.0);
-  p.x *= aspect;
-  p *= uZoom;
-
-  float r2 = dot(p, p);
-
-  vec3 dir = normalize(vec3(
-    2.0 * p.x,
-    r2 - 1.0,
-    2.0 * p.y
-  ));
-
-  dir = rotateX(-uTilt) * rotateY(uYaw) * dir;
-
-  float lon = atan(dir.z, dir.x);
-  float lat = asin(clamp(dir.y, -1.0, 1.0));
-
-  vec2 uv = vec2(
-    0.5 + lon / (2.0 * PI),
-    0.5 - lat / PI
-  );
-
-  vec3 color = texture2D(
-    uTexture,
-    vec2(fract(uv.x), clamp(uv.y, 0.0, 1.0))
-  ).rgb;
-
-  float screenRadius = length(vUv * 2.0 - 1.0);
-  float vignette = 1.0 - 0.045 * smoothstep(0.82, 1.35, screenRadius);
-
-  gl_FragColor = vec4(color * vignette, uOpacity);
-}
-`;
+const SPHERE_RADIUS = 500;
+const START_FOV = 150;
+const END_FOV = 90;
+const START_PITCH = -88;
+const START_YAW_OFFSET = 180;
 
 function clamp01(v: number) {
   return Math.min(Math.max(v, 0), 1);
-}
-
-function smoothstep01(t: number) {
-  const x = clamp01(t);
-  return x * x * (3 - 2 * x);
 }
 
 function easeInOutCubic(t: number) {
@@ -111,9 +33,22 @@ function easeOutQuint(t: number) {
   return 1 - Math.pow(1 - x, 5);
 }
 
-function windowProgress(t: number, start: number, end: number) {
-  if (end <= start) return 0;
-  return smoothstep01((t - start) / (end - start));
+function targetFromYawPitch(yaw: number, pitch: number) {
+  const yawRad = THREE.MathUtils.degToRad(yaw);
+  const pitchRad = THREE.MathUtils.degToRad(pitch);
+
+  return new THREE.Vector3(
+    Math.cos(pitchRad) * Math.cos(yawRad),
+    Math.sin(pitchRad),
+    Math.cos(pitchRad) * Math.sin(yawRad)
+  ).normalize();
+}
+
+function shortestAngleDeltaDeg(from: number, to: number) {
+  let delta = (to - from) % 360;
+  if (delta > 180) delta -= 360;
+  if (delta < -180) delta += 360;
+  return delta;
 }
 
 export default function Viewer360Planet({
@@ -133,7 +68,14 @@ export default function Viewer360Planet({
     let frameId = 0;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+    const camera = new THREE.PerspectiveCamera(
+      START_FOV,
+      Math.max(root.clientWidth || 1, 1) / Math.max(root.clientHeight || 1, 1),
+      0.1,
+      2000
+    );
+    camera.position.set(0, 0, 0.1);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -142,6 +84,10 @@ export default function Viewer360Planet({
     });
 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(
+      Math.max(root.clientWidth || 1, 1),
+      Math.max(root.clientHeight || 1, 1)
+    );
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.setClearColor(0x000000, 0);
     renderer.domElement.style.position = "absolute";
@@ -151,32 +97,24 @@ export default function Viewer360Planet({
     renderer.domElement.style.display = "block";
     root.appendChild(renderer.domElement);
 
-    const uniforms = {
-      uTexture: { value: null as THREE.Texture | null },
-      uResolution: { value: new THREE.Vector2(1, 1) },
-      uZoom: { value: 7.4 },
-      uYaw: { value: Math.PI },
-      uTilt: { value: 0.0 },
-      uOpacity: { value: 1.0 },
-    };
+    const geometry = new THREE.SphereGeometry(SPHERE_RADIUS, 96, 64);
+    geometry.scale(-1, 1, 1);
 
-    const material = new THREE.ShaderMaterial({
-      uniforms,
-      vertexShader: VERTEX_SHADER,
-      fragmentShader: FRAGMENT_SHADER,
-      transparent: true,
-      depthWrite: false,
-      depthTest: false,
-    });
+    const material = new THREE.MeshBasicMaterial();
+    const sphere = new THREE.Mesh(geometry, material);
+    scene.add(sphere);
 
-    const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
-    scene.add(quad);
+    const loader = new THREE.TextureLoader();
+    loader.setCrossOrigin("anonymous");
+
+    let texture: THREE.Texture | null = null;
 
     const resize = () => {
       const width = Math.max(root.clientWidth || window.innerWidth, 1);
       const height = Math.max(root.clientHeight || window.innerHeight, 1);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
       renderer.setSize(width, height, false);
-      uniforms.uResolution.value.set(width, height);
     };
 
     resize();
@@ -185,68 +123,74 @@ export default function Viewer360Planet({
     ro.observe(root);
     window.addEventListener("resize", resize);
 
-    const loader = new THREE.TextureLoader();
-    const texture = loader.load(
+    const startYaw = targetYaw + START_YAW_OFFSET;
+    const yawDelta = shortestAngleDeltaDeg(startYaw, targetYaw);
+    const startPitch = START_PITCH;
+    const pitchDelta = targetPitch - startPitch;
+
+    const start = performance.now();
+
+    loader.load(
       image,
-      () => {
+      (loadedTexture) => {
+        if (disposed) {
+          loadedTexture.dispose();
+          return;
+        }
+
+        texture = loadedTexture;
         texture.colorSpace = THREE.SRGBColorSpace;
         texture.minFilter = THREE.LinearFilter;
         texture.magFilter = THREE.LinearFilter;
         texture.generateMipmaps = false;
-        texture.flipY = false;
-        texture.needsUpdate = true;
-        uniforms.uTexture.value = texture;
+        material.map = texture;
+        material.needsUpdate = true;
+
+        const animate = (now: number) => {
+          if (disposed) return;
+
+          const rawT = clamp01((now - start) / durationMs);
+          const moveT = easeInOutCubic(rawT);
+          const fadeT = rawT > 0.94 ? easeOutQuint((rawT - 0.94) / 0.06) : 0;
+
+          const yaw = startYaw + yawDelta * moveT;
+          const pitch = startPitch + pitchDelta * moveT;
+          const fov = THREE.MathUtils.lerp(START_FOV, END_FOV, moveT);
+
+          camera.fov = fov;
+          camera.updateProjectionMatrix();
+
+          const lookDir = targetFromYawPitch(yaw, pitch);
+          camera.lookAt(camera.position.clone().add(lookDir));
+
+          renderer.domElement.style.opacity = String(1 - fadeT);
+          renderer.render(scene, camera);
+
+          if (rawT < 1) {
+            frameId = window.requestAnimationFrame(animate);
+          } else {
+            onComplete?.();
+          }
+        };
+
+        frameId = window.requestAnimationFrame(animate);
       },
       undefined,
       (err) => {
-        console.error("Error loading little-planet texture:", err);
+        console.error("Error loading 360 planet texture:", err);
+        onComplete?.();
       }
     );
 
-    const start = performance.now();
-
-    const START_ZOOM = 7.4;
-    const END_ZOOM = 0.58;
-
-    const START_YAW = Math.PI;
-    const END_YAW = Math.PI + THREE.MathUtils.degToRad(targetYaw);
-
-    const START_TILT = 0.0;
-    const END_TILT = THREE.MathUtils.degToRad(84 + targetPitch * 0.15);
-
-    const animate = (now: number) => {
-      if (disposed) return;
-
-      const t = clamp01((now - start) / durationMs);
-
-      const moveT = easeInOutCubic(windowProgress(t, 0.0, 0.94));
-      const fadeT = easeOutQuint(windowProgress(t, 0.94, 1.0));
-
-      uniforms.uZoom.value = THREE.MathUtils.lerp(START_ZOOM, END_ZOOM, moveT);
-      uniforms.uYaw.value = THREE.MathUtils.lerp(START_YAW, END_YAW, moveT);
-      uniforms.uTilt.value = THREE.MathUtils.lerp(START_TILT, END_TILT, moveT);
-      uniforms.uOpacity.value = 1.0 - fadeT;
-
-      renderer.render(scene, camera);
-
-      if (t < 1.0) {
-        frameId = requestAnimationFrame(animate);
-      } else {
-        onComplete?.();
-      }
-    };
-
-    frameId = requestAnimationFrame(animate);
-
     return () => {
       disposed = true;
-      cancelAnimationFrame(frameId);
-      ro.disconnect();
+      window.cancelAnimationFrame(frameId);
       window.removeEventListener("resize", resize);
+      ro.disconnect();
 
-      quad.geometry.dispose();
+      texture?.dispose();
       material.dispose();
-      texture.dispose();
+      geometry.dispose();
       renderer.dispose();
 
       if (renderer.domElement.parentNode === root) {

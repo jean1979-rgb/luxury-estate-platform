@@ -31,6 +31,8 @@ export type AdminScene360 = {
   title: string;
   image: string;
   thumbnail?: string;
+  initialYaw?: number;
+  initialPitch?: number;
   hotspots: AdminHotspot[];
 };
 
