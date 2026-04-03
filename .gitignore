@@ -14,3 +14,17 @@ public/uploads/
 .vercel
 
 public/uploads
+
+# env
+.env*
+.env.vercel.local
+
+# db
+dev.db
+
+# backups
+backups/
+
+# temp
+scripts/tmp/
+
