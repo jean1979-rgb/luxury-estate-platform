@@ -16,9 +16,19 @@ export type CatalogProperty = {
 };
 
 function inferZone(value: string): PropertyZone {
-  const v = value.toLowerCase();
-  if (v.includes("real diamante")) return "real-diamante";
-  if (v.includes("brisas")) return "las-brisas";
+  const v = value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  if (v.includes("real diamante") || v.includes("diamante")) {
+    return "real-diamante";
+  }
+
+  if (v.includes("brisas")) {
+    return "las-brisas";
+  }
+
   return "playa";
 }
 

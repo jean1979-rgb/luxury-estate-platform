@@ -56,11 +56,17 @@ async function getPrismaScenes(propertyId: string) {
 
 export default async function PropertyDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const property = await prisma.brokerProperty.findUnique({
-    where: { id },
+  const property = await prisma.brokerProperty.findFirst({
+    where: {
+      published: true,
+      OR: [
+        { id },
+        { slug: id },
+      ],
+    },
   });
 
-  if (!property || !property.published) {
+  if (!property) {
     notFound();
   }
 
