@@ -9,6 +9,7 @@ import PropertyFacts from "@/components/PropertyFacts";
 import PropertyStory from "@/components/PropertyStory";
 import Viewer360Carousel from "@/components/Viewer360Carousel";
 import ContactCTA from "@/components/ContactCTA";
+import { prisma } from "@/lib/prisma";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -96,6 +97,19 @@ async function getProperties(): Promise<AdminProperty[]> {
   }
 }
 
+
+async function getPrismaScenes(propertyId: string) {
+  return prisma.propertyScene360.findMany({
+    where: { propertyId },
+    orderBy: { sortOrder: "asc" },
+    include: {
+      hotspots: {
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+}
+
 export default async function PropertyDetailPage({ params }: PageProps) {
   const { id } = await params;
   const properties = await getProperties();
@@ -110,7 +124,39 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       ? property.gallery
       : [property.coverImage];
 
-  const scenes360 = Array.isArray(property.scenes360) ? property.scenes360 : [];
+  let scenes360 = Array.isArray(property.scenes360) ? property.scenes360 : [];
+
+// 🔥 override con Prisma (si existe)
+try {
+  const res = await fetch(`${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/broker/scenes/${property.id}`, {
+    cache: "no-store",
+  });
+
+  const data = await res.json();
+
+  if (res.ok && data.ok && Array.isArray(data.scenes) && data.scenes.length > 0) {
+    scenes360 = data.scenes.map((scene: any) => ({
+      id: scene.id,
+      title: scene.title,
+      image: scene.image,
+      thumbnail: scene.thumbnail,
+      initialYaw: scene.initialYaw ?? 0,
+      initialPitch: scene.initialPitch ?? 0,
+      hotspots: Array.isArray(scene.hotspots)
+        ? scene.hotspots.map((h: any) => ({
+            id: h.id,
+            pitch: h.pitch,
+            yaw: h.yaw,
+            label: h.label,
+            targetSceneId: h.targetSceneId,
+            type: h.type || "nav",
+          }))
+        : [],
+    }));
+  }
+} catch (e) {
+  console.error("Error loading prisma scenes", e);
+}
   const areaLabel = property.area ?? property.areaInterior ?? property.areaTotal ?? "N/D";
 
   return (
