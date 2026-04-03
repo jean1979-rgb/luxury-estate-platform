@@ -2,6 +2,7 @@ import Link from "next/link";
 
 type Props = {
   id: string;
+  slug?: string;
   title: string;
   location: string;
   image: string;
@@ -10,6 +11,8 @@ type Props = {
 };
 
 export default function PropertyCard({
+  slug,
+
   id,
   title,
   location,

@@ -1,8 +1,5 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { promises as fs } from "fs";
-import path from "path";
-import { properties as fallbackProperties } from "@/data/properties";
 import Gallery from "@/components/Gallery";
 import LuxuryScore from "@/components/LuxuryScore";
 import PropertyFacts from "@/components/PropertyFacts";
@@ -43,59 +40,6 @@ type AdminProperty = {
   published?: boolean;
 };
 
-async function getProperties(): Promise<AdminProperty[]> {
-  try {
-    const adminPath = path.join(process.cwd(), "data/admin/properties.json");
-    const tokkoPath = path.join(process.cwd(), "data/platform/properties.json");
-
-    let admin: AdminProperty[] = [];
-    let tokko: AdminProperty[] = [];
-
-    try {
-      const rawAdmin = await fs.readFile(adminPath, "utf8");
-      const parsedAdmin = JSON.parse(rawAdmin);
-      admin = Array.isArray(parsedAdmin) ? parsedAdmin : [];
-    } catch {}
-
-    try {
-      const rawTokko = await fs.readFile(tokkoPath, "utf8");
-      const parsedTokko = JSON.parse(rawTokko);
-
-      tokko = (Array.isArray(parsedTokko) ? parsedTokko : []).map((item: any) => ({
-        id: item.id,
-        title: item.editorial?.title || item.base?.title || "Propiedad",
-        location: item.base?.locationLabel || "Ubicación premium",
-        price: item.base?.priceLabel || "Precio disponible bajo solicitud",
-        bedrooms: Number(item.base?.bedrooms ?? 0),
-        bathrooms: Number(item.base?.bathrooms ?? 0),
-        coverImage: item.base?.images?.[0] || "",
-        gallery: Array.isArray(item.base?.images) ? item.base.images : [],
-        tagline: item.editorial?.tagline || "",
-        description: item.editorial?.descriptionLuxury || item.base?.description || "",
-        luxuryScore: Number(item.editorial?.luxuryScore ?? 85),
-        area: item.base?.areaLabel || item.base?.totalAreaLabel || item.base?.coveredAreaLabel || "N/D",
-        areaInterior: item.base?.coveredAreaLabel || "",
-        areaTotal: item.base?.totalAreaLabel || "",
-        scenes360: Array.isArray(item.media?.scenes360)
-        ? item.media.scenes360.filter((scene: any) => typeof scene?.image === "string" && scene.image.trim().length > 0)
-        : [],
-        featured: Boolean(item.editorial?.featuredPlatform),
-        published: item.status?.published ?? true,
-      }));
-    } catch {}
-
-    const all = [...admin, ...tokko];
-
-    if (all.length === 0) {
-      return fallbackProperties;
-    }
-
-    const published = all.filter((item) => item?.published);
-    return published.length > 0 ? published : all;
-  } catch {
-    return fallbackProperties;
-  }
-}
 
 
 async function getPrismaScenes(propertyId: string) {
@@ -112,19 +56,47 @@ async function getPrismaScenes(propertyId: string) {
 
 export default async function PropertyDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const properties = await getProperties();
-  const property = properties.find((item) => item.id === id);
+  const property = await prisma.brokerProperty.findUnique({
+    where: { id },
+  });
 
-  if (!property) {
+  if (!property || !property.published) {
     notFound();
   }
 
-  const gallery =
-    Array.isArray(property.gallery) && property.gallery.length > 0
-      ? property.gallery
-      : [property.coverImage];
+  const safeCoverImage = property.coverImage ?? "";
 
-  let scenes360 = Array.isArray(property.scenes360) ? property.scenes360 : [];
+  let gallery: string[] = [];
+
+  try {
+    const parsed = typeof property.gallery === "string"
+      ? JSON.parse(property.gallery)
+      : property.gallery;
+
+    gallery = Array.isArray(parsed) && parsed.length > 0
+      ? parsed.filter((image): image is string => typeof image === "string" && image.trim().length > 0)
+      : safeCoverImage
+        ? [safeCoverImage]
+        : [];
+  } catch {
+    gallery = safeCoverImage ? [safeCoverImage] : [];
+  }
+
+  let scenes360: {
+    id: string;
+    title?: string;
+    image: string;
+    thumbnail?: string;
+    initialYaw?: number;
+    initialPitch?: number;
+    hotspots?: {
+      id: string;
+      pitch: number;
+      yaw: number;
+      label?: string;
+      targetSceneId?: string;
+    }[];
+  }[] = [];
 
   const prismaScenes = await getPrismaScenes(property.id);
 
@@ -145,13 +117,23 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       })),
     }));
   }
-  const areaLabel = property.area ?? property.areaInterior ?? property.areaTotal ?? "N/D";
+  const safeLocation = property.location ?? "Ubicación premium";
+  const safePrice = property.price ?? "Precio disponible bajo solicitud";
+  const safeBedrooms = property.bedrooms ?? 0;
+  const safeBathrooms = property.bathrooms ?? 0;
+
+  const areaLabel =
+    property.areaTotal != null
+      ? String(property.areaTotal)
+      : property.areaInterior != null
+        ? String(property.areaInterior)
+        : "N/D";
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-[#f5f1eb]">
       <section className="relative h-[85vh] w-full overflow-hidden">
         <img
-          src={property.coverImage}
+          src={safeCoverImage}
           alt={property.title}
           className="absolute inset-0 h-full w-full scale-105 object-cover"
         />
@@ -183,16 +165,16 @@ export default async function PropertyDetailPage({ params }: PageProps) {
 
             <div className="mt-8 flex flex-wrap gap-3 text-sm">
               <span className="rounded-full border border-white/15 px-4 py-2">
-                {property.location}
+                {safeLocation}
               </span>
               <span className="rounded-full border border-white/15 px-4 py-2">
-                {property.price}
+                {safePrice}
               </span>
               <span className="rounded-full border border-white/15 px-4 py-2">
-                {property.bedrooms} recámaras
+                {safeBedrooms} recámaras
               </span>
               <span className="rounded-full border border-white/15 px-4 py-2">
-                {property.bathrooms} baños
+                {safeBathrooms} baños
               </span>
               <span className="rounded-full border border-white/15 px-4 py-2">
                 {areaLabel}
@@ -250,10 +232,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
 
           <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6">
             <PropertyFacts
-              location={property.location}
-              price={property.price}
-              bedrooms={property.bedrooms}
-              bathrooms={property.bathrooms}
+              location={safeLocation}
+              price={safePrice}
+              bedrooms={safeBedrooms}
+              bathrooms={safeBathrooms}
               area={areaLabel}
             />
           </div>

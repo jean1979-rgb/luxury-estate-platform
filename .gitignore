@@ -28,3 +28,4 @@ backups/
 # temp
 scripts/tmp/
 
+next-env.d.ts

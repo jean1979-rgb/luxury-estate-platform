@@ -224,6 +224,7 @@ export default async function AcapulcoRentalsPage({
                   <PropertyCard
                     key={p.id}
                     id={p.id}
+                    slug={(p as any).slug}
                     title={p.title}
                     location={p.location}
                     image={p.coverImage}
