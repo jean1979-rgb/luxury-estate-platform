@@ -109,116 +109,11 @@ function resolveAcapulcoZone(input: {
   return null;
 }
 
-async function readAdminRaw(): Promise<any[]> {
-  const adminPath = path.join(process.cwd(), "data/admin/properties.json");
 
-  try {
-    return JSON.parse(await fs.readFile(adminPath, "utf8"));
-  } catch {
-    return [];
-  }
-}
 
-async function readTokkoRaw(): Promise<any[]> {
-  const tokkoPath = path.join(process.cwd(), "data/platform/properties.json");
 
-  try {
-    return JSON.parse(await fs.readFile(tokkoPath, "utf8"));
-  } catch {
-    return [];
-  }
-}
 
-function mapAdminProperty(item: any): PropertyUnified {
-  const price = parsePrice(item.price);
-  const location = String(item.location || "").trim();
-  const title = String(item.title || "Propiedad").trim();
-  const tagline = String(item.tagline || item.description || "").trim();
 
-  return {
-    id: item.id,
-    title,
-    location,
-    coverImage: item.coverImage || "",
-    tagline,
-
-    price: price ?? undefined,
-    operation: "sale",
-    isLuxury: isLuxuryPrice(price),
-    isLuxuryRental: false,
-
-    featured: Boolean(item.featured),
-    published: item.published ?? true,
-    zone: resolveAcapulcoZone({ location, title, tagline }),
-  };
-}
-
-function mapTokkoProperty(item: any): PropertyUnified {
-  const location = String(
-    item.locationLabel || item.base?.locationLabel || item.base?.location || ""
-  ).trim();
-
-  const title = String(
-    item.editorial?.title || item.base?.title || "Propiedad"
-  ).trim();
-
-  const tagline = String(
-    item.editorial?.descriptionLuxury || item.base?.description || ""
-  ).trim();
-
-  const price =
-    parsePrice(item.price) ??
-    parsePrice(item.base?.price) ??
-    parsePrice(item.pricing?.price) ??
-    parsePrice(item.operations?.[0]?.prices?.[0]?.price);
-
-  const operationText = normalizeText(
-    item.operationMode ||
-      item.operation ||
-      item.operations?.map((op: any) => op?.type || op?.operation_type || "").join(" | ")
-  );
-
-  const isRent =
-    item.rental?.enabled === true ||
-    operationText.includes("rent") ||
-    operationText.includes("renta") ||
-    operationText.includes("alquiler");
-
-  return {
-    id: item.id,
-    title,
-    location,
-    coverImage: item.base?.images?.[0] || "",
-    tagline,
-
-    price: price ?? undefined,
-    operation: isRent ? "rent" : "sale",
-    isLuxury: isRent ? false : isLuxuryPrice(price),
-    isLuxuryRental: isRent,
-
-    featured: Boolean(item.editorial?.featuredPlatform),
-    published: item.status?.published ?? true,
-    zone: resolveAcapulcoZone({ location, title, tagline }),
-  };
-}
-
-export async function getAllProperties(): Promise<PropertyUnified[]> {
-  const admin = await readAdminRaw();
-  const tokko = await readTokkoRaw();
-
-  const adminMapped = admin.map(mapAdminProperty);
-  const tokkoMapped = tokko.map(mapTokkoProperty);
-
-  return [...adminMapped, ...tokkoMapped].filter((item) => item?.published);
-}
-
-async function getAdminPublishedProperties(): Promise<PropertyUnified[]> {
-  const admin = await readAdminRaw();
-
-  return admin
-    .map(mapAdminProperty)
-    .filter((item) => item?.published);
-}
 
 function inferZone(value: string): PropertyZone {
   const v = value.toLowerCase();
