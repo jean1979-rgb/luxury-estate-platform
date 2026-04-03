@@ -240,7 +240,7 @@ export default function Viewer360({
       0.1,
       2000
     );
-    camera.position.set(0, 0, 0.1);
+    camera.position.set(0, 0, 0);
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -382,10 +382,7 @@ export default function Viewer360({
       const point = sphereHits[0]?.point;
       if (!point) return;
 
-      const localPoint = sphereMeshCurrent.worldToLocal(point.clone());
-      localPoint.x *= -1;
-
-      onSceneClickRef.current?.(vector3ToHotspot(localPoint));
+      onSceneClickRef.current?.(vector3ToHotspot(point));
     }
 
     const handleControlsChange = () => {
@@ -546,5 +543,19 @@ export default function Viewer360({
     emitCurrentView(true);
   }, [initialYaw, initialPitch]);
 
-  return <div ref={mountRef} className="h-full w-full" />;
+  return (
+    <div className="relative h-full w-full">
+      <div
+        ref={mountRef}
+        className={`h-full w-full ${editable ? "cursor-crosshair" : ""}`}
+      />
+      {editable ? (
+        <div className="pointer-events-none absolute inset-0 z-10">
+          <div className="absolute left-1/2 top-1/2 h-8 w-px -translate-x-1/2 -translate-y-1/2 bg-amber-300/90 shadow-[0_0_10px_rgba(252,211,77,0.65)]" />
+          <div className="absolute left-1/2 top-1/2 h-px w-8 -translate-x-1/2 -translate-y-1/2 bg-amber-300/90 shadow-[0_0_10px_rgba(252,211,77,0.65)]" />
+          <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-amber-300/90 bg-amber-300/10 shadow-[0_0_12px_rgba(252,211,77,0.45)]" />
+        </div>
+      ) : null}
+    </div>
+  );
 }
