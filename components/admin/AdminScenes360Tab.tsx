@@ -67,11 +67,12 @@ export default function AdminScenes360Tab({
                 accept="image/png,image/jpeg,image/jpg,image/webp"
                 className="hidden"
                 onChange={async (e) => {
-                  const file = e.target.files?.[0];
+                  const input = e.currentTarget;
+                  const file = input.files?.[0];
                   if (file) {
                     await onUploadScene(file);
                   }
-                  e.currentTarget.value = "";
+                  input.value = "";
                 }}
               />
               {uploadingScenes ? "Subiendo..." : "Subir panorama"}

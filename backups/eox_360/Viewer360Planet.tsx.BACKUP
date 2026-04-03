@@ -1,0 +1,252 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import * as THREE from "three";
+
+type Viewer360PlanetProps = {
+  image: string;
+  durationMs?: number;
+  onComplete?: () => void;
+  targetYaw?: number;
+  targetPitch?: number;
+};
+
+const VERTEX_SHADER = `
+varying vec2 vUv;
+
+void main() {
+  vUv = uv;
+  gl_Position = vec4(position.xy, 0.0, 1.0);
+}
+`;
+
+const FRAGMENT_SHADER = `
+precision highp float;
+
+uniform sampler2D uTexture;
+uniform vec2 uResolution;
+uniform float uZoom;
+uniform float uYaw;
+uniform float uPitch;
+uniform float uRoll;
+uniform float uOpacity;
+
+varying vec2 vUv;
+
+const float PI = 3.1415926535897932384626433832795;
+
+mat3 rotateX(float a) {
+  float s = sin(a);
+  float c = cos(a);
+  return mat3(
+    1.0, 0.0, 0.0,
+    0.0, c, -s,
+    0.0, s,  c
+  );
+}
+
+mat3 rotateY(float a) {
+  float s = sin(a);
+  float c = cos(a);
+  return mat3(
+     c, 0.0, s,
+    0.0, 1.0, 0.0,
+    -s, 0.0, c
+  );
+}
+
+mat3 rotateZ(float a) {
+  float s = sin(a);
+  float c = cos(a);
+  return mat3(
+     c, -s, 0.0,
+     s,  c, 0.0,
+    0.0, 0.0, 1.0
+  );
+}
+
+void main() {
+  vec2 p = vUv * 2.0 - 1.0;
+  p.x *= uResolution.x / max(uResolution.y, 1.0);
+  p *= uZoom;
+
+  float r2 = dot(p, p);
+
+  vec3 dir = normalize(vec3(
+    2.0 * p.x,
+    r2 - 1.0,
+    2.0 * p.y
+  ));
+
+  dir = rotateZ(uRoll) * rotateX(uPitch) * rotateY(uYaw) * dir;
+
+  float lon = atan(dir.z, dir.x);
+  float lat = asin(clamp(dir.y, -1.0, 1.0));
+
+  vec2 uv = vec2(
+    0.5 + lon / (2.0 * PI),
+    0.5 + lat / PI
+  );
+
+  vec4 color = texture2D(
+    uTexture,
+    vec2(fract(uv.x), clamp(uv.y, 0.0, 1.0))
+  );
+
+  float radius = length(vUv * 2.0 - 1.0);
+  float vignette = 1.0 - 0.14 * smoothstep(0.78, 1.35, radius);
+
+  gl_FragColor = vec4(color.rgb * vignette, uOpacity);
+}
+`;
+
+export default function Viewer360Planet({
+  image,
+  durationMs = 2500,
+  onComplete,
+  targetYaw = 0,
+  targetPitch = 0,
+}: Viewer360PlanetProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || !image) return;
+
+    let disposed = false;
+    let frameId = 0;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: false,
+      powerPreference: "high-performance",
+    });
+
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.domElement.style.position = "absolute";
+    renderer.domElement.style.inset = "0";
+    renderer.domElement.style.width = "100%";
+    renderer.domElement.style.height = "100%";
+    renderer.domElement.style.display = "block";
+    root.appendChild(renderer.domElement);
+
+    const uniforms = {
+      uTexture: { value: null as THREE.Texture | null },
+      uResolution: { value: new THREE.Vector2(1, 1) },
+      uZoom: { value: 4.5 },
+      uYaw: { value: Math.PI },
+      uPitch: { value: 0.0 },
+      uRoll: { value: 0.0 },
+      uOpacity: { value: 1.0 },
+    };
+
+    const material = new THREE.ShaderMaterial({
+      uniforms,
+      vertexShader: VERTEX_SHADER,
+      fragmentShader: FRAGMENT_SHADER,
+      depthWrite: false,
+      depthTest: false,
+      transparent: true,
+    });
+
+    const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+    scene.add(quad);
+
+    const resize = () => {
+      const width = Math.max(root.clientWidth || window.innerWidth, 1);
+      const height = Math.max(root.clientHeight || window.innerHeight, 1);
+      renderer.setSize(width, height, false);
+      uniforms.uResolution.value.set(width, height);
+    };
+
+    resize();
+
+    const ro = new ResizeObserver(resize);
+    ro.observe(root);
+    window.addEventListener("resize", resize);
+
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load(
+      image,
+      () => {
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
+        uniforms.uTexture.value = texture;
+      },
+      undefined,
+      (err) => {
+        console.error("Error loading little-planet texture:", err);
+      }
+    );
+
+    const start = performance.now();
+
+    const easeInOutCubic = (t: number) =>
+      t < 0.5
+        ? 4.0 * t * t * t
+        : 1.0 - Math.pow(-2.0 * t + 2.0, 3.0) / 2.0;
+
+    const animate = (now: number) => {
+      if (disposed) return;
+
+      const raw = Math.min((now - start) / durationMs, 1.0);
+      const t = easeInOutCubic(raw);
+
+      const yawTarget = THREE.MathUtils.degToRad(targetYaw);
+      void targetPitch;
+
+      uniforms.uZoom.value = 4.5 - 2.6 * t;
+      uniforms.uPitch.value = 0.0;
+      uniforms.uYaw.value = Math.PI + 0.015 * t + (yawTarget * t);
+      uniforms.uRoll.value = 0.0;
+
+      if (raw < 0.82) {
+        uniforms.uOpacity.value = 1.0;
+      } else {
+        const fadeT = Math.min((raw - 0.82) / 0.18, 1.0);
+        uniforms.uOpacity.value = 1.0 - fadeT;
+      }
+
+      renderer.render(scene, camera);
+
+      if (raw < 1.0) {
+        frameId = requestAnimationFrame(animate);
+      } else {
+        onComplete?.();
+      }
+    };
+
+    frameId = requestAnimationFrame(animate);
+
+    return () => {
+      disposed = true;
+      cancelAnimationFrame(frameId);
+      ro.disconnect();
+      window.removeEventListener("resize", resize);
+
+      quad.geometry.dispose();
+      material.dispose();
+      if (uniforms.uTexture.value) {
+        uniforms.uTexture.value.dispose();
+      }
+      renderer.dispose();
+
+      if (renderer.domElement.parentNode === root) {
+        root.removeChild(renderer.domElement);
+      }
+    };
+  }, [image, durationMs, onComplete, targetYaw, targetPitch]);
+
+  return (
+    <div
+      ref={rootRef}
+      className="fixed inset-0 z-[999] h-screen w-screen overflow-hidden bg-black"
+    />
+  );
+}

@@ -132,7 +132,7 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
 
       setItems(data.properties || []);
 
-      if ((data.properties || []).length > 0 && selectedId === "new") {
+      if (!forcedPropertyId && (data.properties || []).length > 0 && selectedId === "new") {
         const first = data.properties[0] as AdminPropertyRecord;
         setSelectedId(first.id);
         setForm({
@@ -169,6 +169,49 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
     loadProperties();
     loadTokko();
   }, []);
+
+  // 🔥 NUEVO: cargar scenes desde Prisma si estamos en Studio
+  useEffect(() => {
+    if (!forcedPropertyId) return;
+
+    async function loadScenesFromDB() {
+      try {
+        const res = await fetch(`/api/broker/scenes/${forcedPropertyId}`);
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) return;
+
+        const mappedScenes = (Array.isArray(data.scenes) ? data.scenes : []).map((scene: any) => ({
+          id: scene.id,
+          title: scene.title || "",
+          image: scene.image || "",
+          thumbnail: scene.thumbnail || scene.image || "",
+          initialYaw: typeof scene.initialYaw === "number" ? scene.initialYaw : 0,
+          initialPitch: typeof scene.initialPitch === "number" ? scene.initialPitch : 0,
+          hotspots: Array.isArray(scene.hotspots)
+            ? scene.hotspots.map((h: any) => ({
+                id: h.id,
+                pitch: typeof h.pitch === "number" ? h.pitch : 0,
+                yaw: typeof h.yaw === "number" ? h.yaw : 0,
+                label: h.label || "",
+                targetSceneId: h.targetSceneId || "",
+                type: h.type || "nav",
+              }))
+            : [],
+        }));
+
+        setForm((prev) => ({
+          ...prev,
+          scenes360: mappedScenes
+        }));
+
+      } catch (e) {
+        console.error("Error loading scenes from DB", e);
+      }
+    }
+
+    loadScenesFromDB();
+  }, [forcedPropertyId]);
 
   useEffect(() => {
     if (!propertyIdFromUrl) return;
@@ -288,6 +331,20 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
         description: item.editorial?.descriptionLuxury || item.base?.description || "",
       };
 
+      // 🔥 NUEVO: guardar scenes en Prisma
+      const propertyId = forcedPropertyId || payload.id;
+
+      await fetch(`/api/broker/scenes/${propertyId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          scenes: payload.scenes360
+        }),
+      });
+
+      // ⚠️ TEMPORAL: seguir guardando JSON (luego lo quitamos)
       const res = await fetch("/api/admin/properties", {
         method: "POST",
         headers: {
@@ -443,31 +500,93 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
         });
       });
 
-      setSelectedId(saved.id);
-      setForm({
-        id: saved.id,
-        title: saved.title,
-        slug: saved.slug,
-        status: saved.status,
-        propertyType: saved.propertyType,
-        location: saved.location,
-        price: saved.price,
-        currency: saved.currency,
-        bedrooms: saved.bedrooms,
-        bathrooms: saved.bathrooms,
-        areaInterior: saved.areaInterior,
-        areaTotal: saved.areaTotal,
-        tagline: saved.tagline,
-        coverImage: saved.coverImage,
-        gallery: saved.gallery,
-        scenes360: saved.scenes360,
-        featured: saved.featured,
-        published: saved.published,
-        luxuryScore: saved.luxuryScore,
-        description: saved.description,
-      });
+      if (forcedPropertyId) {
+        setSelectedId(forcedPropertyId);
+        setForm((prev) => ({
+          ...prev,
+          id: forcedPropertyId,
+          slug: payload.slug,
+          title: payload.title,
+          status: payload.status,
+          propertyType: payload.propertyType,
+          location: payload.location,
+          price: payload.price,
+          currency: payload.currency,
+          bedrooms: payload.bedrooms,
+          bathrooms: payload.bathrooms,
+          areaInterior: payload.areaInterior,
+          areaTotal: payload.areaTotal,
+          tagline: payload.tagline,
+          coverImage: payload.coverImage,
+          gallery: payload.gallery,
+          scenes360: payload.scenes360,
+          featured: payload.featured,
+          published: payload.published,
+          luxuryScore: payload.luxuryScore,
+          description: payload.description,
+        }));
 
-      setMessage("Propiedad guardada correctamente en JSON local.");
+        try {
+          const sceneRes = await fetch(`/api/broker/scenes/${forcedPropertyId}`);
+          const sceneData = await sceneRes.json();
+
+          if (sceneRes.ok && sceneData.ok) {
+            const mappedScenes = (Array.isArray(sceneData.scenes) ? sceneData.scenes : []).map((scene: any) => ({
+              id: scene.id,
+              title: scene.title || "",
+              image: scene.image || "",
+              thumbnail: scene.thumbnail || scene.image || "",
+              initialYaw: typeof scene.initialYaw === "number" ? scene.initialYaw : 0,
+              initialPitch: typeof scene.initialPitch === "number" ? scene.initialPitch : 0,
+              hotspots: Array.isArray(scene.hotspots)
+                ? scene.hotspots.map((h: any) => ({
+                    id: h.id,
+                    pitch: typeof h.pitch === "number" ? h.pitch : 0,
+                    yaw: typeof h.yaw === "number" ? h.yaw : 0,
+                    label: h.label || "",
+                    targetSceneId: h.targetSceneId || "",
+                    type: h.type || "nav",
+                  }))
+                : [],
+            }));
+
+            setForm((prev) => ({
+              ...prev,
+              scenes360: mappedScenes
+            }));
+          }
+        } catch (e) {
+          console.error("Error reloading scenes after save", e);
+        }
+
+        setMessage("Studio guardado correctamente en Prisma.");
+      } else {
+        setSelectedId(saved.id);
+        setForm({
+          id: saved.id,
+          title: saved.title,
+          slug: saved.slug,
+          status: saved.status,
+          propertyType: saved.propertyType,
+          location: saved.location,
+          price: saved.price,
+          currency: saved.currency,
+          bedrooms: saved.bedrooms,
+          bathrooms: saved.bathrooms,
+          areaInterior: saved.areaInterior,
+          areaTotal: saved.areaTotal,
+          tagline: saved.tagline,
+          coverImage: saved.coverImage,
+          gallery: saved.gallery,
+          scenes360: saved.scenes360,
+          featured: saved.featured,
+          published: saved.published,
+          luxuryScore: saved.luxuryScore,
+          description: saved.description,
+        });
+
+        setMessage("Propiedad guardada correctamente en JSON local.");
+      }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Error inesperado al guardar.");
     } finally {

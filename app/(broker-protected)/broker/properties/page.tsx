@@ -51,7 +51,7 @@ export default async function BrokerPropertiesPage() {
           {items.map((item) => (
             <article key={item.id} className="border border-white/10 bg-white/[0.03] p-5">
               <div className="flex items-start justify-between gap-4">
-                <div>
+                <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-[10px] uppercase tracking-[0.28em] text-white/35">
                       {item.city}
@@ -63,33 +63,48 @@ export default async function BrokerPropertiesPage() {
                   </div>
 
                   <h3 className="mt-2 text-2xl font-light text-white">{item.title}</h3>
+
                   <p className="mt-2 text-sm text-white/55">
                     {item.propertyType || "Tipo pendiente"} · {item.location || "Ubicación pendiente"}
                   </p>
+
+                  <div className="mt-4 grid gap-2 text-sm text-white/70 md:grid-cols-3">
+                    <div>Precio: {item.price || "N/D"} {item.currency || ""}</div>
+                    <div>Recámaras: {item.bedrooms ?? "N/D"}</div>
+                    <div>Baños: {item.bathrooms ?? "N/D"}</div>
+                  </div>
+
+                  {item.tagline ? (
+                    <p className="mt-4 text-sm leading-relaxed text-white/68">{item.tagline}</p>
+                  ) : null}
+
+                  <div className="mt-5 flex items-center gap-3">
+                    <Link
+                      href={`/broker/properties/${item.id}/studio`}
+                      className="inline-flex min-h-10 items-center justify-center border border-white/20 px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-white transition hover:bg-white hover:text-black"
+                    >
+                      Editar
+                    </Link>
+                  </div>
                 </div>
 
-                <div className="text-right text-xs uppercase tracking-[0.22em] text-white/45">
-                  {item.published ? "Publicado" : "Borrador"}
+                <div className="flex w-[170px] shrink-0 flex-col items-end gap-3">
+                  <div className="text-right text-xs uppercase tracking-[0.22em] text-white/45">
+                    {item.published ? "Publicado" : "Borrador"}
+                  </div>
+
+                  {item.coverImage ? (
+                    <img
+                      src={item.coverImage}
+                      alt={item.title}
+                      className="h-[110px] w-full rounded-[16px] border border-white/10 object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-[110px] w-full items-center justify-center rounded-[16px] border border-dashed border-white/10 bg-white/[0.02] text-[11px] uppercase tracking-[0.18em] text-white/30">
+                      Sin imagen
+                    </div>
+                  )}
                 </div>
-              </div>
-
-              <div className="mt-4 grid gap-2 text-sm text-white/70 md:grid-cols-3">
-                <div>Precio: {item.price || "N/D"} {item.currency || ""}</div>
-                <div>Recámaras: {item.bedrooms ?? "N/D"}</div>
-                <div>Baños: {item.bathrooms ?? "N/D"}</div>
-              </div>
-
-              {item.tagline ? (
-                <p className="mt-4 text-sm leading-relaxed text-white/68">{item.tagline}</p>
-              ) : null}
-
-              <div className="mt-5 flex items-center gap-3">
-                <Link
-                  href={`/broker/properties/${item.id}/edit`}
-                  className="inline-flex min-h-10 items-center justify-center border border-white/20 px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-white transition hover:bg-white hover:text-black"
-                >
-                  Editar
-                </Link>
               </div>
             </article>
           ))}

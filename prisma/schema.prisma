@@ -7,53 +7,101 @@ datasource db {
 }
 
 model User {
-  id             String   @id @default(cuid())
-  name           String
-  email          String   @unique
-  passwordHash   String
-  role           String   @default("BROKER")
-  status         String   @default("ACTIVE")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("BROKER")
+  status       String   @default("ACTIVE")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  brokerProfile  BrokerProfile?
+  brokerProfile BrokerProfile?
 }
 
 model BrokerProfile {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  businessName  String
-  slug          String   @unique
-  phone         String?
-  city          String
-  approved      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  businessName    String
+  slug            String    @unique
+  phone           String?
+  city            String
+  approved        Boolean   @default(true)
+  canPublish      Boolean   @default(true)
+  tokkoEnabled    Boolean   @default(false)
+  tokkoApiKey     String?
+  tokkoLastSyncAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model BrokerProperty {
-  id                String   @id @default(cuid())
+  id                String             @id @default(cuid())
   ownerBrokerId     String
   title             String
   slug              String
-  publicationStatus String   @default("DRAFT")
-  source            String   @default("MANUAL")
+  status            String             @default("draft")
+  publicationStatus String             @default("DRAFT")
+  source            String             @default("MANUAL")
+  sourceProvider    String?
   sourceExternalId  String?
+  propertyType      String?
   city              String
   location          String?
   price             String?
-  currency          String?  @default("MXN")
+  currency          String?            @default("MXN")
+  bedrooms          Int?
+  bathrooms         Int?
+  areaInterior      Float?
+  areaTotal         Float?
   coverImage        String?
   gallery           Json?
+  scenes360         Json?
   tagline           String?
   description       String?
-  featured          Boolean  @default(false)
-  published         Boolean  @default(false)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  luxuryScore       Int?
+  featured          Boolean            @default(false)
+  published         Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  sceneItems        PropertyScene360[]
 
-  @@index([ownerBrokerId])
   @@unique([ownerBrokerId, slug])
+  @@index([ownerBrokerId])
+}
+
+model PropertyScene360 {
+  id           String   @id @default(cuid())
+  propertyId   String
+  title        String
+  image        String
+  thumbnail    String?
+  initialYaw   Float?   @default(0)
+  initialPitch Float?   @default(0)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  property BrokerProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  hotspots SceneHotspot[]
+
+  @@index([propertyId])
+}
+
+model SceneHotspot {
+  id            String   @id @default(cuid())
+  sceneId       String
+  pitch         Float
+  yaw           Float
+  label         String?
+  targetSceneId String?
+  type          String?  @default("nav")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  scene PropertyScene360 @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+
+  @@index([sceneId])
 }
