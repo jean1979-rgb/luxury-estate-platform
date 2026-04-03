@@ -126,37 +126,25 @@ export default async function PropertyDetailPage({ params }: PageProps) {
 
   let scenes360 = Array.isArray(property.scenes360) ? property.scenes360 : [];
 
-// 🔥 override con Prisma (si existe)
-try {
-  const res = await fetch(`${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/broker/scenes/${property.id}`, {
-    cache: "no-store",
-  });
+  const prismaScenes = await getPrismaScenes(property.id);
 
-  const data = await res.json();
-
-  if (res.ok && data.ok && Array.isArray(data.scenes) && data.scenes.length > 0) {
-    scenes360 = data.scenes.map((scene: any) => ({
+  if (prismaScenes.length > 0) {
+    scenes360 = prismaScenes.map((scene) => ({
       id: scene.id,
       title: scene.title,
       image: scene.image,
-      thumbnail: scene.thumbnail,
+      thumbnail: scene.thumbnail ?? undefined,
       initialYaw: scene.initialYaw ?? 0,
       initialPitch: scene.initialPitch ?? 0,
-      hotspots: Array.isArray(scene.hotspots)
-        ? scene.hotspots.map((h: any) => ({
-            id: h.id,
-            pitch: h.pitch,
-            yaw: h.yaw,
-            label: h.label,
-            targetSceneId: h.targetSceneId,
-            type: h.type || "nav",
-          }))
-        : [],
+      hotspots: scene.hotspots.map((h) => ({
+        id: h.id,
+        pitch: h.pitch,
+        yaw: h.yaw,
+        label: h.label ?? undefined,
+        targetSceneId: h.targetSceneId ?? undefined,
+      })),
     }));
   }
-} catch (e) {
-  console.error("Error loading prisma scenes", e);
-}
   const areaLabel = property.area ?? property.areaInterior ?? property.areaTotal ?? "N/D";
 
   return (
