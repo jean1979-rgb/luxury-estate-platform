@@ -79,6 +79,7 @@ function buildHotspot(index: number, pitch: number, yaw: number): AdminHotspot {
 export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: string } = {}) {
   const searchParams = useSearchParams();
   const propertyIdFromUrl = forcedPropertyId || searchParams.get("propertyId");
+  const isLightStudio = Boolean(forcedPropertyId);
   const [activeHotspotScene, setActiveHotspotScene] = useState<string | null>(null);
   const [items, setItems] = useState<AdminPropertyRecord[]>([]);
   
@@ -783,7 +784,8 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <div className="mx-auto flex min-h-screen w-full max-w-[1600px] gap-6 px-6 py-6">
+      <div className={isLightStudio ? "mx-auto flex min-h-screen w-full max-w-[1600px]" : "mx-auto flex min-h-screen w-full max-w-[1600px] gap-6 px-6 py-6"}>
+        {!isLightStudio && (
         <aside className="flex w-[360px] shrink-0 flex-col overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl">
           <div className="border-b border-white/10 px-6 py-6">
             <div className="mb-2 text-[11px] uppercase tracking-[0.35em] text-white/45">
@@ -926,6 +928,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
           </div>
 
 </aside>
+      )}
 
         <main className="flex-1">
           <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl">
