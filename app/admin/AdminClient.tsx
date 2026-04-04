@@ -12,6 +12,10 @@ import { EMPTY_ADMIN_PROPERTY } from "@/types/admin";
 import AdminMediaTabs from "@/components/admin/AdminMediaTabs";
 import AdminTokkoPanel from "@/components/admin/AdminTokkoPanel";
 import { mapScenesFromApi } from "@/lib/admin/scene-mappers";
+import { normalizeScenes } from "@/lib/admin/property-normalizer";
+import { buildPropertyPayload } from "@/lib/admin/property-payload";
+import { saveProperty } from "@/lib/admin/property-save";
+import { applyStudioResult, applyPropertyResult } from "@/lib/admin/property-ui";
 import { isTokkoAdminItem, mapTokkoToAdminProperty, type TokkoAdminItem } from "@/lib/admin/tokko-helpers";
 
 function slugify(value: string) {
@@ -425,159 +429,43 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
     setMessage("");
 
     try {
-      const normalizedScenes = form.scenes360.map((scene, index) => ({
-        ...scene,
-        id: slugify(scene.id || scene.title || `scene-${index + 1}`),
-        title: scene.title?.trim() || `Escena ${index + 1}`,
-        thumbnail: scene.thumbnail || scene.image,
-      }));
+      const { normalizedScenes, sceneIdAliases } = normalizeScenes(
+        form.scenes360,
+        slugify
+      );
 
-      const sceneIdAliases = new Map<string, string>();
-
-      normalizedScenes.forEach((scene) => {
-        const realId = scene.id;
-        const imageName = String(scene.image || "").split("/").pop() || "";
-        const imageBase = imageName.replace(/\.[^.]+$/, "");
-
-        [
-          realId,
-          slugify(realId),
-          slugify(scene.title || ""),
-          slugify(imageBase),
-          imageBase,
-        ]
-          .filter(Boolean)
-          .forEach((key) => sceneIdAliases.set(String(key), realId));
+      const payload = buildPropertyPayload({
+        form,
+        normalizedScenes,
+        sceneIdAliases,
+        slugify,
       });
 
-      const payload: AdminPropertyInput = {
-        source: { provider: "manual" },
-        ...form,
-        id: form.id ? slugify(form.id) : slugify(form.slug || form.title),
-        slug: slugify(form.slug || form.title),
-        title: form.title.trim(),
-        scenes360: normalizedScenes.map((scene, index) => ({
-          ...scene,
-          id: scene.id,
-          title: scene.title,
-          thumbnail: scene.thumbnail || scene.image,
-          hotspots: (Array.isArray(scene.hotspots) ? scene.hotspots : []).map((hotspot, hotspotIndex) => {
-            const rawTarget = String(hotspot.targetSceneId || "").trim();
-            const normalizedTarget =
-              sceneIdAliases.get(rawTarget) ||
-              sceneIdAliases.get(slugify(rawTarget)) ||
-              rawTarget;
+      const result = await saveProperty({
+        payload,
+        forcedPropertyId,
+      });
 
-            return {
-              id: slugify(hotspot.id || `hotspot-${hotspotIndex + 1}`),
-              pitch: Number.isFinite(Number(hotspot.pitch)) ? Number(hotspot.pitch) : 0,
-              yaw: Number.isFinite(Number(hotspot.yaw)) ? Number(hotspot.yaw) : 0,
-              label: String(hotspot.label || `Hotspot ${hotspotIndex + 1}`).trim(),
-              targetSceneId: normalizedTarget ? slugify(normalizedTarget) : "",
-              type: hotspot.type || "nav",
-            };
-          }),
-        })),
-      };
-
-      if (forcedPropertyId) {
-        const sceneRes = await fetch(`/api/broker/scenes/${forcedPropertyId}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            scenes: payload.scenes360,
-          }),
+      if (result.mode === "studio") {
+        applyStudioResult({
+          propertyId: result.propertyId,
+          payload: result.payload,
+          setSelectedId,
+          setForm,
+          setMessage,
         });
-
-        const sceneData = await sceneRes.json();
-
-        if (!sceneRes.ok || !sceneData.ok) {
-          throw new Error(sceneData.message || "No se pudieron guardar las escenas.");
-        }
-
-        setSelectedId(forcedPropertyId);
-        setForm((prev) => ({
-          ...prev,
-          id: forcedPropertyId,
-          slug: payload.slug,
-          title: payload.title,
-          status: payload.status,
-          propertyType: payload.propertyType,
-          location: payload.location,
-          price: payload.price,
-          currency: payload.currency,
-          bedrooms: payload.bedrooms,
-          bathrooms: payload.bathrooms,
-          areaInterior: payload.areaInterior,
-          areaTotal: payload.areaTotal,
-          tagline: payload.tagline,
-          coverImage: payload.coverImage,
-          gallery: payload.gallery,
-          scenes360: payload.scenes360,
-          featured: payload.featured,
-          published: payload.published,
-          luxuryScore: payload.luxuryScore,
-          description: payload.description,
-        }));
-
-        setMessage("Studio guardado correctamente en Prisma.");
         return;
       }
 
-      const res = await fetch("/api/broker/properties", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+      const { saved } = result;
+
+      applyPropertyResult({
+        saved,
+        setItems,
+        setSelectedId,
+        setForm,
+        setMessage,
       });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.ok) {
-        throw new Error(data.message || "No se pudo guardar.");
-      }
-
-      const saved = data.property as AdminPropertyRecord;
-
-      setItems((prev) => {
-        const exists = prev.some((item) => item.id === saved.id);
-        const next = exists
-          ? prev.map((item) => (item.id === saved.id ? saved : item))
-          : [saved, ...prev];
-
-        return next.sort((a, b) => {
-          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-        });
-      });
-
-      setSelectedId(saved.id);
-      setForm({
-        id: saved.id,
-        title: saved.title,
-        slug: saved.slug,
-        status: saved.status,
-        propertyType: saved.propertyType,
-        location: saved.location,
-        price: saved.price,
-        currency: saved.currency,
-        bedrooms: saved.bedrooms,
-        bathrooms: saved.bathrooms,
-        areaInterior: saved.areaInterior,
-        areaTotal: saved.areaTotal,
-        tagline: saved.tagline,
-        coverImage: saved.coverImage,
-        gallery: saved.gallery,
-        scenes360: saved.scenes360,
-        featured: saved.featured,
-        published: saved.published,
-        luxuryScore: saved.luxuryScore,
-        description: saved.description,
-      });
-
-      setMessage("Propiedad guardada correctamente en Prisma.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Error inesperado al guardar.");
     } finally {
