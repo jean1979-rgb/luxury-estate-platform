@@ -1,0 +1,148 @@
+import { prisma } from "@/lib/prisma";
+import { slugify } from "@/lib/slugify";
+
+type PropertyUpdateInput = Record<string, unknown>;
+
+function asTrimmedString(value: unknown): string {
+  return String(value ?? "").trim();
+}
+
+function asOptionalString(value: unknown): string | null {
+  const trimmed = asTrimmedString(value);
+  return trimmed ? trimmed : null;
+}
+
+function asBoolean(value: unknown): boolean {
+  return value === true;
+}
+
+function asOptionalInt(value: unknown): number | null {
+  if (value === "" || value === undefined || value === null) return null;
+  const parsed = Number.parseInt(String(value), 10);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+function asOptionalFloat(value: unknown): number | null {
+  if (value === "" || value === undefined || value === null) return null;
+  const parsed = Number.parseFloat(String(value));
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+async function getBrokerContext(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { brokerProfile: true },
+  });
+
+  if (!user || !user.brokerProfile) return null;
+
+  return {
+    user,
+    profile: user.brokerProfile,
+  };
+}
+
+export async function getBrokerProperty(userId: string, id: string) {
+  return prisma.brokerProperty.findFirst({
+    where: {
+      id,
+      ownerBrokerId: userId,
+    },
+  });
+}
+
+export async function deleteBrokerProperty(userId: string, id: string) {
+  const existing = await getBrokerProperty(userId, id);
+  if (!existing) return null;
+
+  await prisma.brokerProperty.delete({
+    where: { id: existing.id },
+  });
+
+  return existing.id;
+}
+
+export async function updateBrokerProperty(userId: string, id: string, body: PropertyUpdateInput) {
+  const ctx = await getBrokerContext(userId);
+  if (!ctx) {
+    throw new Error("BROKER_NOT_FOUND");
+  }
+
+  const existing = await getBrokerProperty(userId, id);
+  if (!existing) return null;
+
+  const isTokko = existing.sourceProvider === "TOKKO";
+
+  const title = asTrimmedString(body.title);
+  if (!title) {
+    throw new Error("TITLE_REQUIRED");
+  }
+
+  const description = asTrimmedString(body.description);
+  const tagline = asTrimmedString(body.tagline);
+  const location = isTokko ? existing.location ?? "" : asTrimmedString(body.location);
+  const propertyType = isTokko ? existing.propertyType ?? "" : asTrimmedString(body.propertyType);
+  const price = isTokko ? existing.price ?? "" : asTrimmedString(body.price);
+  const currency = asTrimmedString(body.currency ?? existing.currency ?? "MXN") || "MXN";
+  const coverImage = asTrimmedString(body.coverImage);
+
+  const bedrooms = isTokko ? existing.bedrooms : asOptionalInt(body.bedrooms);
+  const bathrooms = isTokko ? existing.bathrooms : asOptionalInt(body.bathrooms);
+  const areaInterior = asOptionalFloat(body.areaInterior);
+  const areaTotal = asOptionalFloat(body.areaTotal);
+
+  const featured = asBoolean(body.featured);
+  const published = asBoolean(body.published);
+  const status = published ? "published" : "draft";
+  const publicationStatus = published ? "PUBLISHED" : "DRAFT";
+
+  let slug = existing.slug;
+
+  if (title !== existing.title) {
+    let baseSlug = slugify(title);
+    if (!baseSlug) baseSlug = `property-${Date.now()}`;
+
+    let candidate = baseSlug;
+    let counter = 1;
+
+    while (
+      await prisma.brokerProperty.findFirst({
+        where: {
+          ownerBrokerId: userId,
+          slug: candidate,
+          NOT: { id: existing.id },
+        },
+        select: { id: true },
+      })
+    ) {
+      counter += 1;
+      candidate = `${baseSlug}-${counter}`;
+    }
+
+    slug = candidate;
+  }
+
+  return prisma.brokerProperty.update({
+    where: { id: existing.id },
+    data: {
+      title,
+      slug,
+      status,
+      publicationStatus,
+      propertyType: propertyType || null,
+      city: ctx.profile.city,
+      location: location || null,
+      price: price || null,
+      currency,
+      bedrooms,
+      bathrooms,
+      areaInterior,
+      areaTotal,
+      coverImage: coverImage || null,
+      tagline: tagline || null,
+      description: description || null,
+      featured,
+      published,
+    },
+  });
+}

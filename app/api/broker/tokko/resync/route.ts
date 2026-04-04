@@ -5,12 +5,51 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-function safeJsonArray(input: any): any[] {
+type TokkoPhoto = {
+  image?: string;
+  url?: string;
+};
+
+type TokkoProperty = {
+  id?: number | string;
+  publication_title?: string;
+  title?: string;
+  description?: string;
+  location?: {
+    full_location?: string;
+  };
+  type?: {
+    name?: string;
+  };
+  operations?: {
+    prices?: {
+      price?: string | number;
+    }[];
+  }[];
+  photos?: TokkoPhoto[];
+};
+
+type TokkoResponse = {
+  objects?: TokkoProperty[];
+};
+
+function isTokkoResponse(value: unknown): value is TokkoResponse {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as { objects?: unknown };
+  return candidate.objects === undefined || Array.isArray(candidate.objects);
+}
+
+function safeJsonArray<T>(input: unknown): T[] {
   try {
     return JSON.parse(JSON.stringify(Array.isArray(input) ? input : []));
   } catch {
     return [];
   }
+}
+
+function asOptionalString(value: unknown): string | null {
+  if (value === null || value === undefined || value === "") return null;
+  return String(value);
 }
 
 export async function POST() {
@@ -34,14 +73,14 @@ export async function POST() {
       { cache: "no-store" }
     );
 
-    const json = await res.json();
-    const items = Array.isArray(json?.objects) ? json.objects : [];
+    const json: unknown = await res.json();
+    const items: TokkoProperty[] = isTokkoResponse(json) ? json.objects ?? [] : [];
 
     let updated = 0;
     let skipped = 0;
 
     for (const raw of items) {
-      const extId = raw?.id != null ? String(raw.id) : "";
+      const extId = raw.id != null ? String(raw.id) : "";
 
       if (!extId) {
         skipped++;
@@ -61,17 +100,17 @@ export async function POST() {
       }
 
       const gallery =
-        raw?.photos?.map((p: any) => p?.image || p?.url).filter(Boolean) ?? [];
+        raw.photos?.map((p) => p.image || p.url).filter((value): value is string => Boolean(value)) ?? [];
 
       await prisma.brokerProperty.update({
         where: { id: existing.id },
         data: {
-          title: raw?.publication_title || raw?.title || existing.title,
-          description: raw?.description || existing.description,
-          location: raw?.location?.full_location || existing.location,
-          propertyType: raw?.type?.name || existing.propertyType,
-          price: raw?.operations?.[0]?.prices?.[0]?.price || existing.price,
-          gallery: safeJsonArray(gallery),
+          title: raw.publication_title || raw.title || existing.title,
+          description: raw.description || existing.description,
+          location: raw.location?.full_location || existing.location,
+          propertyType: raw.type?.name || existing.propertyType,
+          price: asOptionalString(raw.operations?.[0]?.prices?.[0]?.price) ?? existing.price,
+          gallery: safeJsonArray<string>(gallery),
           coverImage: gallery[0] || existing.coverImage,
         },
       });
@@ -85,7 +124,7 @@ export async function POST() {
     });
 
     return NextResponse.json({ ok: true, updated, skipped });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 }

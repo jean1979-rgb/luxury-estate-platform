@@ -231,7 +231,7 @@ export default async function AcapulcoPage({
                   <PropertyCard
                     key={p.id}
                     id={p.id}
-                    slug={(p as any).slug}
+                    slug={p.slug}
                     title={p.title}
                     location={p.location}
                     image={p.coverImage}

@@ -115,8 +115,65 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
   const [uploadingScenes, setUploadingScenes] = useState(false);
   const [message, setMessage] = useState<string>("");
 
-  const [tokkoItems, setTokkoItems] = useState<any[]>([]);
+  const [tokkoItems, setTokkoItems] = useState<TokkoAdminItem[]>([]);
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
+
+type TokkoAdminItem = {
+  id: string;
+  title?: string;
+  operationMode?: string;
+  price?: string | number;
+  location?: string;
+  coverImage?: string;
+  base?: {
+    title?: string;
+    price?: string | number;
+    currency?: string;
+    locationLabel?: string;
+    images?: string[];
+    description?: string;
+  };
+  editorial?: {
+    title?: string;
+    tagline?: string;
+    descriptionLuxury?: string;
+  };
+};
+
+function isTokkoAdminItem(value: unknown): value is TokkoAdminItem {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Record<string, unknown>;
+  return typeof item.id === "string" || typeof item.id === "number";
+}
+
+type SceneHotspotApi = {
+  id?: string;
+  pitch?: number;
+  yaw?: number;
+  label?: string;
+  targetSceneId?: string;
+  type?: string;
+};
+
+type SceneApi = {
+  id?: string;
+  title?: string;
+  image?: string;
+  thumbnail?: string;
+  initialYaw?: number;
+  initialPitch?: number;
+  hotspots?: SceneHotspotApi[];
+};
+
+function isSceneApi(value: unknown): value is SceneApi {
+  if (!value || typeof value !== "object") return false;
+  return true;
+}
+
+function isSceneHotspotApi(value: unknown): value is SceneHotspotApi {
+  if (!value || typeof value !== "object") return false;
+  return true;
+}
 
 
   async function loadProperties() {
@@ -182,7 +239,7 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
 
         if (!res.ok || !data.ok) return;
 
-        const mappedScenes = (Array.isArray(data.scenes) ? data.scenes : []).map((scene: any) => ({
+        const mappedScenes = (Array.isArray(data.scenes) ? data.scenes : []).filter(isSceneApi).map((scene: SceneApi) => ({
           id: scene.id,
           title: scene.title || "",
           image: scene.image || "",
@@ -190,7 +247,7 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
           initialYaw: typeof scene.initialYaw === "number" ? scene.initialYaw : 0,
           initialPitch: typeof scene.initialPitch === "number" ? scene.initialPitch : 0,
           hotspots: Array.isArray(scene.hotspots)
-            ? scene.hotspots.map((h: any) => ({
+            ? scene.hotspots.filter(isSceneHotspotApi).map((h: SceneHotspotApi) => ({
                 id: h.id,
                 pitch: typeof h.pitch === "number" ? h.pitch : 0,
                 yaw: typeof h.yaw === "number" ? h.yaw : 0,
@@ -272,9 +329,9 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
     setForm(EMPTY_ADMIN_PROPERTY);
 
     setMessage("Propiedad eliminada correctamente");
-  } catch (err: any) {
+  } catch (err) {
     console.error(err);
-    setMessage(err.message || "Error eliminando propiedad");
+    setMessage(err instanceof Error ? err.message : "Error eliminando propiedad");
   } finally {
     setSaving(false);
   }
@@ -302,8 +359,12 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
     }
   }
 
-  async function importFromTokko(item: any) {
+  async function importFromTokko(item: unknown) {
     try {
+      if (!isTokkoAdminItem(item)) {
+        throw new Error("Tokko item inválido.");
+      }
+
       if (items.some((p) => p.id === `admin-${item.id}`)) {
         alert("Ya importada");
         return;
@@ -316,7 +377,7 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
         status: "draft",
         propertyType: "residence",
         location: item.base?.locationLabel || "",
-        price: item.base?.price || "",
+        price: item.base?.price != null ? String(item.base.price) : "",
         currency: item.base?.currency || "MXN",
         bedrooms: 0,
         bathrooms: 0,

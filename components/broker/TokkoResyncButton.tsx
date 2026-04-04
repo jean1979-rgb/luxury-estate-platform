@@ -9,6 +9,13 @@ type SyncState =
   | { type: "success"; message: string }
   | { type: "error"; message: string };
 
+type TokkoResponse = {
+  ok: boolean;
+  updated?: number;
+  skipped?: number;
+  error?: string;
+};
+
 export default function TokkoResyncButton() {
   const router = useRouter();
   const [state, setState] = useState<SyncState>({
@@ -26,15 +33,15 @@ export default function TokkoResyncButton() {
 
       const text = await res.text();
 
-      let json: any = null;
+      let json: TokkoResponse;
       try {
-        json = JSON.parse(text);
+        json = JSON.parse(text) as TokkoResponse;
       } catch {
         throw new Error(`invalid_json_response: ${text.slice(0, 160)}`);
       }
 
-      if (!res.ok || !json?.ok) {
-        throw new Error(json?.error || "sync_failed");
+      if (!res.ok || !json.ok) {
+        throw new Error(json.error || "sync_failed");
       }
 
       setState({
@@ -43,10 +50,11 @@ export default function TokkoResyncButton() {
       });
 
       router.refresh();
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "unknown_error";
       setState({
         type: "error",
-        message: `No se pudo sincronizar Tokko. ${error?.message ?? ""}`.trim(),
+        message: `No se pudo sincronizar Tokko. ${message}`.trim(),
       });
     }
   }
