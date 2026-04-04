@@ -17,6 +17,8 @@ export type AdminHotspotType =
   | "amenity"
   | "kitchen";
 
+export type AdminHotspotSize = "sm" | "md" | "lg";
+
 export type AdminHotspot = {
   id: string;
   pitch: number;
@@ -24,6 +26,7 @@ export type AdminHotspot = {
   label: string;
   targetSceneId?: string;
   type?: AdminHotspotType;
+  size?: AdminHotspotSize;
 };
 
 export type AdminScene360 = {

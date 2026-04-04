@@ -119,15 +119,11 @@ export default function Viewer360Carousel({ scenes }: { scenes: Scene360[] }) {
     : [];
 
   const visibleHotspots = currentHotspots.filter(
-    (hotspot) =>
-      hotspot?.targetSceneId &&
-      sceneIndexById.has(hotspot.targetSceneId)
+    (hotspot) => hotspot?.targetSceneId
   );
 
   const visibleFullscreenHotspots = fullscreenHotspots.filter(
-    (hotspot) =>
-      hotspot?.targetSceneId &&
-      sceneIndexById.has(hotspot.targetSceneId)
+    (hotspot) => hotspot?.targetSceneId
   );
 
   function goPrev() {
@@ -286,11 +282,9 @@ export default function Viewer360Carousel({ scenes }: { scenes: Scene360[] }) {
           </div>
         </div>
 
-        {visibleHotspots.length > 0 ? (
-          <p className="mt-3 text-sm text-white/45">
-            Arrastra para explorar. Haz click en los puntos para cambiar de escena.
-          </p>
-        ) : null}
+        <p className="mt-3 text-sm text-white/45">
+          Arrastra para explorar. Haz click en los puntos para cambiar de escena.
+        </p>
       </div>
 
       {isFullscreenMounted && originRect && viewport ? (

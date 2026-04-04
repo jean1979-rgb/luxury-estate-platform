@@ -538,7 +538,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
         }));
       }
 
-      setMessage("Archivo subido correctamente. Guarda la propiedad para persistir la ruta en JSON.");
+      setMessage("Archivo subido correctamente. Imagen agregada correctamente.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Error inesperado al subir archivo.");
     } finally {
@@ -563,15 +563,16 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
   }
 
   function updateScene(index: number, patch: Partial<AdminScene360>) {
-    setForm((prev) => ({
-      ...prev,
-      scenes360: prev.scenes360.map((scene, i) => {
+    setForm((prev) => {
+      let changed = false;
+
+      const nextScenes = prev.scenes360.map((scene, i) => {
         if (i !== index) return scene;
 
         const nextTitle = patch.title ?? scene.title;
         const nextImage = patch.image ?? scene.image;
 
-        return {
+        const nextScene: AdminScene360 = {
           ...scene,
           ...patch,
           id: patch.id ? slugify(patch.id) : scene.id,
@@ -580,8 +581,29 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
           thumbnail: patch.thumbnail ?? nextImage ?? scene.thumbnail,
           hotspots: Array.isArray(patch.hotspots) ? patch.hotspots : scene.hotspots,
         };
-      }),
-    }));
+
+        const same =
+          nextScene.id === scene.id &&
+          nextScene.title === scene.title &&
+          nextScene.image === scene.image &&
+          nextScene.thumbnail === scene.thumbnail &&
+          nextScene.initialYaw === scene.initialYaw &&
+          nextScene.initialPitch === scene.initialPitch &&
+          nextScene.hotspots === scene.hotspots;
+
+        if (same) return scene;
+
+        changed = true;
+        return nextScene;
+      });
+
+      if (!changed) return prev;
+
+      return {
+        ...prev,
+        scenes360: nextScenes,
+      };
+    });
   }
 
   function removeScene(index: number) {
@@ -656,6 +678,10 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                 patch.type !== undefined
                   ? patch.type
                   : hotspot.type || "nav",
+              size:
+                patch.size !== undefined
+                  ? patch.size
+                  : hotspot.size || "md",
             };
           }),
         };

@@ -13,6 +13,8 @@ type HotspotType =
   | "amenity"
   | "kitchen";
 
+type HotspotSize = "sm" | "md" | "lg";
+
 type Hotspot360 = {
   id: string;
   pitch: number;
@@ -20,6 +22,7 @@ type Hotspot360 = {
   label?: string;
   targetSceneId?: string;
   type?: HotspotType;
+  size?: HotspotSize;
 };
 
 type Viewer360Props = {
@@ -35,12 +38,19 @@ type Viewer360Props = {
 
 const VIEW_CHANGE_THRESHOLD_DEG = 0.05;
 const DRAG_THRESHOLD_PX = 8;
-const HOTSPOT_RADIUS = 440;
+const HOTSPOT_RADIUS = 505;
 const SPHERE_RADIUS = 500;
 const DEFAULT_FOV = 90;
 const MIN_FOV = 45;
 const MAX_FOV = 95;
 const WHEEL_ZOOM_STEP = 0.035;
+
+
+function angularDeltaDeg(a: number, b: number) {
+  const diff = ((a - b + 540) % 360) - 180;
+  return Math.abs(diff);
+}
+
 
 function hotspotToVector3(yaw: number, pitch: number, radius: number) {
   const yawRad = THREE.MathUtils.degToRad(yaw);
@@ -92,10 +102,10 @@ function createHotspotTexture(
     nav: { icon: "➜", accent: "#D4AF37" },
     "stairs-up": { icon: "↑", accent: "#7DD3FC" },
     "stairs-down": { icon: "↓", accent: "#38BDF8" },
-    terrace: { icon: "T", accent: "#34D399" },
-    room: { icon: "R", accent: "#C084FC" },
+    terrace: { icon: "🌴", accent: "#34D399" },
+    room: { icon: "🛏", accent: "#C084FC" },
     amenity: { icon: "★", accent: "#F472B6" },
-    kitchen: { icon: "K", accent: "#FB923C" },
+    kitchen: { icon: "🍽", accent: "#FB923C" },
   };
 
   const preset = presets[type] || presets.nav;
@@ -206,7 +216,7 @@ export default function Viewer360({
 
     if (!force && lastEmittedViewRef.current) {
       const last = lastEmittedViewRef.current;
-      const yawDelta = Math.abs(view.yaw - last.yaw);
+      const yawDelta = angularDeltaDeg(view.yaw, last.yaw);
       const pitchDelta = Math.abs(view.pitch - last.pitch);
 
       if (
@@ -520,9 +530,15 @@ export default function Viewer360({
         Number(hotspot.pitch || 0),
         HOTSPOT_RADIUS
       );
+      const sizeMap: Record<HotspotSize, number> = {
+        sm: 64,
+        md: 90,
+        lg: 120,
+      };
+      const spriteSize = sizeMap[hotspot.size || "md"] || 90;
 
       sprite.position.copy(position);
-      sprite.scale.set(220, 220, 1);
+      sprite.scale.set(spriteSize, spriteSize, 1);
       sprite.userData = {
         hotspotId: hotspot.id,
         targetSceneId: hotspot.targetSceneId,
@@ -535,12 +551,27 @@ export default function Viewer360({
 
   useEffect(() => {
     const controls = controlsRef.current;
-    if (!controls) return;
+    const camera = cameraRef.current;
+    if (!controls || !camera) return;
+
+    const direction = new THREE.Vector3();
+    camera.getWorldDirection(direction);
+    const currentView = vector3ToHotspot(direction);
+
+    const yawDelta = angularDeltaDeg(initialYaw, currentView.yaw);
+    const pitchDelta = Math.abs(initialPitch - currentView.pitch);
+
+    if (yawDelta < 0.25 && pitchDelta < 0.25) {
+      return;
+    }
 
     const target = targetFromYawPitch(initialYaw, initialPitch);
     controls.target.copy(target);
     controls.update();
-    emitCurrentView(true);
+    lastEmittedViewRef.current = {
+      yaw: Number(initialYaw.toFixed(2)),
+      pitch: Number(initialPitch.toFixed(2)),
+    };
   }, [initialYaw, initialPitch]);
 
   return (
