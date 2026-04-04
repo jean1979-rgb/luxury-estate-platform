@@ -10,6 +10,8 @@ import type {
 } from "@/types/admin";
 import { EMPTY_ADMIN_PROPERTY } from "@/types/admin";
 import AdminMediaTabs from "@/components/admin/AdminMediaTabs";
+import AdminTokkoPanel from "@/components/admin/AdminTokkoPanel";
+import { mapScenesFromApi } from "@/lib/admin/scene-mappers";
 
 function slugify(value: string) {
   return value
@@ -146,34 +148,7 @@ function isTokkoAdminItem(value: unknown): value is TokkoAdminItem {
   return typeof item.id === "string" || typeof item.id === "number";
 }
 
-type SceneHotspotApi = {
-  id?: string;
-  pitch?: number;
-  yaw?: number;
-  label?: string;
-  targetSceneId?: string;
-  type?: string;
-};
 
-type SceneApi = {
-  id?: string;
-  title?: string;
-  image?: string;
-  thumbnail?: string;
-  initialYaw?: number;
-  initialPitch?: number;
-  hotspots?: SceneHotspotApi[];
-};
-
-function isSceneApi(value: unknown): value is SceneApi {
-  if (!value || typeof value !== "object") return false;
-  return true;
-}
-
-function isSceneHotspotApi(value: unknown): value is SceneHotspotApi {
-  if (!value || typeof value !== "object") return false;
-  return true;
-}
 
 
   async function loadProperties() {
@@ -239,24 +214,7 @@ function isSceneHotspotApi(value: unknown): value is SceneHotspotApi {
 
         if (!res.ok || !data.ok) return;
 
-        const mappedScenes = (Array.isArray(data.scenes) ? data.scenes : []).filter(isSceneApi).map((scene: SceneApi) => ({
-          id: scene.id,
-          title: scene.title || "",
-          image: scene.image || "",
-          thumbnail: scene.thumbnail || scene.image || "",
-          initialYaw: typeof scene.initialYaw === "number" ? scene.initialYaw : 0,
-          initialPitch: typeof scene.initialPitch === "number" ? scene.initialPitch : 0,
-          hotspots: Array.isArray(scene.hotspots)
-            ? scene.hotspots.filter(isSceneHotspotApi).map((h: SceneHotspotApi) => ({
-                id: h.id,
-                pitch: typeof h.pitch === "number" ? h.pitch : 0,
-                yaw: typeof h.yaw === "number" ? h.yaw : 0,
-                label: h.label || "",
-                targetSceneId: h.targetSceneId || "",
-                type: h.type || "nav",
-              }))
-            : [],
-        }));
+        const mappedScenes = mapScenesFromApi(data.scenes);
 
         setForm((prev) => ({
           ...prev,
@@ -977,48 +935,13 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                 })}
               </div>
             )}
-          </div>
         
-          <div className="border-t border-white/10 p-4">
-            <div className="mb-3 text-[11px] uppercase tracking-[0.3em] text-white/35">
-              Tokko Feed
-            </div>
-
-            <div className="space-y-3 max-h-[300px] overflow-y-auto">
-              {tokkoItems.map((item) => {
-                const hidden = hiddenIds.includes(item.id);
-
-                return (
-                  <div
-                    key={item.id}
-                    className="rounded-xl border border-white/10 bg-white/[0.03] p-3"
-                  >
-                    <div className="text-sm text-white">{item.title}</div>
-
-                    <div className="mt-2 grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => toggleVisibility(item.id)}
-                        className={[
-                          "w-full rounded-lg px-3 py-2 text-xs uppercase",
-                          hidden
-                            ? "bg-emerald-500/20 text-emerald-300"
-                            : "bg-red-500/20 text-red-300"
-                        ].join(" ")}
-                      >
-                        {hidden ? "Mostrar" : "Ocultar"}
-                      </button>
-
-                      <button
-                        onClick={() => importFromTokko(item)}
-                        className="w-full rounded-lg bg-white/10 px-3 py-2 text-xs uppercase text-white hover:bg-white/20"
-                      >
-                        Importar
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+          <AdminTokkoPanel
+  items={tokkoItems}
+  hiddenIds={hiddenIds}
+  onToggleVisibility={toggleVisibility}
+  onImport={importFromTokko}
+/>
           </div>
 
 </aside>
