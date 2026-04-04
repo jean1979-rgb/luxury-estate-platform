@@ -58,7 +58,6 @@ model BrokerProperty {
   areaTotal         Float?
   coverImage        String?
   gallery           Json?
-  scenes360         Json?
   tagline           String?
   description       String?
   luxuryScore       Int?

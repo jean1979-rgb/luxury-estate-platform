@@ -96,9 +96,9 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
       alert("Tokko actualizado");
 
       // refrescar lista admin
-      const refreshed = await fetch("/api/admin/properties", { cache: "no-store" });
+      const refreshed = await fetch("/api/broker/properties", { cache: "no-store" });
       const json = await refreshed.json();
-      setItems(json.properties || []);
+      setItems(json.items || []);
 
     } catch (err) {
       console.error(err);
@@ -124,17 +124,17 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
     setMessage("");
 
     try {
-      const res = await fetch("/api/admin/properties", { cache: "no-store" });
+      const res = await fetch("/api/broker/properties", { cache: "no-store" });
       const data = await res.json();
 
       if (!res.ok || !data.ok) {
         throw new Error(data.message || "No se pudo cargar el admin.");
       }
 
-      setItems(data.properties || []);
+      setItems(data.items || []);
 
-      if (!forcedPropertyId && (data.properties || []).length > 0 && selectedId === "new") {
-        const first = data.properties[0] as AdminPropertyRecord;
+      if (!forcedPropertyId && (data.items || []).length > 0 && selectedId === "new") {
+        const first = data.items[0] as AdminPropertyRecord;
         setSelectedId(first.id);
         setForm({
           id: first.id,
@@ -251,7 +251,7 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
   try {
     setSaving(true);
 
-    const res = await fetch(`/api/admin/properties/${selectedId}`, {
+    const res = await fetch(`/api/broker/properties/${selectedId}`, {
       method: "DELETE",
     });
 
@@ -261,13 +261,13 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
       throw new Error(data.message || "Error al eliminar");
     }
 
-    const refreshed = await fetch("/api/admin/properties", {
+    const refreshed = await fetch("/api/broker/properties", {
       cache: "no-store",
     });
 
     const json = await refreshed.json();
 
-    setItems(json.properties || []);
+    setItems(json.items || []);
     setSelectedId("new");
     setForm(EMPTY_ADMIN_PROPERTY);
 
@@ -346,7 +346,7 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
       });
 
       // ⚠️ TEMPORAL: seguir guardando JSON (luego lo quitamos)
-      const res = await fetch("/api/admin/properties", {
+      const res = await fetch("/api/broker/properties", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -553,7 +553,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
         return;
       }
 
-      const res = await fetch("/api/admin/properties", {
+      const res = await fetch("/api/broker/properties", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -604,7 +604,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
         description: saved.description,
       });
 
-      setMessage("Propiedad guardada correctamente en JSON local.");
+      setMessage("Propiedad guardada correctamente en Prisma.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Error inesperado al guardar.");
     } finally {

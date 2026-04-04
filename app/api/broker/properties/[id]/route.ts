@@ -76,29 +76,25 @@ export async function PATCH(req: Request, context: RouteContext) {
   const title = String(body?.title || "").trim();
   const description = String(body?.description || "").trim();
   const tagline = String(body?.tagline || "").trim();
-  const location = isTokko
-    ? existing.location ?? ""
-    : String(body?.location || "").trim();
-  const propertyType = isTokko
-    ? existing.propertyType ?? ""
-    : String(body?.propertyType || "").trim();
-  const price = isTokko
-    ? existing.price ?? ""
-    : String(body?.price || "").trim();
+  const location = isTokko ? existing.location ?? "" : String(body?.location || "").trim();
+  const propertyType = isTokko ? existing.propertyType ?? "" : String(body?.propertyType || "").trim();
+  const price = isTokko ? existing.price ?? "" : String(body?.price || "").trim();
   const currency = String(body?.currency || existing.currency || "MXN").trim() || "MXN";
   const coverImage = String(body?.coverImage || "").trim();
 
-  const bedrooms = isTokko
-    ? existing.bedrooms
-    : body?.bedrooms === "" || body?.bedrooms === undefined || body?.bedrooms === null
-      ? null
-      : Number.parseInt(String(body.bedrooms), 10);
+  const bedrooms =
+    isTokko
+      ? existing.bedrooms
+      : body?.bedrooms === "" || body?.bedrooms === undefined || body?.bedrooms === null
+        ? null
+        : Number.parseInt(String(body.bedrooms), 10);
 
-  const bathrooms = isTokko
-    ? existing.bathrooms
-    : body?.bathrooms === "" || body?.bathrooms === undefined || body?.bathrooms === null
-      ? null
-      : Number.parseInt(String(body.bathrooms), 10);
+  const bathrooms =
+    isTokko
+      ? existing.bathrooms
+      : body?.bathrooms === "" || body?.bathrooms === undefined || body?.bathrooms === null
+        ? null
+        : Number.parseInt(String(body.bathrooms), 10);
 
   const areaInterior =
     body?.areaInterior === "" || body?.areaInterior === undefined || body?.areaInterior === null
@@ -170,4 +166,32 @@ export async function PATCH(req: Request, context: RouteContext) {
   });
 
   return NextResponse.json({ ok: true, item: updated });
+}
+
+export async function DELETE(_req: Request, context: RouteContext) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ ok: false, message: "No autenticado." }, { status: 401 });
+  }
+
+  const { id } = await context.params;
+
+  const existing = await prisma.brokerProperty.findFirst({
+    where: {
+      id,
+      ownerBrokerId: session.user.id,
+    },
+    select: { id: true },
+  });
+
+  if (!existing) {
+    return NextResponse.json({ ok: false, message: "Propiedad no encontrada." }, { status: 404 });
+  }
+
+  await prisma.brokerProperty.delete({
+    where: { id: existing.id },
+  });
+
+  return NextResponse.json({ ok: true, deletedId: existing.id });
 }
