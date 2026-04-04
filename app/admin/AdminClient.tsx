@@ -12,6 +12,7 @@ import { EMPTY_ADMIN_PROPERTY } from "@/types/admin";
 import AdminMediaTabs from "@/components/admin/AdminMediaTabs";
 import AdminTokkoPanel from "@/components/admin/AdminTokkoPanel";
 import { mapScenesFromApi } from "@/lib/admin/scene-mappers";
+import { isTokkoAdminItem, mapTokkoToAdminProperty, type TokkoAdminItem } from "@/lib/admin/tokko-helpers";
 
 function slugify(value: string) {
   return value
@@ -119,35 +120,6 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
 
   const [tokkoItems, setTokkoItems] = useState<TokkoAdminItem[]>([]);
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
-
-type TokkoAdminItem = {
-  id: string;
-  title?: string;
-  operationMode?: string;
-  price?: string | number;
-  location?: string;
-  coverImage?: string;
-  base?: {
-    title?: string;
-    price?: string | number;
-    currency?: string;
-    locationLabel?: string;
-    images?: string[];
-    description?: string;
-  };
-  editorial?: {
-    title?: string;
-    tagline?: string;
-    descriptionLuxury?: string;
-  };
-};
-
-function isTokkoAdminItem(value: unknown): value is TokkoAdminItem {
-  if (!value || typeof value !== "object") return false;
-  const item = value as Record<string, unknown>;
-  return typeof item.id === "string" || typeof item.id === "number";
-}
-
 
 
 
@@ -329,26 +301,8 @@ function isTokkoAdminItem(value: unknown): value is TokkoAdminItem {
       }
 
       const payload: AdminPropertyInput = {
-                id: `admin-${item.id}`,
-        title: item.editorial?.title || item.base?.title || "Propiedad",
+        ...mapTokkoToAdminProperty(item),
         slug: slugify(item.editorial?.title || item.base?.title || item.id || "propiedad"),
-        status: "draft",
-        propertyType: "residence",
-        location: item.base?.locationLabel || "",
-        price: item.base?.price != null ? String(item.base.price) : "",
-        currency: item.base?.currency || "MXN",
-        bedrooms: 0,
-        bathrooms: 0,
-        areaInterior: "",
-        areaTotal: "",
-        tagline: item.editorial?.tagline || item.editorial?.descriptionLuxury || "",
-        coverImage: item.base?.images?.[0] || "",
-        gallery: Array.isArray(item.base?.images) ? item.base.images : [],
-        scenes360: [],
-        featured: false,
-        published: false,
-        luxuryScore: 80,
-        description: item.editorial?.descriptionLuxury || item.base?.description || "",
       };
 
       // 🔥 NUEVO: guardar scenes en Prisma
