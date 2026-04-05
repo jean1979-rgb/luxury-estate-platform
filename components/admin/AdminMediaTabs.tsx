@@ -18,7 +18,9 @@ type Props = {
   onChange: <K extends keyof AdminPropertyInput>(key: K, value: AdminPropertyInput[K]) => void;
   onUpload: (file: File, folder: "cover" | "gallery" | "scenes360") => Promise<void> | void;
   onRemoveGalleryImage: (index: number) => void;
+  onReorderGallery: (from: number, to: number) => void;
   onAddScene: () => void;
+  onReorderScenes: (from: number, to: number) => void;
   onUpdateScene: (index: number, patch: Partial<AdminScene360>) => void;
   onRemoveScene: (index: number) => void;
   onAddHotspot: (sceneIndex: number, coords: { pitch: number; yaw: number }) => void;
@@ -66,7 +68,9 @@ export default function AdminMediaTabs({
   onChange,
   onUpload,
   onRemoveGalleryImage,
+  onReorderGallery,
   onAddScene,
+  onReorderScenes,
   onUpdateScene,
   onRemoveScene,
   onAddHotspot,
@@ -163,6 +167,7 @@ export default function AdminMediaTabs({
           onUploadGallery={(file) => onUpload(file, "gallery")}
           onRemoveGalleryImage={onRemoveGalleryImage}
           onUseAsCover={(image) => onChange("coverImage", image)}
+          onReorderGallery={onReorderGallery}
         />
       ) : null}
 
@@ -175,6 +180,7 @@ export default function AdminMediaTabs({
           onUploadScene={(file) => onUpload(file, "scenes360")}
           onAddScene={onAddScene}
           onRemoveScene={onRemoveScene}
+          onReorderScenes={onReorderScenes}
           onUpdateScene={onUpdateScene}
           onAddHotspot={onAddHotspot}
           onSetActiveHotspotScene={onSetActiveHotspotScene}

@@ -15,7 +15,7 @@ import { mapScenesFromApi } from "@/lib/admin/scene-mappers";
 import { normalizeScenes } from "@/lib/admin/property-normalizer";
 import { buildPropertyPayload } from "@/lib/admin/property-payload";
 import { saveProperty } from "@/lib/admin/property-save";
-import { applyStudioResult, applyPropertyResult } from "@/lib/admin/property-ui";
+import { applyPropertyResult } from "@/lib/admin/property-ui";
 import { isTokkoAdminItem, mapTokkoToAdminProperty, type TokkoAdminItem } from "@/lib/admin/tokko-helpers";
 
 function slugify(value: string) {
@@ -446,21 +446,8 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
         forcedPropertyId,
       });
 
-      if (result.mode === "studio") {
-        applyStudioResult({
-          propertyId: result.propertyId,
-          payload: result.payload,
-          setSelectedId,
-          setForm,
-          setMessage,
-        });
-        return;
-      }
-
-      const { saved } = result;
-
       applyPropertyResult({
-        saved,
+        saved: result.saved,
         setItems,
         setSelectedId,
         setForm,
@@ -672,7 +659,7 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
               label: patch.label !== undefined ? patch.label : hotspot.label,
               targetSceneId:
                 patch.targetSceneId !== undefined
-                  ? slugify(patch.targetSceneId)
+                  ? patch.targetSceneId
                   : hotspot.targetSceneId,
               type:
                 patch.type !== undefined
@@ -1137,7 +1124,25 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                   onChange={handleChange}
                   onUpload={handleUpload}
                   onRemoveGalleryImage={removeGalleryImage}
+                  onReorderGallery={(from, to) => {
+                    setForm((prev) => {
+                      const next = [...prev.gallery];
+                      const [moved] = next.splice(from, 1);
+                      if (moved === undefined) return prev;
+                      next.splice(to, 0, moved);
+                      return { ...prev, gallery: next };
+                    });
+                  }}
                   onAddScene={addEmptyScene}
+                  onReorderScenes={(from, to) => {
+                    setForm((prev) => {
+                      const next = [...prev.scenes360];
+                      const [moved] = next.splice(from, 1);
+                      if (moved === undefined) return prev;
+                      next.splice(to, 0, moved);
+                      return { ...prev, scenes360: next };
+                    });
+                  }}
                   onUpdateScene={updateScene}
                   onRemoveScene={removeScene}
                   onAddHotspot={addHotspotAtCoords}
