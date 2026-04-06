@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRef } from "react";
 import type { DragEvent, ChangeEvent } from "react";
 
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
   onUploadGallery: (file: File) => Promise<void> | void;
   onRemoveGalleryImage: (index: number) => void;
   onUseAsCover: (image: string) => void;
+  onReorderGallery: (from: number, to: number) => void;
 };
 
 export default function AdminPhotosTab({
@@ -19,7 +21,11 @@ export default function AdminPhotosTab({
   onUploadGallery,
   onRemoveGalleryImage,
   onUseAsCover,
+  onReorderGallery,
 }: Props) {
+
+  const dragIndexRef = useRef<number | null>(null);
+
   async function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files || []);
     for (const file of files) {
@@ -89,6 +95,14 @@ export default function AdminPhotosTab({
 
                 return (
                   <article
+      draggable
+      onDragStart={() => { dragIndexRef.current = index; }}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={() => {
+        if (dragIndexRef.current === null) return;
+        if (typeof onReorderGallery === "function") onReorderGallery(dragIndexRef.current, index);
+        dragIndexRef.current = null;
+      }}
                     key={`${image}-${index}`}
                     className="overflow-hidden rounded-2xl border border-white/10 bg-black/20"
                   >

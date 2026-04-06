@@ -31,7 +31,7 @@ export function buildPropertyPayload(params: {
           pitch: Number.isFinite(Number(hotspot.pitch)) ? Number(hotspot.pitch) : 0,
           yaw: Number.isFinite(Number(hotspot.yaw)) ? Number(hotspot.yaw) : 0,
           label: String(hotspot.label || `Hotspot ${hotspotIndex + 1}`).trim(),
-          targetSceneId: normalizedTarget ? slugify(normalizedTarget) : "",
+          targetSceneId: normalizedTarget || "",
           type: hotspot.type || "nav",
         };
       }),

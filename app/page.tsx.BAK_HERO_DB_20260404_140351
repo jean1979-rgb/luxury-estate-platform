@@ -1,24 +1,54 @@
 import Link from "next/link";
-import { getPublicHomeHero } from "@/lib/public-home";
-import { getPublicDestinations } from "@/lib/public-destinations";
-import { getPublicPartners } from "@/lib/public-partners";
-import { getPublicExperiences } from "@/lib/public-experiences";
+import luxuryPartners from "@/data/luxury/luxuryPartners.json";
+import experiences from "@/data/luxury/experiences.json";
 
-// destinations now from DB
+const destinations = [
+  {
+    name: "Acapulco",
+    href: "/acapulco",
+    status: "Live Destination",
+    text: "Villas, penthouses, branded residences y propiedades frente al mar en el primer mercado premium activo de la plataforma.",
+  },
+  {
+    name: "Los Cabos",
+    href: "#",
+    status: "Coming Soon",
+    text: "Hospitality real estate, branded living y residencias de ultra lujo en Baja California Sur.",
+  },
+  {
+    name: "Punta Mita",
+    href: "#",
+    status: "Coming Soon",
+    text: "Beachfront estates, golf lifestyle y comunidades privadas orientadas al high-end market.",
+  },
+  {
+    name: "Riviera Maya",
+    href: "#",
+    status: "Coming Soon",
+    text: "Beach clubs, selva, arquitectura sensorial y propiedades curadas para inversión y estilo de vida.",
+  },
+  {
+    name: "CDMX",
+    href: "#",
+    status: "Coming Soon",
+    text: "Luxury urban living, branded towers, serviced residences y zonas prime de la ciudad.",
+  },
+  {
+    name: "Valle de Bravo",
+    href: "#",
+    status: "Coming Soon",
+    text: "Casas de descanso, lago, bosque y lifestyle residencial de alto valor patrimonial.",
+  },
+];
 
-export default async function HomePage() {
-  const hero = await getPublicHomeHero();
-  const destinations = await getPublicDestinations();
-  const luxuryPartners = await getPublicPartners();
-  const experiences = await getPublicExperiences();
-
+export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-[#f5f1eb]">
       <section className="relative overflow-hidden border-b border-white/10">
         <div className="absolute inset-0">
           <img
-            src={hero.heroBackgroundImage}
-            alt={hero.heroEyebrow}
+            src="/uploads/properties/sample-villa-diamante/cover/img-20260206-140512380-hdr-1774378789479.jpg"
+            alt="Private Estates Mexico"
             className="h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-black/55" />
@@ -35,7 +65,7 @@ export default async function HomePage() {
             </div>
 
             <nav className="hidden items-center gap-6 md:flex">
-              <a href={hero.heroPrimaryCtaHref} className="text-sm text-white/78 transition hover:text-white">
+              <a href="#destinations" className="text-sm text-white/78 transition hover:text-white">
                 Destinos
               </a>
               <a href="#partners" className="text-sm text-white/78 transition hover:text-white">
@@ -57,7 +87,7 @@ export default async function HomePage() {
                 Crear cuenta
               </Link>
               <Link
-                href={hero.heroSecondaryCtaHref}
+                href="/acapulco"
                 className="border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:bg-white hover:text-black"
               >
                 Entrar a Acapulco
@@ -72,11 +102,15 @@ export default async function HomePage() {
               </p>
 
               <h1 className="mt-5 text-5xl font-light leading-[0.95] text-white md:text-7xl">
-                {hero.heroTitle}
+                La entrada al
+                <br />
+                estilo de vida de lujo
+                <br />
+                en México
               </h1>
 
               <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/82 md:text-xl">
-                {hero.heroSubtitle}
+                Un portal inmobiliario premium por destinos, donde la residencia, la ciudad y el lifestyle se presentan como una sola experiencia de alto valor.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
@@ -84,14 +118,14 @@ export default async function HomePage() {
                   href="#destinations"
                   className="border border-white/30 bg-white/10 px-5 py-3 text-xs uppercase tracking-[0.24em] text-white backdrop-blur-md transition hover:bg-white hover:text-black"
                 >
-                  {hero.heroPrimaryCtaLabel}
+                  Explorar destinos
                 </a>
 
                 <Link
                   href="/acapulco"
                   className="border border-white/25 bg-black/25 px-5 py-3 text-xs uppercase tracking-[0.24em] text-white backdrop-blur-md transition hover:bg-white hover:text-black"
                 >
-                  {hero.heroSecondaryCtaLabel}
+                  Descubrir Acapulco
                 </Link>
               </div>
             </div>
@@ -144,38 +178,57 @@ export default async function HomePage() {
             </p>
 
             <h2 className="mt-4 text-3xl font-light leading-tight md:text-5xl">
-              {hero.destinationsTitle}
+              Explora el lujo por ciudad, no por ruido de inventario
             </h2>
 
             <p className="mt-5 max-w-2xl text-white/60 md:text-lg">
-              {hero.destinationsSubtitle}
+              Cada destino debe sentirse como una experiencia de lujo propia, con propiedades, estilo de vida, hospitalidad, gastronomía, marina, golf, wellness y contexto local.
             </p>
           </div>
 
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {destinations.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="group border border-white/10 bg-[#111111] p-6 transition hover:border-white/30 hover:bg-[#151515]"
-              >
-                <p className="text-[10px] uppercase tracking-[0.34em] text-[#d8c7a6]">
-                  {item.status}
-                </p>
+            {destinations.map((item) =>
+              item.href === "/acapulco" ? (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="group border border-white/10 bg-[#111111] p-6 transition hover:border-white/30 hover:bg-[#151515]"
+                >
+                  <p className="text-[10px] uppercase tracking-[0.34em] text-[#d8c7a6]">
+                    {item.status}
+                  </p>
 
-                <h3 className="mt-4 text-3xl font-light text-white">
-                  {item.name}
-                </h3>
+                  <h3 className="mt-4 text-3xl font-light text-white">
+                    {item.name}
+                  </h3>
 
-                <p className="mt-4 text-sm leading-relaxed text-white/62">
-                  {item.text}
-                </p>
+                  <p className="mt-4 text-sm leading-relaxed text-white/62">
+                    {item.text}
+                  </p>
 
-                <div className="mt-8 inline-flex items-center border border-white/15 px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-white/72 transition group-hover:bg-white group-hover:text-black">
-                  Entrar destino
+                  <div className="mt-8 inline-flex items-center border border-white/15 px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-white/72 transition group-hover:bg-white group-hover:text-black">
+                    Entrar destino
+                  </div>
+                </Link>
+              ) : (
+                <div
+                  key={item.name}
+                  className="border border-white/10 bg-[#101010] p-6"
+                >
+                  <p className="text-[10px] uppercase tracking-[0.34em] text-white/35">
+                    {item.status}
+                  </p>
+
+                  <h3 className="mt-4 text-3xl font-light text-white/92">
+                    {item.name}
+                  </h3>
+
+                  <p className="mt-4 text-sm leading-relaxed text-white/58">
+                    {item.text}
+                  </p>
                 </div>
-              </Link>
-            ))}
+              )
+            )}
           </div>
         </div>
       </section>
@@ -188,11 +241,11 @@ export default async function HomePage() {
             </p>
 
             <h3 className="mt-4 text-3xl font-light leading-tight md:text-5xl">
-              {hero.partnersTitle}
+              Marcas y experiencias que elevan la conversación del lujo
             </h3>
 
             <p className="mt-5 max-w-2xl text-white/60 md:text-lg">
-              {hero.partnersSubtitle}
+              La plataforma puede integrar hospitalidad, wellness, diseño, marina, gastronomía, golf, automoción, aviación y otras categorías afines al high-end market.
             </p>
           </div>
 

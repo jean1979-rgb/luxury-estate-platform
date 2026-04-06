@@ -3,14 +3,13 @@ import type { AdminPropertyInput, AdminPropertyRecord } from "@/types/admin";
 export async function saveProperty(params: {
   payload: AdminPropertyInput;
   forcedPropertyId?: string | null;
-}): Promise<
-  | { mode: "studio"; propertyId: string; payload: AdminPropertyInput }
-  | { mode: "property"; saved: AdminPropertyRecord }
-> {
+}): Promise<{ saved: AdminPropertyRecord }> {
   const { payload, forcedPropertyId } = params;
 
-  if (forcedPropertyId) {
-    const sceneRes = await fetch(`/api/broker/scenes/${forcedPropertyId}`, {
+  const propertyId = forcedPropertyId || payload.id || undefined;
+
+  if (propertyId) {
+    const sceneRes = await fetch(`/api/broker/scenes/${propertyId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -25,12 +24,6 @@ export async function saveProperty(params: {
     if (!sceneRes.ok || !sceneData.ok) {
       throw new Error(sceneData.message || "No se pudieron guardar las escenas.");
     }
-
-    return {
-      mode: "studio",
-      propertyId: forcedPropertyId,
-      payload,
-    };
   }
 
   const res = await fetch("/api/broker/properties", {
@@ -38,17 +31,19 @@ export async function saveProperty(params: {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      ...payload,
+      ...(propertyId ? { id: propertyId } : {}),
+    }),
   });
 
   const data = await res.json();
 
   if (!res.ok || !data.ok) {
-    throw new Error(data.message || "No se pudo guardar.");
+    throw new Error(data.message || "No se pudo guardar la propiedad.");
   }
 
   return {
-    mode: "property",
     saved: data.property as AdminPropertyRecord,
   };
 }

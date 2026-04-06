@@ -1,43 +1,5 @@
 import type { AdminPropertyInput, AdminPropertyRecord } from "@/types/admin";
 
-export function applyStudioResult(params: {
-  propertyId: string;
-  payload: AdminPropertyInput;
-  setSelectedId: (id: string) => void;
-  setForm: (fn: (prev: AdminPropertyInput) => AdminPropertyInput) => void;
-  setMessage: (msg: string) => void;
-}) {
-  const { propertyId, payload, setSelectedId, setForm, setMessage } = params;
-
-  setSelectedId(propertyId);
-
-  setForm((prev) => ({
-    ...prev,
-    id: propertyId,
-    slug: payload.slug,
-    title: payload.title,
-    status: payload.status,
-    propertyType: payload.propertyType,
-    location: payload.location,
-    price: payload.price,
-    currency: payload.currency,
-    bedrooms: payload.bedrooms,
-    bathrooms: payload.bathrooms,
-    areaInterior: payload.areaInterior,
-    areaTotal: payload.areaTotal,
-    tagline: payload.tagline,
-    coverImage: payload.coverImage,
-    gallery: payload.gallery,
-    scenes360: payload.scenes360,
-    featured: payload.featured,
-    published: payload.published,
-    luxuryScore: payload.luxuryScore,
-    description: payload.description,
-  }));
-
-  setMessage("Studio guardado correctamente en Prisma.");
-}
-
 export function applyPropertyResult(params: {
   saved: AdminPropertyRecord;
   setItems: (fn: (prev: AdminPropertyRecord[]) => AdminPropertyRecord[]) => void;

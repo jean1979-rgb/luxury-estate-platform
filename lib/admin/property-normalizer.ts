@@ -20,9 +20,6 @@ export function normalizeScenes(
 
     [
       realId,
-      slugify(realId),
-      slugify(scene.title || ""),
-      slugify(imageBase),
       imageBase,
     ]
       .filter(Boolean)

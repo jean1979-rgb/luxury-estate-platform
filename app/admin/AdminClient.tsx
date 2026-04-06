@@ -693,32 +693,27 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       <div className={isLightStudio ? "mx-auto flex min-h-screen w-full max-w-[1600px]" : "mx-auto flex min-h-screen w-full max-w-[1600px] gap-6 px-6 py-6"}>
         {!isLightStudio && (
-        <aside className="flex w-[360px] shrink-0 flex-col overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl">
+        <aside className="sticky top-6 flex h-[calc(100vh-3rem)] w-[360px] shrink-0 flex-col overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl">
           <div className="border-b border-white/10 px-6 py-6">
             <div className="mb-2 text-[11px] uppercase tracking-[0.35em] text-white/45">
               Private Admin
-
-<button
-  onClick={handleTokkoSync}
-  style={{
-    background: "#111",
-    color: "#fff",
-    padding: "10px 16px",
-    borderRadius: "8px",
-    marginBottom: "16px",
-    cursor: "pointer"
-  }}
->
-  Actualizar desde Tokko
-</button>
-
             </div>
+
             <h1 className="text-2xl font-semibold tracking-tight">
               Luxury Property Console
             </h1>
+
             <p className="mt-2 text-sm leading-6 text-white/60">
               Base local premium para crear, editar media, escenas 360 y hotspots.
             </p>
+
+            <button
+              type="button"
+              onClick={handleTokkoSync}
+              className="mt-4 rounded-2xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
+            >
+              Actualizar desde Tokko
+            </button>
           </div>
 
           <div className="border-b border-white/10 p-4">
@@ -731,6 +726,15 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
           </div>
 
           <div className="flex-1 overflow-y-auto p-4">
+            <div className="mb-4">
+              <AdminTokkoPanel
+                items={tokkoItems}
+                hiddenIds={hiddenIds}
+                onToggleVisibility={toggleVisibility}
+                onImport={importFromTokko}
+              />
+            </div>
+
             <div className="mb-3 text-[11px] uppercase tracking-[0.3em] text-white/35">
               Inventario local
             </div>
@@ -749,54 +753,89 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
                   const active = item.id === selectedId;
 
                   return (
-                    <button
+                    <div
                       key={item.id}
-                      onClick={() => handleSelect(item)}
                       className={[
-                        "w-full rounded-2xl border p-4 text-left transition",
+                        "overflow-hidden rounded-2xl border transition",
                         active
-                          ? "border-white/30 bg-white/12"
+                          ? "border-white/30 bg-white/10"
                           : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06]",
                       ].join(" ")}
                     >
-                      <div className="mb-2 flex items-center justify-between gap-3">
-                        <span className="text-xs uppercase tracking-[0.25em] text-white/40">
-                          {item.propertyType}
-                        </span>
-                        <span
-                          className={[
-                            "rounded-full px-2.5 py-1 text-[10px] uppercase tracking-[0.25em]",
-                            item.published
-                              ? "bg-emerald-500/15 text-emerald-300"
-                              : "bg-amber-500/15 text-amber-300",
-                          ].join(" ")}
+                      <button
+                        type="button"
+                        onClick={() => handleSelect(item)}
+                        className="block w-full text-left"
+                      >
+                        {item.coverImage ? (
+                          <div className="h-[120px] w-full overflow-hidden border-b border-white/10">
+                            <img
+                              src={item.coverImage}
+                              alt={item.title}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex h-[120px] w-full items-center justify-center border-b border-white/10 bg-white/[0.02] text-[10px] uppercase tracking-[0.18em] text-white/30">
+                            Sin imagen
+                          </div>
+                        )}
+
+                        <div className="p-4">
+                          <div className="mb-2 flex items-center justify-between gap-3">
+                            <span className="text-xs uppercase tracking-[0.25em] text-white/40">
+                              {item.propertyType}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              {item.featured ? (
+                                <span className="rounded-full bg-fuchsia-500/15 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-fuchsia-300">
+                                  featured
+                                </span>
+                              ) : null}
+                              <span
+                                className={[
+                                  "rounded-full px-2.5 py-1 text-[10px] uppercase tracking-[0.25em]",
+                                  item.published
+                                    ? "bg-emerald-500/15 text-emerald-300"
+                                    : "bg-amber-500/15 text-amber-300",
+                                ].join(" ")}
+                              >
+                                {item.published ? "published" : "draft"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="text-base font-medium leading-6 text-white">
+                            {item.title}
+                          </div>
+
+                          <div className="mt-1 text-sm text-white/55">
+                            {item.location}
+                          </div>
+
+                          <div className="mt-3 flex items-center justify-between text-xs text-white/40">
+                            <span>{item.price || "Sin precio"}</span>
+                            <span>{formatUpdatedAt(item.updatedAt)}</span>
+                          </div>
+                        </div>
+                      </button>
+
+                      <div className="border-t border-white/10">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.location.href = `/broker/properties/${item.id}/studio`;
+                          }}
+                          className="w-full px-3 py-3 text-[10px] uppercase tracking-[0.2em] text-white/70 transition hover:bg-white/10"
                         >
-                          {item.published ? "published" : "draft"}
-                        </span>
+                          Office
+                        </button>
                       </div>
-
-                      <div className="text-base font-medium leading-6 text-white">
-                        {item.title}
-                      </div>
-
-                      <div className="mt-1 text-sm text-white/55">{item.location}</div>
-
-                      <div className="mt-3 flex items-center justify-between text-xs text-white/40">
-                        <span>{item.price || "Sin precio"}</span>
-                        <span>{formatUpdatedAt(item.updatedAt)}</span>
-                      </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
             )}
-        
-          <AdminTokkoPanel
-  items={tokkoItems}
-  hiddenIds={hiddenIds}
-  onToggleVisibility={toggleVisibility}
-  onImport={importFromTokko}
-/>
           </div>
 
 </aside>

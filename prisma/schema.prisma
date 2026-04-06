@@ -104,3 +104,167 @@ model SceneHotspot {
 
   @@index([sceneId])
 }
+
+model PublicHome {
+  id                      String   @id @default(cuid())
+  heroEyebrow             String?
+  heroTitle               String
+  heroSubtitle            String?
+  heroPrimaryCtaLabel     String?
+  heroPrimaryCtaHref      String?
+  heroSecondaryCtaLabel   String?
+  heroSecondaryCtaHref    String?
+  heroBackgroundImage     String?
+  offerTitle              String?
+  offerItemsJson          String?
+  destinationsTitle       String?
+  destinationsSubtitle    String?
+  partnersTitle           String?
+  partnersSubtitle        String?
+  experiencesTitle        String?
+  experiencesSubtitle     String?
+  philosophyTitle         String?
+  philosophyBody          String?
+  philosophySecondary     String?
+  featuredDestinationId   String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  featuredDestination PublicDestination? @relation("FeaturedHomeDestination", fields: [featuredDestinationId], references: [id], onDelete: SetNull)
+}
+
+model PublicNavItem {
+  id         String   @id @default(cuid())
+  label      String
+  href       String
+  kind       String   @default("link")
+  isVisible  Boolean  @default(true)
+  isCta      Boolean  @default(false)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model PublicDestination {
+  id                String   @id @default(cuid())
+  name              String
+  slug              String   @unique
+  status            String   @default("coming_soon")
+  isFeatured        Boolean  @default(false)
+  sortOrder         Int      @default(0)
+  heroEyebrow       String?
+  heroTitle         String?
+  heroSubtitle      String?
+  heroImage         String?
+  overviewTitle     String?
+  overviewBody      String?
+  thesisTitle       String?
+  thesisBody        String?
+  primaryCtaLabel   String?
+  primaryCtaHref    String?
+  secondaryCtaLabel String?
+  secondaryCtaHref  String?
+  seoTitle          String?
+  seoDescription    String?
+  ogImage           String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  lifestylePillars   PublicDestinationPillar[]
+  featuredProperties PublicDestinationProperty[]
+  partners           PublicDestinationPartner[]
+  experiences        PublicDestinationExperience[]
+  homeFeaturedIn     PublicHome[] @relation("FeaturedHomeDestination")
+}
+
+model PublicDestinationPillar {
+  id             String   @id @default(cuid())
+  destinationId  String
+  title          String
+  body           String?
+  image          String?
+  sortOrder      Int      @default(0)
+  isVisible      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  destination PublicDestination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+}
+
+model PublicDestinationProperty {
+  id              String   @id @default(cuid())
+  destinationId   String
+  propertyId      String
+  editorialLabel  String?
+  sortOrder       Int      @default(0)
+  isVisible       Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  destination PublicDestination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+}
+
+model PublicPartner {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  category         String?
+  shortDescription String?
+  longDescription  String?
+  logoUrl          String?
+  coverImage       String?
+  websiteUrl       String?
+  ctaLabel         String?
+  ctaHref          String?
+  isVisible        Boolean  @default(true)
+  isFeatured       Boolean  @default(false)
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  destinations PublicDestinationPartner[]
+}
+
+model PublicExperience {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  category         String?
+  shortDescription String?
+  longDescription  String?
+  coverImage       String?
+  ctaLabel         String?
+  ctaHref          String?
+  isVisible        Boolean  @default(true)
+  isFeatured       Boolean  @default(false)
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  destinations PublicDestinationExperience[]
+}
+
+model PublicDestinationPartner {
+  id             String   @id @default(cuid())
+  destinationId  String
+  partnerId      String
+  sortOrder      Int      @default(0)
+
+  destination PublicDestination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  partner     PublicPartner     @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([destinationId, partnerId])
+}
+
+model PublicDestinationExperience {
+  id             String   @id @default(cuid())
+  destinationId  String
+  experienceId   String
+  sortOrder      Int      @default(0)
+
+  destination PublicDestination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  experience  PublicExperience  @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@unique([destinationId, experienceId])
+}
+

@@ -9,6 +9,7 @@ type SceneHotspotInput = {
 };
 
 type SceneInput = {
+  id?: string;
   title?: string;
   image?: string;
   thumbnail?: string | null;
@@ -45,6 +46,7 @@ export async function replaceScenes(propertyId: string, scenes: SceneInput[]) {
   let sortOrder = 0;
 
   for (const scene of scenes) {
+    const sceneId = asString(scene.id, "");
     const title = asString(scene.title, "Scene");
     const image = asString(scene.image, "");
     const thumbnail = asString(scene.thumbnail, image) || null;
@@ -53,6 +55,7 @@ export async function replaceScenes(propertyId: string, scenes: SceneInput[]) {
 
     const created = await prisma.propertyScene360.create({
       data: {
+        ...(sceneId ? { id: sceneId } : {}),
         propertyId,
         title,
         image,
@@ -68,13 +71,20 @@ export async function replaceScenes(propertyId: string, scenes: SceneInput[]) {
     const hotspots = Array.isArray(scene.hotspots) ? scene.hotspots : [];
 
     for (const hotspot of hotspots) {
+      const rawTarget = asString(hotspot.targetSceneId, "").trim();
+
+      const validTarget =
+        rawTarget && scenes.some((s) => asString(s.id, "") === rawTarget)
+          ? rawTarget
+          : null;
+
       await prisma.sceneHotspot.create({
         data: {
           sceneId: created.id,
           pitch: asNumber(hotspot.pitch, 0),
           yaw: asNumber(hotspot.yaw, 0),
           label: asString(hotspot.label, ""),
-          targetSceneId: asString(hotspot.targetSceneId, "") || null,
+          targetSceneId: validTarget,
           type: asString(hotspot.type, "nav"),
         },
       });
