@@ -5,6 +5,7 @@ import { useAdminPropertyEditor } from "@/hooks/admin/useAdminPropertyEditor";
 import { useAdminBootstrap } from "@/hooks/admin/useAdminBootstrap";
 import { useAdminUploads } from "@/hooks/admin/useAdminUploads";
 import { useAdminMutations } from "@/hooks/admin/useAdminMutations";
+import { useAdminSave } from "@/hooks/admin/useAdminSave";
 import { useSearchParams } from "next/navigation";
 import type {
   AdminHotspot,
@@ -118,6 +119,17 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
     setHiddenIds,
   });
 
+const { handleSave } = useAdminSave({
+    form,
+    forcedPropertyId,
+    slugify,
+    setSaving,
+    setItems,
+    setSelectedId,
+    setForm,
+    setMessage,
+  });
+
 const { handleUpload } = useAdminUploads({
     form,
     selectedId,
@@ -171,48 +183,15 @@ const { handleUpload } = useAdminUploads({
       tagline: item.tagline,
       coverImage: item.coverImage,
       gallery: item.gallery,
+      videoUrl: item.videoUrl || "",
+      videoPoster: item.videoPoster || "",
+      videoType: item.videoType || "upload",
       scenes360: item.scenes360,
       featured: item.featured,
       published: item.published,
       luxuryScore: item.luxuryScore,
       description: item.description,
     });
-  }
-
-  async function handleSave() {
-    setSaving(true);
-    setMessage("");
-
-    try {
-      const { normalizedScenes, sceneIdAliases } = normalizeScenes(
-        form.scenes360,
-        slugify
-      );
-
-      const payload = buildPropertyPayload({
-        form,
-        normalizedScenes,
-        sceneIdAliases,
-        slugify,
-      });
-
-      const result = await saveProperty({
-        payload,
-        forcedPropertyId,
-      });
-
-      applyPropertyResult({
-        saved: result.saved,
-        setItems,
-        setSelectedId,
-        setForm,
-        setMessage,
-      });
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Error inesperado al guardar.");
-    } finally {
-      setSaving(false);
-    }
   }
 
   function removeGalleryImage(index: number) {
