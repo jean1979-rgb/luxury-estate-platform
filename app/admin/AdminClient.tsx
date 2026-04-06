@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type SetStateAction } from "react";
+import { useAdminPropertyEditor } from "@/hooks/admin/useAdminPropertyEditor";
+import { useAdminBootstrap } from "@/hooks/admin/useAdminBootstrap";
 import { useSearchParams } from "next/navigation";
 import type {
   AdminHotspot,
@@ -17,6 +19,7 @@ import { buildPropertyPayload } from "@/lib/admin/property-payload";
 import { saveProperty } from "@/lib/admin/property-save";
 import { applyPropertyResult } from "@/lib/admin/property-ui";
 import { isTokkoAdminItem, mapTokkoToAdminProperty, type TokkoAdminItem } from "@/lib/admin/tokko-helpers";
+import { buildScene, buildHotspot, addScene, removeScene as removeSceneCmd, updateScene as updateSceneCmd, addHotspot as addHotspotCmd, updateHotspot as updateHotspotCmd, removeHotspot as removeHotspotCmd } from "@/lib/admin/editor-commands";
 
 function slugify(value: string) {
   return value
@@ -57,31 +60,8 @@ function percentToPitch(yPercent: number) {
   return 90 - yPercent * 1.8;
 }
 
+
 type UploadFolder = "cover" | "gallery" | "scenes360";
-
-function buildScene(title = "", image = ""): AdminScene360 {
-  const base = slugify(title || `scene-${Date.now()}`);
-  return {
-    id: base || `scene-${Date.now()}`,
-    title: title || "Nueva escena",
-    image,
-    thumbnail: image,
-    initialYaw: 0,
-    initialPitch: 0,
-    hotspots: [],
-  };
-}
-
-function buildHotspot(index: number, pitch: number, yaw: number): AdminHotspot {
-  return {
-    id: `hotspot-${Date.now()}-${index + 1}`,
-    pitch,
-    yaw,
-    label: `Hotspot ${index + 1}`,
-    targetSceneId: "",
-    type: "nav",
-  };
-}
 
 export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: string } = {}) {
   const searchParams = useSearchParams();
@@ -113,7 +93,13 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
     }
   }
 
-  const [form, setForm] = useState<AdminPropertyInput>(EMPTY_ADMIN_PROPERTY);
+  const { form, dispatch } = useAdminPropertyEditor(EMPTY_ADMIN_PROPERTY);
+
+  const setForm = (next: SetStateAction<AdminPropertyInput>) => {
+    const value = typeof next === "function" ? next(form) : next;
+    dispatch({ type: "SET_FORM", payload: value });
+  };
+
   const [selectedId, setSelectedId] = useState<string>("new");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -125,109 +111,22 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
   const [tokkoItems, setTokkoItems] = useState<TokkoAdminItem[]>([]);
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
 
+  useAdminBootstrap({
+    forcedPropertyId,
+    propertyIdFromUrl,
+    selectedId,
+    items,
+    onLoadingChange: setLoading,
+    onMessageChange: setMessage,
+    onItemsChange: setItems,
+    onSelectedIdChange: setSelectedId,
+    onFormChange: setForm,
+    onTokkoItemsChange: setTokkoItems,
+    onHiddenIdsChange: setHiddenIds,
+    onSelectProperty: handleSelect,
+  });
 
 
-  async function loadProperties() {
-    setLoading(true);
-    setMessage("");
-
-    try {
-      const res = await fetch("/api/broker/properties", { cache: "no-store" });
-      const data = await res.json();
-
-      if (!res.ok || !data.ok) {
-        throw new Error(data.message || "No se pudo cargar el admin.");
-      }
-
-      setItems(data.items || []);
-
-      if (!forcedPropertyId && (data.items || []).length > 0 && selectedId === "new") {
-        const first = data.items[0] as AdminPropertyRecord;
-        setSelectedId(first.id);
-        setForm({
-          id: first.id,
-          title: first.title,
-          slug: first.slug,
-          status: first.status,
-          propertyType: first.propertyType,
-          location: first.location,
-          price: first.price,
-          currency: first.currency,
-          bedrooms: first.bedrooms,
-          bathrooms: first.bathrooms,
-          areaInterior: first.areaInterior,
-          areaTotal: first.areaTotal,
-          tagline: first.tagline,
-          coverImage: first.coverImage,
-          gallery: first.gallery,
-          scenes360: first.scenes360,
-          featured: first.featured,
-          published: first.published,
-          luxuryScore: first.luxuryScore,
-          description: first.description,
-        });
-      }
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Error inesperado.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadProperties();
-    loadTokko();
-  }, []);
-
-  // 🔥 NUEVO: cargar scenes desde Prisma si estamos en Studio
-  useEffect(() => {
-    if (!forcedPropertyId) return;
-
-    async function loadScenesFromDB() {
-      try {
-        const res = await fetch(`/api/broker/scenes/${forcedPropertyId}`);
-        const data = await res.json();
-
-        if (!res.ok || !data.ok) return;
-
-        const mappedScenes = mapScenesFromApi(data.scenes);
-
-        setForm((prev) => ({
-          ...prev,
-          scenes360: mappedScenes
-        }));
-
-      } catch (e) {
-        console.error("Error loading scenes from DB", e);
-      }
-    }
-
-    loadScenesFromDB();
-  }, [forcedPropertyId]);
-
-  useEffect(() => {
-    if (!propertyIdFromUrl) return;
-    if (!items.length) return;
-
-    const target = items.find((item) => item.id === propertyIdFromUrl);
-    if (!target) return;
-
-    handleSelect(target);
-  }, [propertyIdFromUrl, items]);
-
-  async function loadTokko() {
-    try {
-      const res = await fetch("/api/admin/tokko", { cache: "no-store" });
-      const data = await res.json();
-      setTokkoItems(data.items || []);
-
-      const vis = await fetch("/api/admin/visibility", { cache: "no-store" });
-      const vjson = await vis.json();
-      setHiddenIds(vjson.hiddenIds || []);
-    } catch (e) {
-      console.error("Tokko load error", e);
-    }
-  }
 
 
   async function handleDelete() {
@@ -383,7 +282,7 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
 
 
 function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPropertyInput[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    dispatch({ type: "PATCH_FIELD", key, value });
   }
 
   function handleNew() {
@@ -515,13 +414,13 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
 
       if (folder === "scenes360") {
         const cleanName = file.name.replace(/\.[^/.]+$/, "");
-        const scene = buildScene(cleanName, uploadedUrl);
+        const scene = buildScene(cleanName, uploadedUrl, slugify);
 
         setForm((prev) => ({
           ...prev,
           id: prev.id || computedEntityId,
           slug: prev.slug || computedEntityId,
-          scenes360: [...prev.scenes360, scene],
+          scenes360: addScene(prev.scenes360, scene),
         }));
       }
 
@@ -543,61 +442,23 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
   }
 
   function addEmptyScene() {
-    setForm((prev) => ({
-      ...prev,
-      scenes360: [...prev.scenes360, buildScene(`escena-${prev.scenes360.length + 1}`, "")],
-    }));
+    dispatch({
+      type: "ADD_SCENE",
+      scene: buildScene(`escena-${form.scenes360.length + 1}`, "", slugify),
+    });
   }
 
   function updateScene(index: number, patch: Partial<AdminScene360>) {
-    setForm((prev) => {
-      let changed = false;
-
-      const nextScenes = prev.scenes360.map((scene, i) => {
-        if (i !== index) return scene;
-
-        const nextTitle = patch.title ?? scene.title;
-        const nextImage = patch.image ?? scene.image;
-
-        const nextScene: AdminScene360 = {
-          ...scene,
-          ...patch,
-          id: patch.id ? slugify(patch.id) : scene.id,
-          title: nextTitle,
-          image: nextImage,
-          thumbnail: patch.thumbnail ?? nextImage ?? scene.thumbnail,
-          hotspots: Array.isArray(patch.hotspots) ? patch.hotspots : scene.hotspots,
-        };
-
-        const same =
-          nextScene.id === scene.id &&
-          nextScene.title === scene.title &&
-          nextScene.image === scene.image &&
-          nextScene.thumbnail === scene.thumbnail &&
-          nextScene.initialYaw === scene.initialYaw &&
-          nextScene.initialPitch === scene.initialPitch &&
-          nextScene.hotspots === scene.hotspots;
-
-        if (same) return scene;
-
-        changed = true;
-        return nextScene;
-      });
-
-      if (!changed) return prev;
-
-      return {
-        ...prev,
-        scenes360: nextScenes,
-      };
+    dispatch({
+      type: "UPDATE_SCENE",
+      index,
+      patch,
+      slugify,
     });
   }
 
   function removeScene(index: number) {
-    setForm((prev) => ({
-      ...prev,
-      scenes360: prev.scenes360.filter((_, i) => i !== index),
-    }));
+    dispatch({ type: "REMOVE_SCENE", index });
   }
 
   function addHotspotAtCoords(
@@ -615,16 +476,11 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
     const yaw = Number(clamp(Number(coords.yaw), -180, 180).toFixed(2));
     const hotspot = buildHotspot(scene.hotspots.length, pitch, yaw);
 
-    setForm((prev) => ({
-      ...prev,
-      scenes360: prev.scenes360.map((currentScene, i) => {
-        if (i !== sceneIndex) return currentScene;
-        return {
-          ...currentScene,
-          hotspots: [...currentScene.hotspots, hotspot],
-        };
-      }),
-    }));
+    dispatch({
+      type: "ADD_HOTSPOT",
+      sceneIndex,
+      hotspot,
+    });
 
     setMessage("Hotspot creado en el visor 360. Ajusta label y destino antes de guardar.");
   }
@@ -634,59 +490,38 @@ function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPr
     hotspotIndex: number,
     patch: Partial<AdminHotspot>
   ) {
-    setForm((prev) => ({
-      ...prev,
-      scenes360: prev.scenes360.map((scene, i) => {
-        if (i !== sceneIndex) return scene;
+    const normalizedPatch: Partial<AdminHotspot> = {
+      ...patch,
+      pitch:
+        patch.pitch !== undefined
+          ? Number(clamp(Number(patch.pitch), -90, 90).toFixed(2))
+          : undefined,
+      yaw:
+        patch.yaw !== undefined
+          ? Number(clamp(Number(patch.yaw), -180, 180).toFixed(2))
+          : undefined,
+      label: patch.label !== undefined ? patch.label : undefined,
+      targetSceneId:
+        patch.targetSceneId !== undefined ? patch.targetSceneId : undefined,
+      type: patch.type !== undefined ? patch.type : undefined,
+      size: patch.size !== undefined ? patch.size : undefined,
+    };
 
-        return {
-          ...scene,
-          hotspots: scene.hotspots.map((hotspot, j) => {
-            if (j !== hotspotIndex) return hotspot;
-
-            return {
-              ...hotspot,
-              ...patch,
-              id: patch.id ? slugify(patch.id) : hotspot.id,
-              pitch:
-                patch.pitch !== undefined
-                  ? Number(clamp(Number(patch.pitch), -90, 90).toFixed(2))
-                  : hotspot.pitch,
-              yaw:
-                patch.yaw !== undefined
-                  ? Number(clamp(Number(patch.yaw), -180, 180).toFixed(2))
-                  : hotspot.yaw,
-              label: patch.label !== undefined ? patch.label : hotspot.label,
-              targetSceneId:
-                patch.targetSceneId !== undefined
-                  ? patch.targetSceneId
-                  : hotspot.targetSceneId,
-              type:
-                patch.type !== undefined
-                  ? patch.type
-                  : hotspot.type || "nav",
-              size:
-                patch.size !== undefined
-                  ? patch.size
-                  : hotspot.size || "md",
-            };
-          }),
-        };
-      }),
-    }));
+    dispatch({
+      type: "UPDATE_HOTSPOT",
+      sceneIndex,
+      hotspotIndex,
+      patch: normalizedPatch,
+      slugify,
+    });
   }
 
   function removeHotspot(sceneIndex: number, hotspotIndex: number) {
-    setForm((prev) => ({
-      ...prev,
-      scenes360: prev.scenes360.map((scene, i) => {
-        if (i !== sceneIndex) return scene;
-        return {
-          ...scene,
-          hotspots: scene.hotspots.filter((_, j) => j !== hotspotIndex),
-        };
-      }),
-    }));
+    dispatch({
+      type: "REMOVE_HOTSPOT",
+      sceneIndex,
+      hotspotIndex,
+    });
   }
 
   return (

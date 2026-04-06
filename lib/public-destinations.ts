@@ -5,12 +5,14 @@ export type PublicDestinationCard = {
   href: string;
   status: string;
   text: string;
+  image: string;
 };
 
 const FALLBACK: PublicDestinationCard[] = [
   {
     name: "Acapulco",
     href: "/acapulco",
+    image: "",
     status: "Live Destination",
     text: "Villas, penthouses, branded residences y propiedades frente al mar.",
   },
@@ -30,6 +32,7 @@ export async function getPublicDestinations(): Promise<PublicDestinationCard[]> 
       href: `/${r.slug}`,
       status: r.status,
       text: r.heroSubtitle || "",
+      image: r.heroImage || "",
     }));
   } catch {
     return FALLBACK;
