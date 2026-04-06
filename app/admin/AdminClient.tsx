@@ -17,12 +17,8 @@ import { EMPTY_ADMIN_PROPERTY } from "@/types/admin";
 import AdminMediaTabs from "@/components/admin/AdminMediaTabs";
 import AdminTokkoPanel from "@/components/admin/AdminTokkoPanel";
 import { mapScenesFromApi } from "@/lib/admin/scene-mappers";
-import { normalizeScenes } from "@/lib/admin/property-normalizer";
-import { buildPropertyPayload } from "@/lib/admin/property-payload";
-import { saveProperty } from "@/lib/admin/property-save";
-import { applyPropertyResult } from "@/lib/admin/property-ui";
-import { isTokkoAdminItem, mapTokkoToAdminProperty, type TokkoAdminItem } from "@/lib/admin/tokko-helpers";
-import { buildScene, buildHotspot, addScene, removeScene as removeSceneCmd, updateScene as updateSceneCmd, addHotspot as addHotspotCmd, updateHotspot as updateHotspotCmd, removeHotspot as removeHotspotCmd } from "@/lib/admin/editor-commands";
+import { buildScene, buildHotspot } from "@/lib/admin/editor-commands";
+import type { TokkoAdminItem } from "@/lib/admin/tokko-helpers";
 
 function slugify(value: string) {
   return value
