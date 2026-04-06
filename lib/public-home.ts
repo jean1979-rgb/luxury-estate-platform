@@ -15,6 +15,10 @@ export type PublicHomeHero = {
   partnersSubtitle: string;
   experiencesTitle: string;
   experiencesSubtitle: string;
+  featuredDestinationName: string;
+  featuredDestinationHref: string;
+  featuredDestinationStatus: string;
+  featuredDestinationText: string;
 };
 
 const FALLBACK_HOME: PublicHomeHero = {
@@ -37,15 +41,25 @@ const FALLBACK_HOME: PublicHomeHero = {
   experiencesTitle: "El lujo se explica mejor a través de experiencias",
   experiencesSubtitle:
     "Cada destino debe articular gastronomía, hospitalidad, clubes, marina, wellness y lifestyle como parte del valor percibido del mercado.",
+  featuredDestinationName: "Acapulco",
+  featuredDestinationHref: "/acapulco",
+  featuredDestinationStatus: "published",
+  featuredDestinationText:
+    "Villas, penthouses, branded residences y propiedades frente al mar.",
 };
 
 export async function getPublicHomeHero(): Promise<PublicHomeHero> {
   try {
     const home = await prisma.publicHome.findFirst({
       orderBy: { updatedAt: "desc" },
+      include: {
+        featuredDestination: true,
+      },
     });
 
     if (!home) return FALLBACK_HOME;
+
+    const featured = home.featuredDestination;
 
     return {
       heroEyebrow: home.heroEyebrow || FALLBACK_HOME.heroEyebrow,
@@ -56,11 +70,19 @@ export async function getPublicHomeHero(): Promise<PublicHomeHero> {
       heroPrimaryCtaHref:
         home.heroPrimaryCtaHref || FALLBACK_HOME.heroPrimaryCtaHref,
       heroSecondaryCtaLabel:
-        home.heroSecondaryCtaLabel || FALLBACK_HOME.heroSecondaryCtaLabel,
+        home.heroSecondaryCtaLabel ||
+        (featured?.name
+          ? `Descubrir ${featured.name}`
+          : FALLBACK_HOME.heroSecondaryCtaLabel),
       heroSecondaryCtaHref:
-        home.heroSecondaryCtaHref || FALLBACK_HOME.heroSecondaryCtaHref,
+        home.heroSecondaryCtaHref ||
+        (featured?.slug
+          ? `/${featured.slug}`
+          : FALLBACK_HOME.heroSecondaryCtaHref),
       heroBackgroundImage:
-        home.heroBackgroundImage || FALLBACK_HOME.heroBackgroundImage,
+        home.heroBackgroundImage ||
+        featured?.heroImage ||
+        FALLBACK_HOME.heroBackgroundImage,
       destinationsTitle:
         home.destinationsTitle || FALLBACK_HOME.destinationsTitle,
       destinationsSubtitle:
@@ -72,6 +94,16 @@ export async function getPublicHomeHero(): Promise<PublicHomeHero> {
         home.experiencesTitle || FALLBACK_HOME.experiencesTitle,
       experiencesSubtitle:
         home.experiencesSubtitle || FALLBACK_HOME.experiencesSubtitle,
+      featuredDestinationName:
+        featured?.name || FALLBACK_HOME.featuredDestinationName,
+      featuredDestinationHref:
+        featured?.slug
+          ? `/${featured.slug}`
+          : FALLBACK_HOME.featuredDestinationHref,
+      featuredDestinationStatus:
+        featured?.status || FALLBACK_HOME.featuredDestinationStatus,
+      featuredDestinationText:
+        featured?.heroSubtitle || FALLBACK_HOME.featuredDestinationText,
     };
   } catch {
     return FALLBACK_HOME;

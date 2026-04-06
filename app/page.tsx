@@ -60,7 +60,7 @@ export default async function HomePage() {
                 href={hero.heroSecondaryCtaHref}
                 className="border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:bg-white hover:text-black"
               >
-                Entrar a Acapulco
+                Entrar a {hero.featuredDestinationName}
               </Link>
             </nav>
           </div>
@@ -88,7 +88,7 @@ export default async function HomePage() {
                 </a>
 
                 <Link
-                  href="/acapulco"
+                  href={hero.featuredDestinationHref}
                   className="border border-white/25 bg-black/25 px-5 py-3 text-xs uppercase tracking-[0.24em] text-white backdrop-blur-md transition hover:bg-white hover:text-black"
                 >
                   {hero.heroSecondaryCtaLabel}
@@ -108,7 +108,7 @@ export default async function HomePage() {
                       Destinos premium
                     </h3>
                     <p className="mt-2 text-sm leading-relaxed text-white/68">
-                      Mercados curados como Acapulco, Los Cabos, Punta Mita, Riviera Maya y más.
+                      Destino destacado: {hero.featuredDestinationName}. {hero.featuredDestinationText}
                     </p>
                   </div>
 
@@ -117,7 +117,7 @@ export default async function HomePage() {
                       Propiedades de alto valor
                     </h3>
                     <p className="mt-2 text-sm leading-relaxed text-white/68">
-                      Venta y renta de lujo con media premium, narrativa editorial y experiencia visual superior.
+                      Navegación editorial por destinos publicados, con capa pública conectada a DB y páginas escalables.
                     </p>
                   </div>
 
@@ -126,7 +126,7 @@ export default async function HomePage() {
                       Lifestyle & partnerships
                     </h3>
                     <p className="mt-2 text-sm leading-relaxed text-white/68">
-                      La ciudad, las marcas y la residencia como un ecosistema aspiracional, no como un simple listado.
+                      Publishing, partners, experiences y destino destacado trabajando como un ecosistema aspiracional.
                     </p>
                   </div>
                 </div>
@@ -157,22 +157,31 @@ export default async function HomePage() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="group border border-white/10 bg-[#111111] p-6 transition hover:border-white/30 hover:bg-[#151515]"
+                className="group relative overflow-hidden rounded-[28px] border border-white/10 bg-black"
               >
-                <p className="text-[10px] uppercase tracking-[0.34em] text-[#d8c7a6]">
-                  {item.status}
-                </p>
+                <div
+                  className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-105"
+                  style={{ backgroundImage: `url(${item.image})` }}
+                />
 
-                <h3 className="mt-4 text-3xl font-light text-white">
-                  {item.name}
-                </h3>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10" />
 
-                <p className="mt-4 text-sm leading-relaxed text-white/62">
-                  {item.text}
-                </p>
+                <div className="relative p-6">
+                  <p className="text-[10px] uppercase tracking-[0.34em] text-[#d8c7a6]">
+                    {item.name === hero.featuredDestinationName ? "featured destination" : item.status}
+                  </p>
 
-                <div className="mt-8 inline-flex items-center border border-white/15 px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-white/72 transition group-hover:bg-white group-hover:text-black">
-                  Entrar destino
+                  <h3 className="mt-4 text-3xl font-light text-white">
+                    {item.name}
+                  </h3>
+
+                  <p className="mt-4 text-sm leading-relaxed text-white/70">
+                    {item.text}
+                  </p>
+
+                  <div className="mt-8 inline-flex items-center border border-white/20 px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-white transition group-hover:bg-white group-hover:text-black">
+                    Entrar destino
+                  </div>
                 </div>
               </Link>
             ))}
@@ -227,7 +236,7 @@ export default async function HomePage() {
             </p>
 
             <h3 className="mt-4 text-3xl font-light leading-tight md:text-5xl">
-              Contenido editorial para vender el estilo de vida completo
+              {hero.experiencesTitle}
             </h3>
           </div>
 
