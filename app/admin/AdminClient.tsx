@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type SetStateAction } from "react";
+import { useMemo, useState, type SetStateAction } from "react";
 import { useAdminPropertyEditor } from "@/hooks/admin/useAdminPropertyEditor";
 import { useAdminBootstrap } from "@/hooks/admin/useAdminBootstrap";
 import { useAdminUploads } from "@/hooks/admin/useAdminUploads";
@@ -16,7 +16,6 @@ import type {
 import { EMPTY_ADMIN_PROPERTY } from "@/types/admin";
 import AdminMediaTabs from "@/components/admin/AdminMediaTabs";
 import AdminTokkoPanel from "@/components/admin/AdminTokkoPanel";
-import { mapScenesFromApi } from "@/lib/admin/scene-mappers";
 import { buildScene, buildHotspot } from "@/lib/admin/editor-commands";
 import type { TokkoAdminItem } from "@/lib/admin/tokko-helpers";
 
@@ -60,7 +59,7 @@ function percentToPitch(yPercent: number) {
 }
 
 
-type UploadFolder = "cover" | "gallery" | "scenes360";
+type UploadFolder = "cover" | "gallery" | "scenes360" | "video";
 
 export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: string } = {}) {
   const searchParams = useSearchParams();
@@ -778,6 +777,7 @@ const { handleUpload } = useAdminUploads({
                   onAddHotspot={addHotspotAtCoords}
                   onUpdateHotspot={updateHotspot}
                   onRemoveHotspot={removeHotspot}
+                  onUploadVideo={(file) => handleUpload(file, "video")}
                   yawToPercent={yawToPercent}
                   pitchToPercent={pitchToPercent}
                 />
