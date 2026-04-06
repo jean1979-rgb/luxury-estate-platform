@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type SetStateAction } from "react";
 import { useAdminPropertyEditor } from "@/hooks/admin/useAdminPropertyEditor";
 import { useAdminBootstrap } from "@/hooks/admin/useAdminBootstrap";
 import { useAdminUploads } from "@/hooks/admin/useAdminUploads";
+import { useAdminMutations } from "@/hooks/admin/useAdminMutations";
 import { useSearchParams } from "next/navigation";
 import type {
   AdminHotspot,
@@ -71,29 +72,6 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
   const [activeHotspotScene, setActiveHotspotScene] = useState<string | null>(null);
   const [items, setItems] = useState<AdminPropertyRecord[]>([]);
   
-  async function handleTokkoSync() {
-    try {
-      const res = await fetch("/api/admin/tokko", { method: "GET" });
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert("Error al sincronizar Tokko");
-        return;
-      }
-
-      alert("Tokko actualizado");
-
-      // refrescar lista admin
-      const refreshed = await fetch("/api/broker/properties", { cache: "no-store" });
-      const json = await refreshed.json();
-      setItems(json.items || []);
-
-    } catch (err) {
-      console.error(err);
-      alert("Error en sync");
-    }
-  }
-
   const { form, dispatch } = useAdminPropertyEditor(EMPTY_ADMIN_PROPERTY);
 
   const setForm = (next: SetStateAction<AdminPropertyInput>) => {
@@ -127,7 +105,20 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
     onSelectProperty: handleSelect,
   });
 
-  const { handleUpload } = useAdminUploads({
+  const { handleDelete, toggleVisibility, handleTokkoSync, importFromTokko } = useAdminMutations({
+    items,
+    selectedId,
+    forcedPropertyId,
+    slugify,
+    setItems,
+    setSelectedId,
+    setForm,
+    setMessage,
+    setSaving,
+    setHiddenIds,
+  });
+
+const { handleUpload } = useAdminUploads({
     form,
     selectedId,
     slugify,
@@ -141,159 +132,12 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
 
 
 
-  async function handleDelete() {
-  if (!selectedId || selectedId === "new") return;
-
-  const confirmDelete = confirm(
-    "¿Seguro que quieres eliminar esta propiedad? Esta acción no se puede deshacer."
-  );
-
-  if (!confirmDelete) return;
-
-  try {
-    setSaving(true);
-
-    const res = await fetch(`/api/broker/properties/${selectedId}`, {
-      method: "DELETE",
-    });
-
-    const data = await res.json();
-
-    if (!res.ok || !data.ok) {
-      throw new Error(data.message || "Error al eliminar");
-    }
-
-    const refreshed = await fetch("/api/broker/properties", {
-      cache: "no-store",
-    });
-
-    const json = await refreshed.json();
-
-    setItems(json.items || []);
-    setSelectedId("new");
-    setForm(EMPTY_ADMIN_PROPERTY);
-
-    setMessage("Propiedad eliminada correctamente");
-  } catch (err) {
-    console.error(err);
-    setMessage(err instanceof Error ? err.message : "Error eliminando propiedad");
-  } finally {
-    setSaving(false);
-  }
-}
-
   const selectedRecord = useMemo(() => {
     return items.find((item) => item.id === selectedId) || null;
   }, [items, selectedId]);
 
   
-  async function toggleVisibility(id: string) {
-    try {
-      const res = await fetch("/api/admin/visibility", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ id })
-      });
-
-      const data = await res.json();
-      setHiddenIds(data.hiddenIds || []);
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  async function importFromTokko(item: unknown) {
-    try {
-      if (!isTokkoAdminItem(item)) {
-        throw new Error("Tokko item inválido.");
-      }
-
-      if (items.some((p) => p.id === `admin-${item.id}`)) {
-        alert("Ya importada");
-        return;
-      }
-
-      const payload: AdminPropertyInput = {
-        ...mapTokkoToAdminProperty(item),
-        slug: slugify(item.editorial?.title || item.base?.title || item.id || "propiedad"),
-      };
-
-      // 🔥 NUEVO: guardar scenes en Prisma
-      const propertyId = forcedPropertyId || payload.id;
-
-      await fetch(`/api/broker/scenes/${propertyId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          scenes: payload.scenes360
-        }),
-      });
-
-      // ⚠️ TEMPORAL: seguir guardando JSON (luego lo quitamos)
-      const res = await fetch("/api/broker/properties", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.ok) {
-        throw new Error(data.message || "No se pudo importar la propiedad.");
-      }
-
-      const saved = data.property as AdminPropertyRecord;
-
-      setItems((prev) => {
-        const exists = prev.some((entry) => entry.id === saved.id);
-        const next = exists
-          ? prev.map((entry) => (entry.id === saved.id ? saved : entry))
-          : [saved, ...prev];
-
-        return next.sort((a, b) => {
-          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-        });
-      });
-
-      setSelectedId(saved.id);
-      setForm({
-        id: saved.id,
-        title: saved.title,
-        slug: saved.slug,
-        status: saved.status,
-        propertyType: saved.propertyType,
-        location: saved.location,
-        price: saved.price,
-        currency: saved.currency,
-        bedrooms: saved.bedrooms,
-        bathrooms: saved.bathrooms,
-        areaInterior: saved.areaInterior,
-        areaTotal: saved.areaTotal,
-        tagline: saved.tagline,
-        coverImage: saved.coverImage,
-        gallery: saved.gallery,
-        scenes360: saved.scenes360,
-        source: saved.source || { provider: "manual" },
-        featured: saved.featured,
-        published: saved.published,
-        luxuryScore: saved.luxuryScore,
-        description: saved.description,
-      });
-
-      setMessage("Propiedad importada a draft correctamente.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Error importando desde Tokko.");
-    }
-  }
-
-
-function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPropertyInput[K]) {
+  function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPropertyInput[K]) {
     dispatch({ type: "PATCH_FIELD", key, value });
   }
 
