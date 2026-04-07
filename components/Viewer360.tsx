@@ -267,6 +267,10 @@ export default function Viewer360({
     renderer.domElement.style.height = "100%";
     renderer.domElement.style.opacity = "0";
     renderer.domElement.style.transition = "opacity 220ms ease";
+    renderer.domElement.style.touchAction = "none";
+    renderer.domElement.style.userSelect = "none";
+    renderer.domElement.style.webkitUserSelect = "none";
+    (renderer.domElement.style as CSSStyleDeclaration & { webkitTouchCallout?: string }).webkitTouchCallout = "none";
 
     container.innerHTML = "";
     container.appendChild(renderer.domElement);
@@ -340,14 +344,17 @@ export default function Viewer360({
     }
 
     function onPointerDown(event: PointerEvent) {
+      event.preventDefault();
       isPointerDown = true;
       pointerMoved = false;
       pointerDownX = event.clientX;
       pointerDownY = event.clientY;
+      renderer.domElement.setPointerCapture?.(event.pointerId);
     }
 
     function onPointerMove(event: PointerEvent) {
       if (!isPointerDown) return;
+      event.preventDefault();
 
       const dx = event.clientX - pointerDownX;
       const dy = event.clientY - pointerDownY;
@@ -358,8 +365,10 @@ export default function Viewer360({
     }
 
     function onPointerUp(event: PointerEvent) {
+      event.preventDefault();
       if (!isPointerDown) return;
       isPointerDown = false;
+      renderer.domElement.releasePointerCapture?.(event.pointerId);
 
       if (pointerMoved) return;
 

@@ -4,6 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import Viewer360 from "@/components/Viewer360";
 import type { AdminHotspot, AdminHotspotType, AdminScene360 } from "@/types/admin";
 
+function angularDeltaDeg(a: number, b: number) {
+  const diff = Math.abs(a - b) % 360;
+  return diff > 180 ? 360 - diff : diff;
+}
+
 type Props = {
   scenes: AdminScene360[];
   uploadingScenes: boolean;
@@ -44,6 +49,7 @@ export default function AdminScenes360Tab({
   );
 
   const dragSceneIndexRef = useRef<number | null>(null);
+  const latestViewRef = useRef<Record<string, { yaw: number; pitch: number }>>({});
 
 
   useEffect(() => {
@@ -288,18 +294,10 @@ export default function AdminScenes360Tab({
                             initialYaw={scene.initialYaw ?? 0}
                             initialPitch={scene.initialPitch ?? 0}
                             onViewChange={(view) => {
-                              const currentYaw = scene.initialYaw ?? 0;
-                              const currentPitch = scene.initialPitch ?? 0;
-
-                              const yawDelta = Math.abs(view.yaw - currentYaw);
-                              const pitchDelta = Math.abs(view.pitch - currentPitch);
-
-                              if (yawDelta < 0.25 && pitchDelta < 0.25) return;
-
-                              onUpdateScene(sceneIndex, {
-                                initialYaw: view.yaw,
-                                initialPitch: view.pitch,
-                              });
+                              latestViewRef.current[scene.id] = {
+                                yaw: Number(view.yaw.toFixed(2)),
+                                pitch: Number(view.pitch.toFixed(2)),
+                              };
                             }}
                             onHotspotClick={(targetSceneId) => {
       if (!targetSceneId) return;
@@ -332,10 +330,44 @@ export default function AdminScenes360Tab({
                             : "Agregar hotspots desde el visor"}
                         </button>
 
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const view = latestViewRef.current[scene.id] ?? {
+                              yaw: Number((scene.initialYaw ?? 0).toFixed(2)),
+                              pitch: Number((scene.initialPitch ?? 0).toFixed(2)),
+                            };
+
+                            onUpdateScene(sceneIndex, {
+                              initialYaw: view.yaw,
+                              initialPitch: view.pitch,
+                            });
+                          }}
+                          className="rounded-2xl border border-white/15 px-5 py-4 text-[15px] text-white transition hover:bg-white/10"
+                        >
+                          Usar esta vista para inicio
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const view = latestViewRef.current[scene.id] ?? {
+                              yaw: Number((scene.initialYaw ?? 0).toFixed(2)),
+                              pitch: Number((scene.initialPitch ?? 0).toFixed(2)),
+                            };
+
+                            onSetActiveHotspotScene(scene.id);
+                            onAddHotspot(sceneIndex, view);
+                          }}
+                          className="rounded-2xl border border-white/15 px-5 py-4 text-[15px] text-white transition hover:bg-white/10"
+                        >
+                          Usar esta vista para hotspots
+                        </button>
+
                         <div className="text-xs text-white/45">
                           {isHotspotMode
                             ? "Haz click dentro del panorama para crear hotspots."
-                            : "Activa el modo hotspot para marcar destinos visualmente."}
+                            : "Mueve la cámara y guarda manualmente la vista o entra a modo hotspot."}
                         </div>
                       </div>
                   </div>

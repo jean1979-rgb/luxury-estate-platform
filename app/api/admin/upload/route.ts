@@ -18,8 +18,9 @@ function slugify(value: string) {
 
 function getSafeExtension(filename: string) {
   const ext = path.extname(filename || "").toLowerCase();
-  if ([".jpg", ".jpeg", ".png", ".webp"].includes(ext)) return ext;
-  return ".jpg";
+  const allowed = [".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov", ".webm", ".m4v"];
+  if (allowed.includes(ext)) return ext;
+  return ".mp4";
 }
 
 function getEntityFolder(entityType: string) {

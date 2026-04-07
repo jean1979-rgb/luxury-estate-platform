@@ -58,6 +58,9 @@ model BrokerProperty {
   areaTotal         Float?
   coverImage        String?
   gallery           Json?
+  videoUrl          String?
+  videoPoster       String?
+  videoType         String?
   tagline           String?
   description       String?
   luxuryScore       Int?

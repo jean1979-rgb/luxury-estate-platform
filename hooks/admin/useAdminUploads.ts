@@ -1,7 +1,7 @@
 import { addScene, buildScene } from "@/lib/admin/editor-commands";
 import type { AdminPropertyInput } from "@/types/admin";
 
-type UploadFolder = "cover" | "gallery" | "scenes360";
+type UploadFolder = "cover" | "gallery" | "scenes360" | "video";
 
 type Params = {
   form: AdminPropertyInput;

@@ -108,7 +108,7 @@ export default async function HomePage() {
                       Destinos premium
                     </h3>
                     <p className="mt-2 text-sm leading-relaxed text-white/68">
-                      Destino destacado: {hero.featuredDestinationName}. {hero.featuredDestinationText}
+                      Destino destacado: {hero.featuredDestinationName}. Bahía, cultura, gastronomía de costa, naturaleza y residential lifestyle le dan una lectura mucho más rica que la de un simple catálogo.
                     </p>
                   </div>
 
@@ -117,7 +117,7 @@ export default async function HomePage() {
                       Propiedades de alto valor
                     </h3>
                     <p className="mt-2 text-sm leading-relaxed text-white/68">
-                      Navegación editorial por destinos publicados, con capa pública conectada a DB y páginas escalables.
+                      Una capa pública pensada para presentar ciudad, residencia y estilo de vida como una sola narrativa premium, lista para crecer destino por destino.
                     </p>
                   </div>
 
@@ -126,7 +126,7 @@ export default async function HomePage() {
                       Lifestyle & partnerships
                     </h3>
                     <p className="mt-2 text-sm leading-relaxed text-white/68">
-                      Publishing, partners, experiences y destino destacado trabajando como un ecosistema aspiracional.
+                      Contenido editorial, partners, experiencias y destino trabajan como un mismo ecosistema aspiracional, no como módulos sueltos.
                     </p>
                   </div>
                 </div>
@@ -160,7 +160,7 @@ export default async function HomePage() {
                 className="group relative overflow-hidden rounded-[28px] border border-white/10 bg-black"
               >
                 <div
-                  className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-105"
+                  className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-110"
                   style={{ backgroundImage: `url(${item.image})` }}
                 />
 
@@ -207,22 +207,42 @@ export default async function HomePage() {
 
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {luxuryPartners.map((partner) => (
-              <article
+              <Link
                 key={partner.name}
-                className="border border-white/10 bg-[#101010] p-6 transition hover:bg-[#141414]"
+                href={`/partners/${partner.slug || partner.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`}
+                className="group relative block min-h-[320px] overflow-hidden border border-white/10 bg-[#101010] transition hover:border-white/20"
               >
-                <p className="text-[10px] uppercase tracking-[0.34em] text-white/45">
-                  {partner.category}
-                </p>
+                {partner.coverImage ? (
+                  <>
+                    <div
+                      className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-110"
+                      style={{ backgroundImage: `url("${partner.coverImage}")` }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/10" />
+                  </>
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] via-white/[0.02] to-transparent" />
+                )}
 
-                <h4 className="mt-4 text-2xl font-light text-white">
-                  {partner.name}
-                </h4>
+                <div className="relative flex min-h-[320px] flex-col justify-end p-6">
+                  <p className="text-[10px] uppercase tracking-[0.34em] text-white/55">
+                    {partner.category}
+                  </p>
 
-                <p className="mt-4 text-sm leading-relaxed text-white/65">
-                  {partner.note}
-                </p>
-              </article>
+                  <h4 className="mt-4 text-2xl font-light text-white">
+                    {partner.name}
+                  </h4>
+
+                  <p className="mt-4 max-w-md text-sm leading-relaxed text-white/72">
+                    {partner.note}
+                  </p>
+
+                  <div className="mt-6 inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-white/55">
+                    <span>Explorar partner</span>
+                    <span className="transition group-hover:translate-x-1">→</span>
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -244,23 +264,37 @@ export default async function HomePage() {
             {experiences.map((item) => (
               <article
                 key={item.title}
-                className="flex min-h-[320px] flex-col justify-between border border-white/10 bg-[#0f0f0f] p-7"
+                className="group relative flex min-h-[360px] flex-col justify-between overflow-hidden border border-white/10 bg-[#0f0f0f] transition hover:border-white/20"
               >
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.34em] text-white/40">
-                    {item.eyebrow}
-                  </p>
+                {item.coverImage ? (
+                  <>
+                    <div
+                      className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-110"
+                      style={{ backgroundImage: `url("${item.coverImage}")` }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/58 to-black/24" />
+                  </>
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] via-white/[0.02] to-transparent" />
+                )}
 
-                  <h4 className="mt-4 text-2xl font-light leading-tight">
-                    {item.title}
-                  </h4>
+                <div className="relative flex min-h-[360px] flex-col justify-between p-7">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.34em] text-white/48">
+                      {item.eyebrow}
+                    </p>
 
-                  <p className="mt-5 text-sm leading-relaxed text-white/62">
-                    {item.text}
-                  </p>
+                    <h4 className="mt-4 text-2xl font-light leading-tight text-white">
+                      {item.title}
+                    </h4>
+
+                    <p className="mt-5 max-w-md text-sm leading-relaxed text-white/72">
+                      {item.text}
+                    </p>
+                  </div>
+
+                  <div className="mt-8 h-px w-16 bg-white/25" />
                 </div>
-
-                <div className="mt-8 h-px w-16 bg-white/20" />
               </article>
             ))}
           </div>
@@ -282,7 +316,7 @@ export default async function HomePage() {
           </h3>
 
           <p className="mx-auto mt-6 max-w-3xl text-white/60 md:text-lg">
-            Private Estates Mexico debe sentirse como la puerta de entrada al lujo residencial del país, no como un listado mezclado ni como el home de una sola inmobiliaria.
+            Private Estates Mexico debe sentirse como una puerta de entrada al lujo residencial por destinos: primero el lugar, luego la residencia y después el estilo de vida completo.
           </p>
         </div>
       </section>

@@ -181,7 +181,7 @@ const { handleUpload } = useAdminUploads({
       videoUrl: item.videoUrl || "",
       videoPoster: item.videoPoster || "",
       videoType: item.videoType || "upload",
-      scenes360: Array.isArray(item.scenes360) ? item.scenes360 : [],
+      scenes360: item.scenes360,
       featured: item.featured,
       published: item.published,
       luxuryScore: item.luxuryScore,
@@ -297,25 +297,13 @@ const { handleUpload } = useAdminUploads({
               Base local premium para crear, editar media, escenas 360 y hotspots.
             </p>
 
-            <div className="mt-4 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={handleTokkoSync}
-                className="rounded-2xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
-              >
-                Actualizar desde Tokko
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  window.location.href = "/admin/properties";
-                }}
-                className="rounded-2xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
-              >
-                Office
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleTokkoSync}
+              className="mt-4 rounded-2xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
+            >
+              Actualizar desde Tokko
+            </button>
           </div>
 
           <div className="border-b border-white/10 p-4">
@@ -422,7 +410,17 @@ const { handleUpload } = useAdminUploads({
                         </div>
                       </button>
 
-
+                      <div className="border-t border-white/10">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.location.href = `/broker/properties/${item.id}/studio`;
+                          }}
+                          className="w-full px-3 py-3 text-[10px] uppercase tracking-[0.2em] text-white/70 transition hover:bg-white/10"
+                        >
+                          Office
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -715,7 +713,7 @@ const { handleUpload } = useAdminUploads({
                   <div className="space-y-3 text-sm text-white/65">
                     <div className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">
                       <span>Escenas 360</span>
-                      <span className="text-white">{Array.isArray(form.scenes360) ? form.scenes360.length : 0}</span>
+                      <span className="text-white">{form.scenes360.length}</span>
                     </div>
 
                     <div className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">
@@ -730,7 +728,7 @@ const { handleUpload } = useAdminUploads({
 
                     <div className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">
   <span>Resumen 360</span>
-  <span className="text-white">{Array.isArray(form.scenes360) ? form.scenes360.length : 0}</span>
+  <span className="text-white">{form.scenes360.length}</span>
 </div>
 
                     <div className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">

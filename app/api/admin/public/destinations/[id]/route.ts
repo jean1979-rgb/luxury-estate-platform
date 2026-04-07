@@ -10,6 +10,11 @@ export async function GET(_: Request, ctx: Ctx) {
 
   const item = await prisma.publicDestination.findUnique({
     where: { id },
+    include: {
+      featuredProperties: {
+        where: { isVisible: true },
+      },
+    },
   });
 
   if (!item) {
@@ -26,6 +31,14 @@ export async function PUT(req: Request, ctx: Ctx) {
   const updated = await prisma.publicDestination.update({
     where: { id },
     data: {
+      featuredProperties: {
+        deleteMany: {},
+        create: (body.featuredProperties || []).map((fp: any, i: number) => ({
+          propertyId: fp.propertyId,
+          sortOrder: i,
+          isVisible: true,
+        })),
+      },
       name: body.name ?? "",
       slug: body.slug ?? "",
       status: body.status ?? "coming_soon",

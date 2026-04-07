@@ -3,6 +3,13 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const items = await prisma.publicDestination.findMany({
+    include: {
+      featuredProperties: {
+        where: { isVisible: true },
+        select: { propertyId: true },
+        orderBy: { sortOrder: "asc" },
+      },
+    },
     orderBy: [{ sortOrder: "asc" }, { updatedAt: "desc" }],
   });
 

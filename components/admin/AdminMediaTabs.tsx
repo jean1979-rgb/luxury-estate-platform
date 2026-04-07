@@ -5,8 +5,9 @@ import type { AdminHotspot, AdminHotspotType, AdminPropertyInput, AdminScene360 
 import AdminCoverTab from "@/components/admin/AdminCoverTab";
 import AdminPhotosTab from "@/components/admin/AdminPhotosTab";
 import AdminScenes360Tab from "@/components/admin/AdminScenes360Tab";
+import AdminVideoTab from "@/components/admin/AdminVideoTab";
 
-type MediaTabKey = "cover" | "photos" | "scenes360";
+type MediaTabKey = "cover" | "photos" | "scenes360" | "video";
 
 type Props = {
   form: AdminPropertyInput;
@@ -26,6 +27,7 @@ type Props = {
   onAddHotspot: (sceneIndex: number, coords: { pitch: number; yaw: number }) => void;
   onUpdateHotspot: (sceneIndex: number, hotspotIndex: number, patch: Partial<AdminHotspot>) => void;
   onRemoveHotspot: (sceneIndex: number, hotspotIndex: number) => void;
+  onUploadVideo: (file: File) => Promise<void> | void;
   yawToPercent: (yaw: number) => number;
   pitchToPercent: (pitch: number) => number;
 };
@@ -45,6 +47,11 @@ const TAB_META: Array<{ key: MediaTabKey; label: string; description: string }> 
     key: "scenes360",
     label: "360",
     description: "Escenas, visor, hotspots y coordenadas",
+  },
+  {
+    key: "video",
+    label: "Video",
+    description: "Video interno o URL directa",
   },
 ];
 
@@ -76,6 +83,7 @@ export default function AdminMediaTabs({
   onAddHotspot,
   onUpdateHotspot,
   onRemoveHotspot,
+  onUploadVideo,
   yawToPercent,
   pitchToPercent,
 }: Props) {
@@ -188,6 +196,18 @@ export default function AdminMediaTabs({
           onRemoveHotspot={onRemoveHotspot}
           yawToPercent={yawToPercent}
           pitchToPercent={pitchToPercent}
+        />
+      ) : null}
+
+      {activeTab === "video" ? (
+        <AdminVideoTab
+          videoUrl={form.videoUrl}
+          videoPoster={form.videoPoster}
+          videoType={form.videoType}
+          onVideoUrlChange={(value) => onChange("videoUrl", value)}
+          onVideoPosterChange={(value) => onChange("videoPoster", value)}
+          onVideoTypeChange={(value) => onChange("videoType", value)}
+          onUploadVideo={onUploadVideo}
         />
       ) : null}
     </section>

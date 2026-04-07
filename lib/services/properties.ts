@@ -141,6 +141,11 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
       coverImage: coverImage || null,
       tagline: tagline || null,
       description: description || null,
+
+      videoUrl: body.videoUrl !== undefined ? asOptionalString(body.videoUrl) : undefined,
+      videoPoster: body.videoPoster !== undefined ? asOptionalString(body.videoPoster) : undefined,
+      videoType: body.videoType !== undefined ? asTrimmedString(body.videoType || "upload") : undefined,
+
       featured,
       published,
     },

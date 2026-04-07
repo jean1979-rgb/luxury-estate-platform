@@ -60,6 +60,9 @@ export type AdminPropertyRecord = {
   tagline: string;
   coverImage: string;
   gallery: string[];
+  videoUrl: string;
+  videoPoster: string;
+  videoType: string;
   scenes360: AdminScene360[];
   source?: AdminPropertySource;
   featured: boolean;
@@ -88,6 +91,9 @@ export const EMPTY_ADMIN_PROPERTY: AdminPropertyInput = {
   tagline: "",
   coverImage: "",
   gallery: [],
+  videoUrl: "",
+  videoPoster: "",
+  videoType: "upload",
   scenes360: [],
   source: { provider: "manual" },
   featured: false,

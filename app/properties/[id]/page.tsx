@@ -5,6 +5,7 @@ import LuxuryScore from "@/components/LuxuryScore";
 import PropertyFacts from "@/components/PropertyFacts";
 import PropertyStory from "@/components/PropertyStory";
 import Viewer360Carousel from "@/components/Viewer360Carousel";
+import PropertyVideoTeaser from "@/components/PropertyVideoTeaser";
 import ContactCTA from "@/components/ContactCTA";
 import { prisma } from "@/lib/prisma";
 
@@ -29,6 +30,9 @@ type AdminProperty = {
   bathrooms: number;
   coverImage: string;
   gallery?: string[];
+  videoUrl?: string;
+  videoPoster?: string;
+  videoType?: string;
   tagline?: string;
   description?: string;
   luxuryScore?: number;
@@ -65,6 +69,14 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       ],
     },
   });
+
+  
+  console.log("PROPERTY VIDEO DEBUG:", {
+    id: property?.id,
+    videoUrl: property?.videoUrl,
+    videoPoster: property?.videoPoster,
+  });
+
 
   if (!property) {
     notFound();
@@ -136,6 +148,13 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         : "N/D";
 
   return (
+    <>
+      <PropertyVideoTeaser
+        propertyId={property.id}
+        title={property.title}
+        videoUrl={property.videoUrl ?? ""}
+        videoPoster={property.videoPoster ?? safeCoverImage}
+      />
     <main className="min-h-screen bg-[#0a0a0a] text-[#f5f1eb]">
       <section className="relative h-[85vh] w-full overflow-hidden">
         <img
@@ -219,8 +238,12 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          {scenes360.length > 0 ? (
-            <Viewer360Carousel scenes={scenes360} />
+          {scenes360.length > 0 || property.videoUrl ? (
+            <Viewer360Carousel
+              scenes={scenes360}
+              videoUrl={property.videoUrl ?? ""}
+              videoPoster={property.videoPoster ?? safeCoverImage}
+            />
           ) : null}
         </div>
 
@@ -252,5 +275,6 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         </aside>
       </section>
     </main>
+    </>
   );
 }

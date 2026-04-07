@@ -166,8 +166,7 @@ const { handleUpload } = useAdminUploads({
       id: item.id,
       title: item.title,
       slug: item.slug,
-      status: item.status,
-      propertyType: item.propertyType,
+            propertyType: item.propertyType,
       location: item.location,
       price: item.price,
       currency: item.currency,
@@ -181,7 +180,7 @@ const { handleUpload } = useAdminUploads({
       videoUrl: item.videoUrl || "",
       videoPoster: item.videoPoster || "",
       videoType: item.videoType || "upload",
-      scenes360: Array.isArray(item.scenes360) ? item.scenes360 : [],
+      scenes360: item.scenes360,
       featured: item.featured,
       published: item.published,
       luxuryScore: item.luxuryScore,
@@ -297,25 +296,13 @@ const { handleUpload } = useAdminUploads({
               Base local premium para crear, editar media, escenas 360 y hotspots.
             </p>
 
-            <div className="mt-4 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={handleTokkoSync}
-                className="rounded-2xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
-              >
-                Actualizar desde Tokko
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  window.location.href = "/admin/properties";
-                }}
-                className="rounded-2xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
-              >
-                Office
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleTokkoSync}
+              className="mt-4 rounded-2xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/10"
+            >
+              Actualizar desde Tokko
+            </button>
           </div>
 
           <div className="border-b border-white/10 p-4">
@@ -422,7 +409,17 @@ const { handleUpload } = useAdminUploads({
                         </div>
                       </button>
 
-
+                      <div className="border-t border-white/10">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            window.location.href = `/broker/properties/${item.id}/studio`;
+                          }}
+                          className="w-full px-3 py-3 text-[10px] uppercase tracking-[0.2em] text-white/70 transition hover:bg-white/10"
+                        >
+                          Office
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -532,148 +529,23 @@ const { handleUpload } = useAdminUploads({
                       />
                     </label>
 
-                    <label className="block">
-                      <span className="mb-2 block text-sm text-white/65">Tipo</span>
-                      <select
-                        value={form.propertyType}
-                        onChange={(e) => handleChange("propertyType", e.target.value as AdminPropertyInput["propertyType"])}
-                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
-                      >
-                        <option value="villa">Villa</option>
-                        <option value="penthouse">Penthouse</option>
-                        <option value="residence">Residence</option>
-                        <option value="estate">Estate</option>
-                        <option value="condo">Condo</option>
-                        <option value="land">Land</option>
-                      </select>
-                    </label>
-
-                    <label className="block md:col-span-2">
-                      <span className="mb-2 block text-sm text-white/65">Ubicación</span>
-                      <input
-                        value={form.location}
-                        onChange={(e) => handleChange("location", e.target.value)}
-                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
-                        placeholder="Acapulco Diamante, Guerrero"
-                      />
-                    </label>
-
-                    <label className="block md:col-span-2">
-                      <span className="mb-2 block text-sm text-white/65">Tagline editorial</span>
-                      <input
-                        value={form.tagline}
-                        onChange={(e) => handleChange("tagline", e.target.value)}
-                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
-                        placeholder="Una narrativa de lujo con mar, arquitectura y privacidad."
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                <div className="rounded-[28px] border border-white/10 bg-black/20 p-6">
-                  <div className="mb-5 text-[11px] uppercase tracking-[0.3em] text-white/35">
-                    Comercial
-                  </div>
-
-                  <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-                    <label className="block lg:col-span-2">
-                      <span className="mb-2 block text-sm text-white/65">Precio</span>
-                      <input
-                        value={form.price}
-                        onChange={(e) => handleChange("price", e.target.value)}
-                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
-                        placeholder="MXN 38,500,000"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-sm text-white/65">Moneda</span>
-                      <input
-                        value={form.currency}
-                        onChange={(e) => handleChange("currency", e.target.value)}
-                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
-                        placeholder="MXN"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-sm text-white/65">Luxury Score</span>
-                      <input
-                        type="number"
-                        value={form.luxuryScore}
-                        onChange={(e) => handleChange("luxuryScore", Number(e.target.value))}
-                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-sm text-white/65">Recámaras</span>
-                      <input
-                        type="number"
-                        value={form.bedrooms}
-                        onChange={(e) => handleChange("bedrooms", Number(e.target.value))}
-                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-sm text-white/65">Baños</span>
-                      <input
-                        type="number"
-                        value={form.bathrooms}
-                        onChange={(e) => handleChange("bathrooms", Number(e.target.value))}
-                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-sm text-white/65">Área interior</span>
-                      <input
-                        value={form.areaInterior}
-                        onChange={(e) => handleChange("areaInterior", e.target.value)}
-                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
-                        placeholder="850 m²"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="mb-2 block text-sm text-white/65">Área total</span>
-                      <input
-                        value={form.areaTotal}
-                        onChange={(e) => handleChange("areaTotal", e.target.value)}
-                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
-                        placeholder="1200 m²"
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                
-              </section>
-
-
-
-
-
-              <section className="space-y-6">
-                <div className="rounded-[28px] border border-white/10 bg-black/20 p-6">
-                  <div className="mb-5 text-[11px] uppercase tracking-[0.3em] text-white/35">
-                    Estado
-                  </div>
-
-                  <div className="grid gap-5">
-                    <label className="block">
-                      <span className="mb-2 block text-sm text-white/65">Status interno</span>
-                      <select
-                        value={form.status}
-                        onChange={(e) => handleChange("status", e.target.value as AdminPropertyInput["status"])}
-                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
-                      >
-                        <option value="draft">Draft</option>
-                        <option value="published">Published</option>
-                        <option value="archived">Archived</option>
-                      </select>
-                    </label>
+\g<indent><label className="block">
+\g<indent>  <span className="mb-2 block text-sm text-white/65">Tipo</span>
+\g<indent>  <select
+\g<indent>    value={form.propertyType}
+\g<indent>    onChange={(e) =>
+\g<indent>      handleChange("propertyType", e.target.value as AdminPropertyInput["propertyType"])
+\g<indent>    }
+\g<indent>    className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
+\g<indent>  >
+\g<indent>    <option value="villa">Villa</option>
+\g<indent>    <option value="penthouse">Penthouse</option>
+\g<indent>    <option value="residence">Residence</option>
+\g<indent>    <option value="estate">Estate</option>
+\g<indent>    <option value="condo">Condo</option>
+\g<indent>    <option value="land">Land</option>
+\g<indent>  </select>
+\g<indent></label>
 
                     <label className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
                       <div>
@@ -715,7 +587,7 @@ const { handleUpload } = useAdminUploads({
                   <div className="space-y-3 text-sm text-white/65">
                     <div className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">
                       <span>Escenas 360</span>
-                      <span className="text-white">{Array.isArray(form.scenes360) ? form.scenes360.length : 0}</span>
+                      <span className="text-white">{form.scenes360.length}</span>
                     </div>
 
                     <div className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">
@@ -730,7 +602,7 @@ const { handleUpload } = useAdminUploads({
 
                     <div className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">
   <span>Resumen 360</span>
-  <span className="text-white">{Array.isArray(form.scenes360) ? form.scenes360.length : 0}</span>
+  <span className="text-white">{form.scenes360.length}</span>
 </div>
 
                     <div className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">

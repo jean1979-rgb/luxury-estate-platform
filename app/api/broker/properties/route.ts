@@ -46,6 +46,9 @@ export async function GET() {
     tagline: item.tagline || "",
     coverImage: item.coverImage || "",
     gallery: Array.isArray(item.gallery) ? item.gallery : [],
+    videoUrl: item.videoUrl || "",
+    videoPoster: item.videoPoster || "",
+    videoType: item.videoType || "upload",
     scenes360: item.sceneItems.map((scene) => ({
       id: scene.id,
       title: scene.title,
@@ -92,4 +95,70 @@ export async function GET() {
   }));
 
   return NextResponse.json({ ok: true, items: normalized });
+}
+
+
+export async function POST(req: Request) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ ok: false, message: "No autenticado." }, { status: 401 });
+  }
+
+  try {
+    const body = await req.json();
+
+    const { updateBrokerProperty } = await import("@/lib/services/properties");
+
+    const id = body.id;
+
+    if (!id) {
+      return NextResponse.json({ ok: false, message: "ID requerido" }, { status: 400 });
+    }
+
+    const updated = await updateBrokerProperty(session.user.id, id, body);
+
+    if (!updated) {
+      return NextResponse.json({ ok: false, message: "Propiedad no encontrada" }, { status: 404 });
+    }
+
+    const normalized = {
+      id: updated.id,
+      title: updated.title,
+      slug: updated.slug,
+      status: updated.status,
+      propertyType: updated.propertyType || "villa",
+      location: updated.location || "",
+      price: updated.price || "",
+      currency: updated.currency || "MXN",
+      bedrooms: updated.bedrooms ?? 0,
+      bathrooms: updated.bathrooms ?? 0,
+      areaInterior: updated.areaInterior != null ? String(updated.areaInterior) : "",
+      areaTotal: updated.areaTotal != null ? String(updated.areaTotal) : "",
+      tagline: updated.tagline || "",
+      coverImage: updated.coverImage || "",
+      gallery: Array.isArray(updated.gallery) ? updated.gallery : [],
+      videoUrl: updated.videoUrl || "",
+      videoPoster: updated.videoPoster || "",
+      videoType: updated.videoType || "upload",
+      scenes360: [],
+      source: { provider: "manual" },
+      featured: updated.featured,
+      published: updated.published,
+      luxuryScore: updated.luxuryScore ?? 85,
+      description: updated.description || "",
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString(),
+    };
+
+    return NextResponse.json({
+      ok: true,
+      property: normalized,
+    });
+  } catch (err) {
+    return NextResponse.json({
+      ok: false,
+      message: err instanceof Error ? err.message : "Error inesperado",
+    }, { status: 500 });
+  }
 }

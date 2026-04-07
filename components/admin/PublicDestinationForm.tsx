@@ -17,6 +17,9 @@ type FormState = {
   heroTitle: string;
   heroSubtitle: string;
   heroImage: string;
+  heroVideoUrl: string;
+  heroVideoPoster: string;
+  heroVideoTitle: string;
   overviewTitle: string;
   overviewBody: string;
   thesisTitle: string;
@@ -40,6 +43,9 @@ const EMPTY_FORM: FormState = {
   heroTitle: "",
   heroSubtitle: "",
   heroImage: "",
+  heroVideoUrl: "",
+  heroVideoPoster: "",
+  heroVideoTitle: "",
   overviewTitle: "",
   overviewBody: "",
   thesisTitle: "",
@@ -58,6 +64,31 @@ export default function PublicDestinationForm({ id }: Props) {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [loading, setLoading] = useState(Boolean(id));
   const [saving, setSaving] = useState(false);
+
+  const [properties, setProperties] = useState<any[]>([]);
+  const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch("/api/broker/properties")
+      .then((res) => res.json())
+      .then((data) => {
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.items)
+          ? data.items
+          : [];
+
+        const published = list.filter((p: any) => p.published);
+        setProperties(published);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!form || !("featuredProperties" in form)) return;
+    const ids = (form as any).featuredProperties?.map((fp: any) => fp.propertyId) || [];
+    setSelectedProperties(ids);
+  }, [form]);
+
 
   useEffect(() => {
     if (!id) return;
@@ -87,7 +118,12 @@ export default function PublicDestinationForm({ id }: Props) {
       {
         method: id ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          featuredProperties: selectedProperties.map((id) => ({
+            propertyId: id,
+          })),
+        }),
       }
     );
 
@@ -148,6 +184,33 @@ export default function PublicDestinationForm({ id }: Props) {
         <input className="w-full p-3 bg-black border border-white/20 rounded-xl" placeholder="Hero title" value={form.heroTitle} onChange={(e) => update("heroTitle", e.target.value)} />
         <textarea className="w-full p-3 bg-black border border-white/20 rounded-xl min-h-28" placeholder="Hero subtitle" value={form.heroSubtitle} onChange={(e) => update("heroSubtitle", e.target.value)} />
         <input className="w-full p-3 bg-black border border-white/20 rounded-xl" placeholder="Hero image URL" value={form.heroImage} onChange={(e) => update("heroImage", e.target.value)} />
+        <div className="border-t border-white/10 pt-4 mt-4 space-y-4">
+          <h3 className="text-sm uppercase tracking-[0.24em] text-white/40">
+            Destination Film (future)
+          </h3>
+
+          <input
+            className="w-full p-3 bg-black border border-white/20 rounded-xl"
+            placeholder="Video URL (YouTube, Vimeo, MP4)"
+            value={form.heroVideoUrl}
+            onChange={(e) => update("heroVideoUrl", e.target.value)}
+          />
+
+          <input
+            className="w-full p-3 bg-black border border-white/20 rounded-xl"
+            placeholder="Video poster image"
+            value={form.heroVideoPoster}
+            onChange={(e) => update("heroVideoPoster", e.target.value)}
+          />
+
+          <input
+            className="w-full p-3 bg-black border border-white/20 rounded-xl"
+            placeholder="Video title"
+            value={form.heroVideoTitle}
+            onChange={(e) => update("heroVideoTitle", e.target.value)}
+          />
+        </div>
+
       </section>
 
       <section className="space-y-4 border border-white/10 rounded-2xl p-6">
@@ -181,7 +244,31 @@ export default function PublicDestinationForm({ id }: Props) {
         <input className="w-full p-3 bg-black border border-white/20 rounded-xl" placeholder="OG image URL" value={form.ogImage} onChange={(e) => update("ogImage", e.target.value)} />
       </section>
 
-      <div className="flex gap-4">
+      
+      <section className="space-y-4 border border-white/10 rounded-2xl p-6">
+        <h2 className="text-xl font-light">Featured Residences</h2>
+
+        <div className="space-y-3">
+          {properties.map((p) => (
+            <label key={p.id} className="flex items-center gap-3 text-sm">
+              <input
+                type="checkbox"
+                checked={selectedProperties.includes(p.id)}
+                onChange={(e) => {
+                  setSelectedProperties((prev) =>
+                    e.target.checked
+                      ? [...prev, p.id]
+                      : prev.filter((id) => id !== p.id)
+                  );
+                }}
+              />
+              {p.title}
+            </label>
+          ))}
+        </div>
+      </section>
+
+<div className="flex gap-4">
         <button onClick={handleSave} className="bg-white text-black px-5 py-3 rounded-xl">
           {saving ? "Guardando..." : "Guardar"}
         </button>

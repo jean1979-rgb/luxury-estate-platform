@@ -5,6 +5,7 @@ import {
   getPropertyBadge,
   type PropertyZone,
 } from "@/utils/catalog/properties";
+import { ACAPULCO_RENTALS_PAGE_COPY } from "@/lib/acapulco-editorial";
 
 function getZoneTitle(zone: PropertyZone) {
   if (zone === "playa") return "Beachfront rentals";
@@ -14,12 +15,12 @@ function getZoneTitle(zone: PropertyZone) {
 
 function getZoneDescription(zone: PropertyZone) {
   if (zone === "playa") {
-    return "Private stays frente al mar, acceso directo a playa y hospitalidad de alto nivel.";
+    return "Estancias frente al mar con acceso directo a playa y una experiencia más abierta, solar y resort-lifestyle.";
   }
   if (zone === "real-diamante") {
-    return "Estancias privadas dentro de uno de los corredores más aspiracionales de Acapulco.";
+    return "Estancias privadas dentro del corredor más contemporáneo de Acapulco, con energía actual y vocación premium.";
   }
-  return "Residencias para temporada con privacidad, vistas elevadas y carácter icónico.";
+  return "Temporadas en ladera con privacidad, terrazas amplias y una relación más íntima con la bahía.";
 }
 
 type SearchParams = Promise<{
@@ -32,35 +33,13 @@ const COLLECTIONS: Array<{
   description: string;
   href: string;
   image: string;
-}> = [
-  {
-    zone: "playa",
-    title: "Beachfront rentals",
-    description:
-      "Oceanfront stays with direct beach access and a strong resort-lifestyle feel.",
-    href: "/acapulco/rentals?zone=playa",
-    image:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
-  },
-  {
-    zone: "real-diamante",
-    title: "Real Diamante rentals",
-    description:
-      "Private homes and short stays in Acapulco’s most exclusive gated enclaves.",
-    href: "/acapulco/rentals?zone=real-diamante",
-    image:
-      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1600&q=80",
-  },
-  {
-    zone: "las-brisas",
-    title: "Las Brisas private stays",
-    description:
-      "Elevated villas, iconic terraces and private seasonal stays overlooking the bay.",
-    href: "/acapulco/rentals?zone=las-brisas",
-    image:
-      "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1600&q=80",
-  },
-];
+}> = ACAPULCO_RENTALS_PAGE_COPY.collections.map((item) => ({
+  zone: item.zone as PropertyZone,
+  title: item.title,
+  description: item.description,
+  href: `/acapulco/rentals?zone=${item.zone}`,
+  image: item.image,
+}));
 
 export default async function AcapulcoRentalsPage({
   searchParams,
@@ -90,8 +69,8 @@ export default async function AcapulcoRentalsPage({
           Acapulco Private Rentals
         </h1>
 
-        <p className="mt-4 max-w-3xl text-white/65 md:text-lg">
-          Estancias privadas de lujo curadas por zona para una experiencia más boutique y hospitalidad de alto nivel.
+        <p className="mt-4 max-w-4xl text-white/65 md:text-lg">
+          {ACAPULCO_RENTALS_PAGE_COPY.intro}
         </p>
 
         <div className="mt-10 grid gap-4 md:grid-cols-2">
@@ -108,7 +87,7 @@ export default async function AcapulcoRentalsPage({
                 Residencias en venta
               </h2>
               <p className="mt-3 max-w-xl text-sm leading-7 text-black/65 md:text-base">
-                Patrimonio, inversión y second home en las zonas más exclusivas de Acapulco.
+                {ACAPULCO_RENTALS_PAGE_COPY.saleCard}
               </p>
               <div className="mt-6 inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-black/55">
                 <span>Explorar venta</span>
@@ -130,7 +109,7 @@ export default async function AcapulcoRentalsPage({
                 Private rentals
               </h2>
               <p className="mt-3 max-w-xl text-sm leading-7 text-white/60 md:text-base">
-                Estancias curadas, temporada y hospitalidad privada con una narrativa más boutique.
+                {ACAPULCO_RENTALS_PAGE_COPY.rentalsCard}
               </p>
               <div className="mt-6 inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-white/45">
                 <span>Explorar rentals</span>
@@ -148,11 +127,11 @@ export default async function AcapulcoRentalsPage({
               </p>
 
               <h2 className="mt-3 text-2xl font-light md:text-4xl">
-                Explore rentals by collection
+                {ACAPULCO_RENTALS_PAGE_COPY.collectionsTitle}
               </h2>
 
               <p className="mt-3 text-sm leading-7 text-white/55 md:text-base">
-                Curated private stays across the most exclusive zones of Acapulco.
+                {ACAPULCO_RENTALS_PAGE_COPY.collectionsSubtitle}
               </p>
             </div>
 
@@ -235,7 +214,7 @@ export default async function AcapulcoRentalsPage({
               </div>
             ) : (
               <div className="rounded-[28px] border border-white/10 bg-white/[0.03] px-6 py-10 text-white/60">
-                No hay rentals publicadas todavía en esta colección.
+                {ACAPULCO_RENTALS_PAGE_COPY.emptyState}
               </div>
             )}
           </section>

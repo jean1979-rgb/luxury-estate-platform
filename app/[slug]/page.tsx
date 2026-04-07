@@ -1,10 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getCasaDePlayaProperties, getPropertyBadge } from "@/utils/catalog/properties";
+import { ACAPULCO_DESTINATION_COPY } from "@/lib/acapulco-editorial";
 
 type Params = Promise<{
   slug: string;
 }>;
+
+type EditorialCard = {
+  category: string;
+  name: string;
+  text: string;
+};
 
 export default async function PublicDestinationPage({
   params,
@@ -28,6 +36,10 @@ export default async function PublicDestinationPage({
         where: { isVisible: true },
         orderBy: [{ sortOrder: "asc" }, { updatedAt: "desc" }],
       },
+      featuredProperties: {
+        where: { isVisible: true },
+        orderBy: [{ sortOrder: "asc" }],
+      },
     },
   });
 
@@ -35,33 +47,57 @@ export default async function PublicDestinationPage({
     notFound();
   }
 
+  const isAcapulco = destination.slug === "acapulco";
+
   const title =
-    destination.heroTitle?.trim() || destination.name;
+    destination.heroTitle?.trim() ||
+    (isAcapulco ? ACAPULCO_DESTINATION_COPY.heroTitle : destination.name);
 
   const subtitle =
     destination.heroSubtitle?.trim() ||
     destination.overviewBody?.trim() ||
-    "Luxury destination experience.";
+    (isAcapulco
+      ? ACAPULCO_DESTINATION_COPY.heroSubtitle
+      : "Luxury destination experience.");
 
   const overviewTitle =
-    destination.overviewTitle?.trim() || "Overview";
+    destination.overviewTitle?.trim() ||
+    (isAcapulco ? ACAPULCO_DESTINATION_COPY.overviewTitle : "Overview");
 
   const overviewBody =
     destination.overviewBody?.trim() ||
-    "Curated destination page powered from the public CMS.";
+    (isAcapulco
+      ? ACAPULCO_DESTINATION_COPY.overviewBody
+      : "Curated destination page powered from the public CMS.");
 
   const thesisTitle =
-    destination.thesisTitle?.trim() || "Editorial Thesis";
+    destination.thesisTitle?.trim() ||
+    (isAcapulco ? ACAPULCO_DESTINATION_COPY.thesisTitle : "Editorial Thesis");
 
   const thesisBody =
     destination.thesisBody?.trim() ||
-    "This destination is now connected to the public CMS and ready for richer editorial sections.";
+    (isAcapulco
+      ? ACAPULCO_DESTINATION_COPY.thesisBody
+      : "This destination is now connected to the public CMS and ready for richer editorial sections.");
 
   const primaryCtaLabel =
     destination.primaryCtaLabel?.trim() || "Volver al inicio";
 
   const primaryCtaHref =
     destination.primaryCtaHref?.trim() || "/";
+
+  const allProperties = await getCasaDePlayaProperties();
+
+  const properties = destination.featuredProperties
+    .map((fp) => allProperties.find((p) => p.id === fp.propertyId))
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+    .slice(0, 6);
+
+  const fallbackPillars = isAcapulco ? ACAPULCO_DESTINATION_COPY.pillars : [];
+
+  const fallbackExperiences: EditorialCard[] = isAcapulco
+    ? ACAPULCO_DESTINATION_COPY.experiences
+    : [];
 
   return (
     <main className="min-h-screen bg-black px-6 py-12 text-white md:px-10">
@@ -79,57 +115,83 @@ export default async function PublicDestinationPage({
           </span>
         </div>
 
-        <section className="mt-10 max-w-5xl">
-          <p className="text-[10px] uppercase tracking-[0.38em] text-white/45">
-            {destination.heroEyebrow?.trim() || "Destination"}
-          </p>
+        <section
+          className="relative mt-10 overflow-hidden rounded-[36px] border border-white/10"
+          style={
+            destination.heroImage?.trim()
+              ? {
+                  backgroundImage: `url("${destination.heroImage}")`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }
+              : undefined
+          }
+        >
+          <div className="absolute inset-0 bg-black/55" />
+          <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/35 to-black/75" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/20" />
 
-          <h1 className="mt-4 text-4xl font-light md:text-6xl">
-            {title}
-          </h1>
+          <div className="relative px-7 py-16 md:px-10 md:py-24 xl:px-14 xl:py-28">
+            <div className="max-w-5xl">
+              <p className="text-[10px] uppercase tracking-[0.38em] text-white/55">
+                {destination.heroEyebrow?.trim() ||
+                  (isAcapulco ? ACAPULCO_DESTINATION_COPY.heroEyebrow : "Destination")}
+              </p>
 
-          <p className="mt-5 max-w-3xl text-sm leading-7 text-white/65 md:text-lg">
-            {subtitle}
-          </p>
+              <h1 className="mt-4 max-w-4xl text-4xl font-light leading-tight md:text-6xl xl:text-7xl">
+                {title}
+              </h1>
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href={primaryCtaHref}
-              className="inline-flex border border-white bg-white px-5 py-3 text-[11px] uppercase tracking-[0.24em] text-black transition hover:opacity-90"
-            >
-              {primaryCtaLabel}
-            </Link>
+              <p className="mt-6 max-w-3xl text-sm leading-7 text-white/72 md:text-lg md:leading-8">
+                {subtitle}
+              </p>
 
-            {destination.secondaryCtaLabel?.trim() && destination.secondaryCtaHref?.trim() ? (
-              <Link
-                href={destination.secondaryCtaHref}
-                className="inline-flex border border-white/20 px-5 py-3 text-[11px] uppercase tracking-[0.24em] text-white transition hover:bg-white hover:text-black"
-              >
-                {destination.secondaryCtaLabel}
-              </Link>
-            ) : null}
+              <div className="mt-10 flex flex-wrap gap-3">
+                <Link
+                  href={primaryCtaHref}
+                  className="inline-flex border border-white bg-white px-5 py-3 text-[11px] uppercase tracking-[0.24em] text-black transition hover:opacity-90"
+                >
+                  {primaryCtaLabel}
+                </Link>
+
+                {destination.secondaryCtaLabel?.trim() && destination.secondaryCtaHref?.trim() ? (
+                  <Link
+                    href={destination.secondaryCtaHref}
+                    className="inline-flex border border-white/20 bg-white/5 px-5 py-3 text-[11px] uppercase tracking-[0.24em] text-white transition hover:bg-white hover:text-black"
+                  >
+                    {destination.secondaryCtaLabel}
+                  </Link>
+                ) : null}
+              </div>
+            </div>
           </div>
         </section>
 
-        <section className="mt-14 grid gap-6 lg:grid-cols-2">
-          <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-7">
-            <p className="text-[10px] uppercase tracking-[0.34em] text-white/35">
+        <section className="mt-20 grid gap-10 lg:grid-cols-12">
+          <div className="lg:col-span-5">
+            <p className="text-[10px] uppercase tracking-[0.4em] text-white/35">
               {overviewTitle}
             </p>
 
-            <p className="mt-4 text-sm leading-7 text-white/70 md:text-base">
+            <h2 className="mt-4 text-2xl font-light md:text-4xl">
+              {title}
+            </h2>
+
+            <p className="mt-6 text-sm leading-7 text-white/70 md:text-base">
               {overviewBody}
             </p>
           </div>
 
-          <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-7">
-            <p className="text-[10px] uppercase tracking-[0.34em] text-white/35">
-              {thesisTitle}
-            </p>
+          <div className="lg:col-span-7">
+            <div className="rounded-[32px] border border-white/10 bg-white/[0.04] p-8 md:p-10">
+              <p className="text-[10px] uppercase tracking-[0.4em] text-white/35">
+                {thesisTitle}
+              </p>
 
-            <p className="mt-4 text-sm leading-7 text-white/70 md:text-base">
-              {thesisBody}
-            </p>
+              <p className="mt-6 text-lg leading-8 text-white/80 md:text-xl md:leading-9">
+                {thesisBody}
+              </p>
+            </div>
           </div>
         </section>
 
@@ -140,24 +202,42 @@ export default async function PublicDestinationPage({
             </p>
 
             <h2 className="mt-3 text-2xl font-light md:text-4xl">
-              Narrative blocks for this destination
+              {isAcapulco ? "Claves editoriales del destino" : "Narrative blocks for this destination"}
             </h2>
           </div>
 
-          {destination.lifestylePillars.length > 0 ? (
-            <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {destination.lifestylePillars.map((pillar) => (
+          {destination.lifestylePillars.length > 0 || fallbackPillars.length > 0 ? (
+            <div className="mt-10 grid gap-10 md:grid-cols-2 xl:grid-cols-3">
+              {(destination.lifestylePillars.length > 0
+                ? destination.lifestylePillars.map((pillar) => ({
+                    id: pillar.id,
+                    title: pillar.title,
+                    body: pillar.body || "Lifestyle pillar ready for editorial copy.",
+                  }))
+                : fallbackPillars.map((pillar, index) => ({
+                    id: `fallback-pillar-${index}`,
+                    title: pillar.title,
+                    body: pillar.body,
+                  }))).map((pillar) => (
                 <article
                   key={pillar.id}
-                  className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6"
+                  className="group relative overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.04] p-8 transition hover:bg-white/[0.06]"
                 >
-                  <h3 className="text-xl font-light text-white">
-                    {pillar.title}
-                  </h3>
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-white/[0.02] opacity-0 transition group-hover:opacity-100" />
 
-                  <p className="mt-3 text-sm leading-7 text-white/65">
-                    {pillar.body || "Lifestyle pillar ready for editorial copy."}
-                  </p>
+                  <div className="relative">
+                    <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+                      Editorial block
+                    </p>
+
+                    <h3 className="mt-4 text-2xl font-light text-white md:text-3xl">
+                      {pillar.title}
+                    </h3>
+
+                    <p className="mt-4 text-sm leading-7 text-white/70 md:text-base">
+                      {pillar.body}
+                    </p>
+                  </div>
                 </article>
               ))}
             </div>
@@ -168,58 +248,145 @@ export default async function PublicDestinationPage({
           )}
         </section>
 
-        <section className="mt-14 grid gap-6 lg:grid-cols-2">
-          <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-7">
-            <p className="text-[10px] uppercase tracking-[0.34em] text-white/35">
-              Partners
+        <section className="mt-18 grid gap-8 lg:grid-cols-2">
+          <div className="rounded-[32px] border border-white/10 bg-white/[0.04] p-8 md:p-10">
+            <p className="text-[10px] uppercase tracking-[0.38em] text-white/35">
+              Curated Partners
             </p>
 
+            <h2 className="mt-4 text-2xl font-light md:text-4xl">
+              Alianzas que elevan la experiencia del destino
+            </h2>
+
             {destination.partners.length > 0 ? (
-              <div className="mt-5 space-y-4">
+              <div className="mt-8 space-y-6">
                 {destination.partners.map(({ id, partner }) => (
-                  <div key={id} className="border-b border-white/10 pb-4 last:border-b-0 last:pb-0">
-                    <p className="text-lg font-light text-white">{partner.name}</p>
-                    <p className="mt-1 text-sm text-white/55">
+                  <article key={id} className="border-b border-white/10 pb-6 last:border-b-0 last:pb-0">
+                    <p className="text-[10px] uppercase tracking-[0.32em] text-white/35">
                       {partner.category || "Luxury Partner"}
                     </p>
-                    <p className="mt-2 text-sm leading-7 text-white/65">
+
+                    <h3 className="mt-3 text-2xl font-light text-white">
+                      {partner.name}
+                    </h3>
+
+                    <p className="mt-3 text-sm leading-7 text-white/68 md:text-base">
                       {partner.shortDescription || partner.longDescription || "Partner ready for editorial enrichment."}
                     </p>
-                  </div>
+                  </article>
                 ))}
               </div>
             ) : (
-              <p className="mt-5 text-sm leading-7 text-white/60">
-                Aún no hay partners relacionados a este destino.
+              <p className="mt-8 text-sm leading-7 text-white/60">
+                {isAcapulco
+                  ? "Aquí conviene conectar después hospitalidad, wellness, marina, gastronomía, golf y categorías afines al lifestyle premium del destino."
+                  : "Aún no hay partners relacionados a este destino."}
               </p>
             )}
           </div>
 
-          <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-7">
-            <p className="text-[10px] uppercase tracking-[0.34em] text-white/35">
-              Experiences
+          <div className="rounded-[32px] border border-white/10 bg-white/[0.04] p-8 md:p-10">
+            <p className="text-[10px] uppercase tracking-[0.38em] text-white/35">
+              Signature Experiences
             </p>
 
-            {destination.experiences.length > 0 ? (
-              <div className="mt-5 space-y-4">
-                {destination.experiences.map(({ id, experience }) => (
-                  <div key={id} className="border-b border-white/10 pb-4 last:border-b-0 last:pb-0">
-                    <p className="text-lg font-light text-white">{experience.name}</p>
-                    <p className="mt-1 text-sm text-white/55">
-                      {experience.category || "Experience"}
+            <h2 className="mt-4 text-2xl font-light md:text-4xl">
+              Experiencias pensadas para un estilo de vida excepcional
+            </h2>
+
+            {destination.experiences.length > 0 || fallbackExperiences.length > 0 ? (
+              <div className="mt-8 space-y-6">
+                {(destination.experiences.length > 0
+                  ? destination.experiences.map(({ id, experience }) => ({
+                      id,
+                      category: experience.category || "Experience",
+                      name: experience.name,
+                      text:
+                        experience.shortDescription ||
+                        experience.longDescription ||
+                        "Experience ready for editorial enrichment.",
+                    }))
+                  : fallbackExperiences.map((experience, index) => ({
+                      id: `fallback-experience-${index}`,
+                      category: experience.category,
+                      name: experience.name,
+                      text: experience.text,
+                    }))).map((experience) => (
+                  <article key={experience.id} className="border-b border-white/10 pb-6 last:border-b-0 last:pb-0">
+                    <p className="text-[10px] uppercase tracking-[0.32em] text-white/35">
+                      {experience.category}
                     </p>
-                    <p className="mt-2 text-sm leading-7 text-white/65">
-                      {experience.shortDescription || experience.longDescription || "Experience ready for editorial enrichment."}
+
+                    <h3 className="mt-3 text-2xl font-light text-white">
+                      {experience.name}
+                    </h3>
+
+                    <p className="mt-3 text-sm leading-7 text-white/68 md:text-base">
+                      {experience.text}
                     </p>
-                  </div>
+                  </article>
                 ))}
               </div>
             ) : (
-              <p className="mt-5 text-sm leading-7 text-white/60">
+              <p className="mt-8 text-sm leading-7 text-white/60">
                 Aún no hay experiences relacionadas a este destino.
               </p>
             )}
           </div>
+        </section>
+
+        <section className="mt-24">
+          <div className="max-w-3xl">
+            <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+              Featured Residences
+            </p>
+
+            <h2 className="mt-3 text-2xl font-light md:text-4xl">
+              Propiedades destacadas en este destino
+            </h2>
+          </div>
+
+          {properties.length > 0 ? (
+            <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {properties.map((p) => (
+                <Link
+                  key={p.id}
+                  href={`/properties/${p.id}`}
+                  className="group relative overflow-hidden rounded-[30px] border border-white/10 bg-white/[0.03]"
+                >
+                  <div
+                    className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-105"
+                    style={{ backgroundImage: `url("${p.coverImage}")` }}
+                  />
+
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10" />
+
+                  <div className="relative mt-auto p-6">
+                    <p className="text-[10px] uppercase tracking-[0.32em] text-white/45">
+                      {getPropertyBadge(p)}
+                    </p>
+
+                    <h3 className="mt-3 text-xl font-light text-white">
+                      {p.title}
+                    </h3>
+
+                    <p className="mt-2 text-sm text-white/60">
+                      {p.location}
+                    </p>
+
+                    <div className="mt-6 inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-white/55">
+                      <span>Ver propiedad</span>
+                      <span className="transition group-hover:translate-x-1">→</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-8 rounded-[28px] border border-white/10 bg-white/[0.03] p-6 text-white/60">
+              El destino ya quedó armado editorialmente; sólo falta publicar las propiedades reales.
+            </div>
+          )}
         </section>
       </div>
     </main>

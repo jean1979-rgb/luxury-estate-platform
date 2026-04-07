@@ -10,9 +10,9 @@ export function applyPropertyResult(params: {
   const { saved, setItems, setSelectedId, setForm, setMessage } = params;
 
   setItems((prev) => {
-    const exists = prev.some((item) => item.id === saved.id);
+    const exists = saved?.id ? prev.some((item) => item.id === saved.id) : false;
     const next = exists
-      ? prev.map((item) => (item.id === saved.id ? saved : item))
+      ? prev.map((item) => (saved?.id && item.id === saved.id ? saved : item))
       : [saved, ...prev];
 
     return next.sort((a, b) => {
@@ -20,7 +20,7 @@ export function applyPropertyResult(params: {
     });
   });
 
-  setSelectedId(saved.id);
+  if (saved?.id) setSelectedId(saved.id);
 
   setForm({
     id: saved.id,

@@ -5,6 +5,7 @@ import {
   getPropertyBadge,
   type PropertyZone,
 } from "@/utils/catalog/properties";
+import { ACAPULCO_SALE_PAGE_COPY } from "@/lib/acapulco-editorial";
 
 function getZoneTitle(zone: PropertyZone) {
   if (zone === "playa") return "Beachfront residences";
@@ -14,12 +15,12 @@ function getZoneTitle(zone: PropertyZone) {
 
 function getZoneDescription(zone: PropertyZone) {
   if (zone === "playa") {
-    return "Residencias frente al mar, acceso a playa y vistas abiertas para una experiencia costera de alto nivel.";
+    return "Residencias frente al mar con acceso directo a playa, horizonte abierto y una lectura más pura del lujo costero.";
   }
   if (zone === "real-diamante") {
-    return "Propiedades dentro del corredor más contemporáneo y aspiracional de Acapulco Diamante.";
+    return "Propiedades dentro del corredor más contemporáneo y aspiracional de Acapulco, donde el destino se siente más actual y expansivo.";
   }
-  return "Residencias con privacidad, arquitectura icónica y vistas elevadas sobre la bahía.";
+  return "Residencias elevadas con privacidad, terrazas dominantes y una relación más icónica con la bahía.";
 }
 
 type SearchParams = Promise<{
@@ -32,35 +33,13 @@ const COLLECTIONS: Array<{
   description: string;
   href: string;
   image: string;
-}> = [
-  {
-    zone: "playa",
-    title: "Beachfront residences",
-    description:
-      "Direct ocean access, panoramic views and prime coastal positioning.",
-    href: "/acapulco?zone=playa",
-    image:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
-  },
-  {
-    zone: "real-diamante",
-    title: "Real Diamante",
-    description:
-      "Private enclaves, elevated architecture and the most aspirational addresses in Diamante.",
-    href: "/acapulco?zone=real-diamante",
-    image:
-      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1600&q=80",
-  },
-  {
-    zone: "las-brisas",
-    title: "Las Brisas & hillside estates",
-    description:
-      "Iconic hillside residences with privacy, dramatic terraces and commanding bay views.",
-    href: "/acapulco?zone=las-brisas",
-    image:
-      "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1600&q=80",
-  },
-];
+}> = ACAPULCO_SALE_PAGE_COPY.collections.map((item) => ({
+  zone: item.zone as PropertyZone,
+  title: item.title,
+  description: item.description,
+  href: `/acapulco?zone=${item.zone}`,
+  image: item.image,
+}));
 
 export default async function AcapulcoPage({
   searchParams,
@@ -97,8 +76,8 @@ export default async function AcapulcoPage({
 
         <h1 className="mt-4 text-4xl font-light md:text-6xl">Acapulco</h1>
 
-        <p className="mt-4 max-w-3xl text-white/65 md:text-lg">
-          Residencias de lujo en venta, curadas por zonas para una experiencia premium de descubrimiento, patrimonio y estilo de vida.
+        <p className="mt-4 max-w-4xl text-white/65 md:text-lg">
+          {ACAPULCO_SALE_PAGE_COPY.intro}
         </p>
 
         <div className="mt-10 grid gap-4 md:grid-cols-2">
@@ -115,7 +94,7 @@ export default async function AcapulcoPage({
                 Residencias en venta
               </h2>
               <p className="mt-3 max-w-xl text-sm leading-7 text-black/65 md:text-base">
-                Patrimonio, inversión y second home en las zonas más exclusivas de Acapulco.
+                {ACAPULCO_SALE_PAGE_COPY.saleCard}
               </p>
               <div className="mt-6 inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-black/55">
                 <span>Explorar venta</span>
@@ -137,7 +116,7 @@ export default async function AcapulcoPage({
                 Private rentals
               </h2>
               <p className="mt-3 max-w-xl text-sm leading-7 text-white/60 md:text-base">
-                Estancias curadas, temporada y hospitalidad privada con una narrativa más boutique.
+                {ACAPULCO_SALE_PAGE_COPY.rentalsCard}
               </p>
               <div className="mt-6 inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-white/45">
                 <span>Explorar rentals</span>
@@ -155,11 +134,11 @@ export default async function AcapulcoPage({
               </p>
 
               <h2 className="mt-3 text-2xl font-light md:text-4xl">
-                Explore by collection
+                {ACAPULCO_SALE_PAGE_COPY.collectionsTitle}
               </h2>
 
               <p className="mt-3 text-sm leading-7 text-white/55 md:text-base">
-                Curated residences and experiences across the most exclusive zones of Acapulco.
+                {ACAPULCO_SALE_PAGE_COPY.collectionsSubtitle}
               </p>
             </div>
 
@@ -242,7 +221,7 @@ export default async function AcapulcoPage({
               </div>
             ) : (
               <div className="rounded-[28px] border border-white/10 bg-white/[0.03] px-6 py-10 text-white/60">
-                No hay propiedades publicadas todavía en esta colección.
+                {ACAPULCO_SALE_PAGE_COPY.emptyState}
               </div>
             )}
           </section>

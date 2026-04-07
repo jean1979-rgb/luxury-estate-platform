@@ -2,38 +2,38 @@ import type { AdminPropertyInput, AdminPropertyRecord } from "@/types/admin";
 
 export async function saveProperty(params: {
   payload: AdminPropertyInput;
-  forcedPropertyId?: string | null;
+  forcedPropertyId?: string;
 }): Promise<{ saved: AdminPropertyRecord }> {
   const { payload, forcedPropertyId } = params;
 
   const propertyId = forcedPropertyId || payload.id || undefined;
 
-  if (propertyId) {
-    const sceneRes = await fetch(`/api/broker/scenes/${propertyId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        scenes: payload.scenes360,
-      }),
-    });
-
-    const sceneData = await sceneRes.json();
-
-    if (!sceneRes.ok || !sceneData.ok) {
-      throw new Error(sceneData.message || "No se pudieron guardar las escenas.");
-    }
+  if (!propertyId) {
+    throw new Error("No se pudo guardar: falta propertyId.");
   }
 
-  const res = await fetch("/api/broker/properties", {
+  const scenesRes = await fetch(`/api/broker/scenes/${propertyId}`, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ scenes: payload.scenes360 }),
+  });
+
+  const scenesData = await scenesRes.json();
+
+  if (!scenesRes.ok || !scenesData.ok) {
+    throw new Error(scenesData.message || "No se pudieron guardar las escenas.");
+  }
+
+  const res = await fetch(`/api/broker/properties/${propertyId}`, {
+    method: "PATCH",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
       ...payload,
-      ...(propertyId ? { id: propertyId } : {}),
+      id: propertyId,
     }),
   });
 
@@ -43,7 +43,11 @@ export async function saveProperty(params: {
     throw new Error(data.message || "No se pudo guardar la propiedad.");
   }
 
-  return {
-    saved: data.property as AdminPropertyRecord,
-  };
+  const saved = data.item || data.property;
+
+  if (!saved) {
+    throw new Error("La API respondió sin item/property.");
+  }
+
+  return { saved };
 }

@@ -11,6 +11,7 @@ export function buildPropertyPayload(params: {
   return {
     source: { provider: "manual" },
     ...form,
+    videoType: "upload",
     id: form.id ? slugify(form.id) : slugify(form.slug || form.title),
     slug: slugify(form.slug || form.title),
     title: form.title.trim(),
