@@ -126,13 +126,9 @@ export default function AdminVideoTab({
           <span className="text-[11px] uppercase tracking-[0.24em] text-white/35">
             Video type
           </span>
-          <select
-            value="upload"
-            disabled
-            className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/70 outline-none"
-          >
-            <option value="upload">Upload</option>
-          </select>
+          <div className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/80">
+            Upload
+          </div>
         </label>
 
         <label className="space-y-2">
