@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type SetStateAction } from "react";
+import { useMemo, useState, useEffect, useCallback, type SetStateAction } from "react";
 import { useAdminPropertyEditor } from "@/hooks/admin/useAdminPropertyEditor";
 import { useAdminBootstrap } from "@/hooks/admin/useAdminBootstrap";
 import { useAdminUploads } from "@/hooks/admin/useAdminUploads";
@@ -57,7 +57,6 @@ function percentToYaw(xPercent: number) {
 function percentToPitch(yPercent: number) {
   return 90 - yPercent * 1.8;
 }
-
 
 type UploadFolder = "cover" | "gallery" | "scenes360" | "video";
 
@@ -124,6 +123,14 @@ const { handleSave } = useAdminSave({
     setForm,
     setMessage,
   });
+
+
+
+  const triggerAutosave = useCallback(() => {
+    if (loading || saving) return;
+    if (selectedId === "new") return;
+    handleSave();
+  }, [loading, saving, selectedId, handleSave]);
 
 const { handleUpload } = useAdminUploads({
     form,
@@ -433,7 +440,26 @@ const { handleUpload } = useAdminUploads({
 </aside>
       )}
 
-        <main className="flex-1">
+        <main
+          className="flex-1"
+          onBlurCapture={(e) => {
+            const t = e.target;
+            if (!t) return;
+            if (t.tagName === "INPUT" || t.tagName === "TEXTAREA") {
+              triggerAutosave();
+            }
+          }}
+          onChangeCapture={(e) => {
+            const t = e.target as HTMLInputElement | HTMLSelectElement | null;
+            if (!t) return;
+            if (
+              t.tagName === "SELECT" ||
+              (t.tagName === "INPUT" && t.type === "checkbox")
+            ) {
+              triggerAutosave();
+            }
+          }}
+        >
           <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl">
             <div className="border-b border-white/10 px-8 py-7">
               <div className="mb-2 text-[11px] uppercase tracking-[0.35em] text-white/45">
@@ -661,19 +687,6 @@ const { handleUpload } = useAdminUploads({
                     Estado
                   </div>
 
-                  <div className="grid gap-5">
-                    <label className="block">
-                      <span className="mb-2 block text-sm text-white/65">Status interno</span>
-                      <select
-                        value={form.status}
-                        onChange={(e) => handleChange("status", e.target.value as AdminPropertyInput["status"])}
-                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
-                      >
-                        <option value="draft">Draft</option>
-                        <option value="published">Published</option>
-                        <option value="archived">Archived</option>
-                      </select>
-                    </label>
 
                     <label className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
                       <div>
@@ -705,7 +718,6 @@ const { handleUpload } = useAdminUploads({
                       />
                     </label>
                   </div>
-                </div>
 
                 <div className="rounded-[28px] border border-white/10 bg-black/20 p-6">
                   <div className="mb-5 text-[11px] uppercase tracking-[0.3em] text-white/35">

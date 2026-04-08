@@ -127,7 +127,7 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
     data: {
       title,
       slug,
-      status,
+      status: published ? "published" : "draft",
       publicationStatus,
       propertyType: propertyType || null,
       city: ctx.profile.city,
