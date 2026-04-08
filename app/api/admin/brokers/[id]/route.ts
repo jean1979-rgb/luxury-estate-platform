@@ -31,7 +31,8 @@ export async function GET(_req: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json(item);
+  const { passwordHash, ...safe } = item as any;
+  return NextResponse.json(safe);
 }
 
 export async function PUT(req: NextRequest, context: RouteContext) {
