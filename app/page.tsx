@@ -262,8 +262,9 @@ export default async function HomePage() {
 
           <div className="grid gap-6 md:grid-cols-3">
             {experiences.map((item) => (
-              <article
-                key={item.title}
+              <Link
+                key={item.slug || item.title}
+                href={`/experiences/${item.slug || item.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
                 className="group relative flex min-h-[360px] flex-col justify-between overflow-hidden border border-white/10 bg-[#0f0f0f] transition hover:border-white/20"
               >
                 {item.coverImage ? (
@@ -293,9 +294,14 @@ export default async function HomePage() {
                     </p>
                   </div>
 
-                  <div className="mt-8 h-px w-16 bg-white/25" />
+                  <div className="mt-8 flex items-center justify-between">
+                    <div className="h-px w-16 bg-white/25" />
+                    <span className="text-[10px] uppercase tracking-[0.32em] text-white/62 transition group-hover:text-white">
+                      Discover
+                    </span>
+                  </div>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </div>

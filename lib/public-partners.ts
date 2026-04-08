@@ -62,18 +62,29 @@ const GENERIC_PARTNER_IMAGES: Record<string, string> = {
     "https://image-tc.galaxy.tf/wijpeg-4vkjqkgb85o0alamyvada55wp/princess-2015-12.jpg",
 };
 
-function withPartnerImage(item: PublicPartnerCard): PublicPartnerCard {
-  if (item.coverImage && item.coverImage.length > 10) return item;
+function slugifyPartner(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
 
+function withPartnerImage(item: PublicPartnerCard): PublicPartnerCard {
   const nameKey = item.name.trim().toLowerCase();
   const categoryKey = item.category.trim().toLowerCase();
 
   return {
     ...item,
+    slug: item.slug || slugifyPartner(item.name),
     coverImage:
-      EXACT_PARTNER_IMAGES[nameKey] ||
-      GENERIC_PARTNER_IMAGES[categoryKey] ||
-      GENERIC_PARTNER_IMAGES.default,
+      item.coverImage && item.coverImage.length > 10
+        ? item.coverImage
+        : EXACT_PARTNER_IMAGES[nameKey] ||
+          GENERIC_PARTNER_IMAGES[categoryKey] ||
+          GENERIC_PARTNER_IMAGES.default,
   };
 }
 
@@ -81,7 +92,7 @@ function mergePartners(rows: PublicPartnerCard[]) {
   const seen = new Set<string>();
   const merged: PublicPartnerCard[] = [];
 
-  for (const item of [...rows.map(withPartnerImage), ...FALLBACK]) {
+  for (const item of [...rows.map(withPartnerImage), ...FALLBACK.map(withPartnerImage)]) {
     const key = item.name.trim().toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
@@ -100,7 +111,7 @@ export async function getPublicPartners(): Promise<PublicPartnerCard[]> {
 
     const mapped = rows.map((row) => ({
       name: row.name,
-      slug: row.slug || "",
+      slug: row.slug || slugifyPartner(row.name),
       category: row.category || "Luxury Partner",
       note: row.shortDescription || row.longDescription || "",
       coverImage: row.coverImage || row.logoUrl || "",

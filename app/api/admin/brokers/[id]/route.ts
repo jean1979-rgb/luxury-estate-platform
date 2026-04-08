@@ -100,36 +100,42 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     existingUser.brokerProfile?.city ||
     "CDMX";
 
-  const createBusinessName =
-    baseName;
+  const createBusinessName = baseName;
 
-  const updated = await prisma.user.update({
+  await prisma.user.update({
     where: { id },
     data: {
       status,
-      brokerProfile: {
-        upsert: {
-          create: {
-            businessName: createBusinessName,
-            slug: createSlug,
-            city: createCity,
-            approved: approved ?? false,
-            canPublish: canPublish ?? false,
-            tokkoEnabled: tokkoEnabled ?? false,
-            tokkoApiKey: tokkoApiKey ?? null,
-          },
-          update: {
-            approved,
-            canPublish,
-            tokkoEnabled,
-            tokkoApiKey,
-            businessName,
-            slug,
-            city,
-          },
-        },
-      },
     },
+  });
+
+  await prisma.brokerProfile.upsert({
+    where: {
+      userId: id,
+    },
+    create: {
+      userId: id,
+      businessName: createBusinessName,
+      slug: createSlug,
+      city: createCity,
+      approved: approved ?? false,
+      canPublish: canPublish ?? false,
+      tokkoEnabled: tokkoEnabled ?? false,
+      tokkoApiKey: tokkoApiKey ?? null,
+    },
+    update: {
+      approved,
+      canPublish,
+      tokkoEnabled,
+      tokkoApiKey,
+      businessName,
+      slug,
+      city,
+    },
+  });
+
+  const updated = await prisma.user.findUnique({
+    where: { id },
     include: {
       brokerProfile: true,
     },

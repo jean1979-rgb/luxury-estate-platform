@@ -14,9 +14,7 @@ type BrokerRow = {
     canPublish: boolean;
     tokkoEnabled: boolean;
   } | null;
-  _count?: {
-    properties?: number;
-  };
+  propertyCount?: number;
 };
 
 export default function AdminBrokersPage() {
@@ -150,7 +148,7 @@ export default function AdminBrokersPage() {
                           {item.brokerProfile?.tokkoEnabled ? "Activo" : "Off"}
                         </td>
                         <td className="px-4 py-4 text-white/75">
-                          {item._count?.properties ?? 0}
+                          {item.propertyCount ?? 0}
                         </td>
                         <td className="px-4 py-4">
                           <Link

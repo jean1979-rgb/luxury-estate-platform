@@ -174,14 +174,6 @@ function DestinationsPageContent() {
   );
 }
 
-function DestinationsPage() {
-  return (
-    <Suspense fallback={<div className="p-6 text-sm text-neutral-500">Loading...</div>}>
-      <DestinationsPageContent />
-    </Suspense>
-  );
-}
-
 export default function DestinationsPage() {
   return (
     <Suspense fallback={<div className="p-6 text-sm text-neutral-500">Loading...</div>}>

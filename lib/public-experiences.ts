@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 export type PublicExperienceCard = {
   eyebrow: string;
   title: string;
+  slug?: string;
   text: string;
   coverImage?: string;
 };
@@ -59,6 +60,16 @@ const GENERIC_EXPERIENCE_IMAGES: Record<string, string> = {
     "https://image-tc.galaxy.tf/wijpeg-4vkjqkgb85o0alamyvada55wp/princess-2015-12.jpg",
 };
 
+function slugifyExperience(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
 function withExperienceImage(item: PublicExperienceCard): PublicExperienceCard {
   if (item.coverImage && item.coverImage.length > 10) return item;
 
@@ -67,6 +78,7 @@ function withExperienceImage(item: PublicExperienceCard): PublicExperienceCard {
 
   return {
     ...item,
+    slug: item.slug || slugifyExperience(item.title),
     coverImage:
       EXACT_EXPERIENCE_IMAGES[titleKey] ||
       GENERIC_EXPERIENCE_IMAGES[eyebrowKey] ||
@@ -78,7 +90,7 @@ function mergeExperiences(rows: PublicExperienceCard[]) {
   const seen = new Set<string>();
   const merged: PublicExperienceCard[] = [];
 
-  for (const item of [...rows.map(withExperienceImage), ...FALLBACK]) {
+  for (const item of [...rows.map(withExperienceImage), ...FALLBACK.map(withExperienceImage)]) {
     const key = item.title.trim().toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
@@ -98,6 +110,7 @@ export async function getPublicExperiences(): Promise<PublicExperienceCard[]> {
     const mapped = rows.map((row) => ({
       eyebrow: row.category || "Experience",
       title: row.name,
+      slug: slugifyExperience(row.name),
       text: row.shortDescription || row.longDescription || "",
       coverImage: row.coverImage || "",
     }));
