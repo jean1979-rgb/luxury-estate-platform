@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback, type SetStateAction } from "react";
+import { useMemo, useState, useEffect, useCallback, useRef, type SetStateAction } from "react";
 import { useAdminPropertyEditor } from "@/hooks/admin/useAdminPropertyEditor";
 import { useAdminBootstrap } from "@/hooks/admin/useAdminBootstrap";
 import { useAdminUploads } from "@/hooks/admin/useAdminUploads";
@@ -42,6 +42,59 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
+function normalizeAdminForm(value: Partial<AdminPropertyInput> | null | undefined): AdminPropertyInput {
+  const raw = (value ?? {}) as Partial<AdminPropertyInput>;
+
+  return {
+    ...EMPTY_ADMIN_PROPERTY,
+    ...raw,
+    id: raw.id ?? "",
+    title: raw.title ?? "",
+    slug: raw.slug ?? "",
+    status: raw.status ?? "draft",
+    propertyType: raw.propertyType ?? EMPTY_ADMIN_PROPERTY.propertyType,
+    location: raw.location ?? "",
+    price: raw.price ?? "",
+    currency: raw.currency ?? "MXN",
+    bedrooms: typeof raw.bedrooms === "number" ? raw.bedrooms : 0,
+    bathrooms: typeof raw.bathrooms === "number" ? raw.bathrooms : 0,
+    areaInterior: raw.areaInterior ?? "",
+    areaTotal: raw.areaTotal ?? "",
+    tagline: raw.tagline ?? "",
+    coverImage: raw.coverImage ?? "",
+    gallery: Array.isArray(raw.gallery) ? raw.gallery.filter((item): item is string => typeof item === "string") : [],
+    videoUrl: raw.videoUrl ?? "",
+    videoPoster: raw.videoPoster ?? "",
+    videoType: raw.videoType ?? "upload",
+    scenes360: Array.isArray(raw.scenes360)
+      ? raw.scenes360.map((scene, sceneIndex) => ({
+          id: scene?.id ?? `scene-${sceneIndex + 1}`,
+          title: scene?.title ?? "",
+          image: scene?.image ?? "",
+          thumbnail: scene?.thumbnail ?? "",
+          initialYaw: typeof scene?.initialYaw === "number" ? scene.initialYaw : 0,
+          initialPitch: typeof scene?.initialPitch === "number" ? scene.initialPitch : 0,
+          hotspots: Array.isArray(scene?.hotspots)
+            ? scene.hotspots.map((hotspot, hotspotIndex) => ({
+                id: hotspot?.id ?? `hotspot-${hotspotIndex + 1}`,
+                pitch: typeof hotspot?.pitch === "number" ? hotspot.pitch : 0,
+                yaw: typeof hotspot?.yaw === "number" ? hotspot.yaw : 0,
+                label: hotspot?.label ?? "",
+                targetSceneId: hotspot?.targetSceneId ?? "",
+                type: hotspot?.type ?? "nav",
+                size: hotspot?.size ?? "md",
+              }))
+            : [],
+        }))
+      : [],
+    source: raw.source ?? { provider: "manual" },
+    featured: raw.featured === true,
+    published: raw.published === true,
+    luxuryScore: typeof raw.luxuryScore === "number" ? raw.luxuryScore : EMPTY_ADMIN_PROPERTY.luxuryScore,
+    description: raw.description ?? "",
+  };
+}
+
 function yawToPercent(yaw: number) {
   return ((yaw + 180) / 360) * 100;
 }
@@ -70,8 +123,9 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
   const { form, dispatch } = useAdminPropertyEditor(EMPTY_ADMIN_PROPERTY);
 
   const setForm = (next: SetStateAction<AdminPropertyInput>) => {
-    const value = typeof next === "function" ? next(form) : next;
-    dispatch({ type: "SET_FORM", payload: value });
+    const current = normalizeAdminForm(form);
+    const value = typeof next === "function" ? next(current) : next;
+    dispatch({ type: "SET_FORM", payload: normalizeAdminForm(value) });
   };
 
   const [selectedId, setSelectedId] = useState<string>("new");
@@ -120,17 +174,10 @@ const { handleSave } = useAdminSave({
     setSaving,
     setItems,
     setSelectedId,
+    getSelectedId: () => selectedId,
     setForm,
     setMessage,
   });
-
-
-
-  const triggerAutosave = useCallback(() => {
-    if (loading || saving) return;
-    if (selectedId === "new") return;
-    handleSave();
-  }, [loading, saving, selectedId, handleSave]);
 
 const { handleUpload } = useAdminUploads({
     form,
@@ -145,6 +192,64 @@ const { handleUpload } = useAdminUploads({
 
 
 
+
+
+  const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autosaveBaselineRef = useRef("");
+
+  const autosaveSignature = useMemo(
+    () => JSON.stringify(normalizeAdminForm(form)),
+    [form]
+  );
+
+  useEffect(() => {
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
+
+    autosaveBaselineRef.current = autosaveSignature;
+  }, [selectedId]);
+
+  useEffect(() => {
+    if (loading || saving) return;
+    if (selectedId === "new") return;
+
+    if (!autosaveBaselineRef.current) {
+      autosaveBaselineRef.current = autosaveSignature;
+      return;
+    }
+
+    if (autosaveBaselineRef.current === autosaveSignature) {
+      return;
+    }
+
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+    }
+
+    autosaveTimerRef.current = setTimeout(async () => {
+      const ok = await handleSave();
+      if (ok) {
+        autosaveBaselineRef.current = autosaveSignature;
+      }
+    }, 650);
+
+    return () => {
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+        autosaveTimerRef.current = null;
+      }
+    };
+  }, [autosaveSignature, loading, saving, selectedId, handleSave]);
+
+  useEffect(() => {
+    return () => {
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+      }
+    };
+  }, []);
 
   const selectedRecord = useMemo(() => {
     return items.find((item) => item.id === selectedId) || null;
@@ -440,26 +545,7 @@ const { handleUpload } = useAdminUploads({
 </aside>
       )}
 
-        <main
-          className="flex-1"
-          onBlurCapture={(e) => {
-            const t = e.target;
-            if (!t) return;
-            if (t.tagName === "INPUT" || t.tagName === "TEXTAREA") {
-              triggerAutosave();
-            }
-          }}
-          onChangeCapture={(e) => {
-            const t = e.target as HTMLInputElement | HTMLSelectElement | null;
-            if (!t) return;
-            if (
-              t.tagName === "SELECT" ||
-              (t.tagName === "INPUT" && t.type === "checkbox")
-            ) {
-              triggerAutosave();
-            }
-          }}
-        >
+        <main className="flex-1">
           <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl">
             <div className="border-b border-white/10 px-8 py-7">
               <div className="mb-2 text-[11px] uppercase tracking-[0.35em] text-white/45">

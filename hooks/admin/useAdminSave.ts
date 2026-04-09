@@ -11,6 +11,7 @@ type Params = {
   setSaving: (value: boolean) => void;
   setItems: (fn: (prev: AdminPropertyRecord[]) => AdminPropertyRecord[]) => void;
   setSelectedId: (id: string) => void;
+  getSelectedId: () => string;
   setForm: (value: AdminPropertyInput) => void;
   setMessage: (value: string) => void;
 };
@@ -22,6 +23,7 @@ export function useAdminSave({
   setSaving,
   setItems,
   setSelectedId,
+  getSelectedId,
   setForm,
   setMessage,
 }: Params) {
@@ -51,6 +53,7 @@ export function useAdminSave({
         saved: result.saved,
         setItems,
         setSelectedId,
+        getSelectedId,
         setForm,
         setMessage,
       });

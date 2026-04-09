@@ -89,13 +89,19 @@ export default function AdminMediaTabs({
 }: Props) {
   const [activeTab, setActiveTab] = useState<MediaTabKey>("cover");
 
+  const gallery = Array.isArray(form.gallery) ? form.gallery : [];
+  const scenes360 = Array.isArray(form.scenes360) ? form.scenes360 : [];
+
   const stats = useMemo(
     () => ({
-      galleryCount: form.gallery.length,
-      scenesCount: form.scenes360.length,
-      hotspotsCount: form.scenes360.reduce((acc, scene) => acc + scene.hotspots.length, 0),
+      galleryCount: gallery.length,
+      scenesCount: scenes360.length,
+      hotspotsCount: scenes360.reduce(
+        (acc, scene) => acc + (Array.isArray(scene.hotspots) ? scene.hotspots.length : 0),
+        0
+      ),
     }),
-    [form.gallery, form.scenes360]
+    [gallery, scenes360]
   );
 
   return (
@@ -115,13 +121,13 @@ export default function AdminMediaTabs({
             <div className="text-[11px] uppercase tracking-[0.22em] text-white/30">
               Fotos
             </div>
-            <div className="mt-1 text-white">{form.gallery.length}</div>
+            <div className="mt-1 text-white">{gallery.length}</div>
           </div>
           <div className="rounded-2xl border border-white/10 px-4 py-3">
             <div className="text-[11px] uppercase tracking-[0.22em] text-white/30">
               Escenas
             </div>
-            <div className="mt-1 text-white">{form.scenes360.length}</div>
+            <div className="mt-1 text-white">{scenes360.length}</div>
           </div>
           <div className="rounded-2xl border border-white/10 px-4 py-3">
             <div className="text-[11px] uppercase tracking-[0.22em] text-white/30">
@@ -169,7 +175,7 @@ export default function AdminMediaTabs({
 
       {activeTab === "photos" ? (
         <AdminPhotosTab
-          gallery={form.gallery}
+          gallery={gallery}
           uploadingGallery={uploadingGallery}
           coverImage={form.coverImage}
           onUploadGallery={(file) => onUpload(file, "gallery")}
@@ -181,7 +187,7 @@ export default function AdminMediaTabs({
 
       {activeTab === "scenes360" ? (
         <AdminScenes360Tab
-          scenes={form.scenes360}
+          scenes={scenes360}
           uploadingScenes={uploadingScenes}
           activeHotspotScene={activeHotspotScene}
           hotspotTypeOptions={HOTSPOT_TYPE_OPTIONS}

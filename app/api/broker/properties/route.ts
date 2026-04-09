@@ -116,10 +116,63 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: "ID requerido" }, { status: 400 });
     }
 
-    const updated = await updateBrokerProperty(session.user.id, id, body);
+    let updated = await updateBrokerProperty(session.user.id, id, body);
 
     if (!updated) {
-      return NextResponse.json({ ok: false, message: "Propiedad no encontrada" }, { status: 404 });
+      updated = await prisma.brokerProperty.create({
+        data: {
+          id,
+          ownerBrokerId: session.user.id,
+          title: String(body.title || "Propiedad").trim() || "Propiedad",
+          slug: String(body.slug || id).trim() || id,
+          status: body.published ? "published" : "draft",
+          publicationStatus: body.published ? "PUBLISHED" : "DRAFT",
+          propertyType: body.propertyType ? String(body.propertyType).trim() : null,
+          city: body.location ? String(body.location).trim() : "",
+          location: body.location ? String(body.location).trim() : null,
+          price: body.price ? String(body.price).trim() : null,
+          currency: String(body.currency || "MXN").trim() || "MXN",
+          bedrooms:
+            typeof body.bedrooms === "number"
+              ? body.bedrooms
+              : Number.parseInt(String(body.bedrooms || ""), 10) || 0,
+          bathrooms:
+            typeof body.bathrooms === "number"
+              ? body.bathrooms
+              : Number.parseInt(String(body.bathrooms || ""), 10) || 0,
+          areaInterior:
+            body.areaInterior === "" || body.areaInterior === undefined || body.areaInterior === null
+              ? null
+              : Number.parseFloat(String(body.areaInterior)),
+          areaTotal:
+            body.areaTotal === "" || body.areaTotal === undefined || body.areaTotal === null
+              ? null
+              : Number.parseFloat(String(body.areaTotal)),
+          coverImage: body.coverImage ? String(body.coverImage).trim() : null,
+          gallery: Array.isArray(body.gallery) ? body.gallery : [],
+          tagline: body.tagline ? String(body.tagline).trim() : null,
+          description: body.description ? String(body.description).trim() : null,
+          videoUrl: body.videoUrl ? String(body.videoUrl).trim() : null,
+          videoPoster: body.videoPoster ? String(body.videoPoster).trim() : null,
+          videoType: String(body.videoType || "upload").trim() || "upload",
+          featured: body.featured === true,
+          published: body.published === true,
+          luxuryScore:
+            typeof body.luxuryScore === "number"
+              ? body.luxuryScore
+              : Number.parseInt(String(body.luxuryScore || ""), 10) || 85,
+          sourceProvider:
+            String(body.source?.provider || "").toLowerCase() === "tokko" || String(id).startsWith("admin-")
+              ? "TOKKO"
+              : null,
+          sourceExternalId:
+            typeof body.source?.externalId === "string" && body.source.externalId.trim()
+              ? body.source.externalId.trim()
+              : String(id).startsWith("admin-")
+                ? String(id).replace(/^admin-/, "")
+                : null,
+        },
+      });
     }
 
     const normalized = {
@@ -142,7 +195,19 @@ export async function POST(req: Request) {
       videoPoster: updated.videoPoster || "",
       videoType: updated.videoType || "upload",
       scenes360: [],
-      source: { provider: "manual" },
+      source: updated.sourceProvider
+        ? {
+            provider:
+              updated.sourceProvider === "TOKKO"
+                ? "tokko"
+                : updated.sourceProvider === "CSV"
+                  ? "csv"
+                  : updated.sourceProvider === "XML"
+                    ? "xml"
+                    : "manual",
+            externalId: updated.sourceExternalId || undefined,
+          }
+        : { provider: "manual" },
       featured: updated.featured,
       published: updated.published,
       luxuryScore: updated.luxuryScore ?? 85,

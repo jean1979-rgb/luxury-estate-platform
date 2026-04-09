@@ -1,4 +1,4 @@
-import type { AdminPropertyInput, AdminPropertyRecord } from "@/types/admin";
+import { EMPTY_ADMIN_PROPERTY, type AdminPropertyInput, type AdminPropertyRecord } from "@/types/admin";
 import { isTokkoAdminItem, mapTokkoToAdminProperty } from "@/lib/admin/tokko-helpers";
 
 type Params = {
@@ -54,7 +54,7 @@ export function useAdminMutations({
 
       setItems(() => json.items || []);
       setSelectedId("new");
-      setForm({} as AdminPropertyInput);
+      setForm(EMPTY_ADMIN_PROPERTY);
 
       setMessage("Propiedad eliminada correctamente");
     } catch (err) {
@@ -96,7 +96,7 @@ export function useAdminMutations({
       throw new Error("Tokko item inválido.");
     }
 
-    if (items.some((p) => p.id === `admin-${item.id}`)) {
+    if (items.some((p) => p.source?.externalId === item.id)) {
       alert("Ya importada");
       return;
     }
