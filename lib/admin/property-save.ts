@@ -26,13 +26,15 @@ export async function saveProperty(params: {
     throw new Error(scenesData.message || "No se pudieron guardar las escenas.");
   }
 
+  const { scenes360: _ignoredScenes, ...propertyPayload } = payload;
+
   const res = await fetch(`/api/broker/properties/${propertyId}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      ...payload,
+      ...propertyPayload,
       id: propertyId,
     }),
   });

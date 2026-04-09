@@ -44,9 +44,7 @@ export default function AdminScenes360Tab({
   yawToPercent,
   pitchToPercent,
 }: Props) {
-  const [activeSceneId, setActiveSceneId] = useState<string | null>(
-    scenes[0]?.id || null
-  );
+  const [activeSceneIndex, setActiveSceneIndex] = useState(0);
 
   const dragSceneIndexRef = useRef<number | null>(null);
   const latestViewRef = useRef<Record<string, { yaw: number; pitch: number }>>({});
@@ -54,16 +52,14 @@ export default function AdminScenes360Tab({
 
   useEffect(() => {
     if (!scenes.length) {
-      setActiveSceneId(null);
+      setActiveSceneIndex(0);
       return;
     }
 
-    const exists = scenes.some((scene) => scene.id === activeSceneId);
-
-    if (!activeSceneId || !exists) {
-      setActiveSceneId(scenes[0]?.id || null);
+    if (activeSceneIndex > scenes.length - 1) {
+      setActiveSceneIndex(0);
     }
-  }, [scenes, activeSceneId]);
+  }, [scenes, activeSceneIndex]);
 
 
   return (
@@ -114,14 +110,16 @@ export default function AdminScenes360Tab({
         <div className="space-y-6">
           {scenes
   .map((scene, realSceneIndex) => ({ scene, realSceneIndex }))
-  .filter(({ scene }) => !activeSceneId || scene.id === activeSceneId)
+  .filter(({ scene, realSceneIndex }) => {
+    return realSceneIndex === activeSceneIndex;
+  })
   .map(({ scene, realSceneIndex }) => {
             const sceneIndex = realSceneIndex;
             const isHotspotMode = activeHotspotScene === scene.id;
 
             return (
               <section
-                key={scene.id || `scene-${sceneIndex}`}
+                key={`scene-card-${sceneIndex}`}
                 draggable
                 onDragStart={() => {
                   dragSceneIndexRef.current = sceneIndex;
@@ -161,10 +159,10 @@ export default function AdminScenes360Tab({
                           Scene ID
                         </span>
                         <input
-                          value={scene.id}
-                          onChange={(e) => onUpdateScene(sceneIndex, { id: e.target.value })}
-                          className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
-                          placeholder="master-suite"
+                          value={scene.id ?? ""}
+                          readOnly
+                          className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/70 outline-none"
+                          placeholder="scene-id"
                         />
                       </label>
 
@@ -173,7 +171,7 @@ export default function AdminScenes360Tab({
                           Título
                         </span>
                         <input
-                          value={scene.title}
+                          value={scene.title ?? ""}
                           onChange={(e) => onUpdateScene(sceneIndex, { title: e.target.value })}
                           className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
                           placeholder="Master Suite"
@@ -186,7 +184,7 @@ export default function AdminScenes360Tab({
                         Panorama image
                       </span>
                       <input
-                        value={scene.image}
+                        value={scene.image ?? ""}
                         onChange={(e) =>
                           onUpdateScene(sceneIndex, {
                             image: e.target.value,
@@ -239,7 +237,7 @@ export default function AdminScenes360Tab({
 <div className="mb-4">
   <div className="grid grid-cols-3 gap-2">
     {scenes.map((item, idx) => {
-      const isActive = activeSceneId === item.id;
+      const isActive = activeSceneIndex === idx;
 
       return (
         <button
@@ -259,7 +257,7 @@ export default function AdminScenes360Tab({
             onReorderScenes(dragSceneIndexRef.current, idx);
             dragSceneIndexRef.current = null;
           }}
-          onClick={() => setActiveSceneId(item.id)}
+          onClick={() => setActiveSceneIndex(idx)}
           className={[
             "min-w-0 rounded-lg border px-2.5 py-1.5 text-left transition",
             isActive
@@ -301,7 +299,9 @@ export default function AdminScenes360Tab({
                             }}
                             onHotspotClick={(targetSceneId) => {
       if (!targetSceneId) return;
-      setActiveSceneId(targetSceneId);
+      const nextIndex = scenes.findIndex((item) => item.id === targetSceneId);
+      if (nextIndex === -1) return;
+      setActiveSceneIndex(nextIndex);
     }}
 />
                         ) : (
@@ -402,7 +402,7 @@ export default function AdminScenes360Tab({
                                 Label
                               </span>
                               <input
-                                value={hotspot.label}
+                                value={hotspot.label ?? ""}
                                 onChange={(e) =>
                                   onUpdateHotspot(sceneIndex, hotspotIndex, {
                                     label: e.target.value,
@@ -488,7 +488,7 @@ export default function AdminScenes360Tab({
                                 step="0.01"
                                 min="-90"
                                 max="90"
-                                value={hotspot.pitch}
+                                value={hotspot.pitch ?? 0}
                                 onChange={(e) =>
                                   onUpdateHotspot(sceneIndex, hotspotIndex, {
                                     pitch: Number(e.target.value),
@@ -507,7 +507,7 @@ export default function AdminScenes360Tab({
                                 step="0.01"
                                 min="-180"
                                 max="180"
-                                value={hotspot.yaw}
+                                value={hotspot.yaw ?? 0}
                                 onChange={(e) =>
                                   onUpdateHotspot(sceneIndex, hotspotIndex, {
                                     yaw: Number(e.target.value),

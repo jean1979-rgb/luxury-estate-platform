@@ -1,41 +1,56 @@
-import type { AdminPropertyInput, AdminScene360 } from "@/types/admin";
+import type { AdminPropertyInput } from "@/types/admin";
 
-export function buildPropertyPayload(params: {
+type BuildPropertyPayloadParams = {
   form: AdminPropertyInput;
-  normalizedScenes: AdminScene360[];
-  sceneIdAliases: Map<string, string>;
+  normalizedScenes?: AdminPropertyInput["scenes360"];
+  sceneIdAliases?: Map<string, string>;
   slugify: (value: string) => string;
-}): AdminPropertyInput {
-  const { form, normalizedScenes, sceneIdAliases, slugify } = params;
+};
+
+function asNumber(value: unknown, fallback = 0) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function normalizeTargetSceneId(
+  value: unknown,
+  sceneIdAliases?: Map<string, string>
+): string {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw) return "";
+  return sceneIdAliases?.get(raw) || raw;
+}
+
+export function buildPropertyPayload({
+  form,
+  normalizedScenes,
+  sceneIdAliases,
+  slugify,
+}: BuildPropertyPayloadParams): AdminPropertyInput {
+  const scenes = Array.isArray(normalizedScenes) ? normalizedScenes : Array.isArray(form.scenes360) ? form.scenes360 : [];
 
   return {
-    source: { provider: "manual" },
     ...form,
-    videoType: "upload",
-    id: form.id ? slugify(form.id) : slugify(form.slug || form.title),
-    slug: slugify(form.slug || form.title),
-    title: form.title.trim(),
-    scenes360: normalizedScenes.map((scene, index) => ({
+    slug: slugify(form.slug || form.title || form.id || "propiedad"),
+    scenes360: scenes.map((scene, index) => ({
       ...scene,
-      id: scene.id,
-      title: scene.title,
-      thumbnail: scene.thumbnail || scene.image,
-      hotspots: (Array.isArray(scene.hotspots) ? scene.hotspots : []).map((hotspot, hotspotIndex) => {
-        const rawTarget = String(hotspot.targetSceneId || "").trim();
-        const normalizedTarget =
-          sceneIdAliases.get(rawTarget) ||
-          sceneIdAliases.get(slugify(rawTarget)) ||
-          rawTarget;
-
-        return {
-          id: slugify(hotspot.id || `hotspot-${hotspotIndex + 1}`),
-          pitch: Number.isFinite(Number(hotspot.pitch)) ? Number(hotspot.pitch) : 0,
-          yaw: Number.isFinite(Number(hotspot.yaw)) ? Number(hotspot.yaw) : 0,
-          label: String(hotspot.label || `Hotspot ${hotspotIndex + 1}`).trim(),
-          targetSceneId: normalizedTarget || "",
-          type: hotspot.type || "nav",
-        };
-      }),
+      id: scene.id ? slugify(scene.id) : `scene-${index + 1}`,
+      title: scene.title || `Escena ${index + 1}`,
+      image: scene.image || "",
+      thumbnail: scene.thumbnail || scene.image || "",
+      initialYaw: asNumber(scene.initialYaw, 0),
+      initialPitch: asNumber(scene.initialPitch, 0),
+      hotspots: Array.isArray(scene.hotspots)
+        ? scene.hotspots.map((hotspot, hotspotIndex) => ({
+            ...hotspot,
+            id: hotspot.id ? slugify(hotspot.id) : `hotspot-${index + 1}-${hotspotIndex + 1}`,
+            label: hotspot.label || `Hotspot ${hotspotIndex + 1}`,
+            targetSceneId: normalizeTargetSceneId(hotspot.targetSceneId, sceneIdAliases),
+            type: hotspot.type || "nav",
+            size: hotspot.size || "md",
+            pitch: asNumber(hotspot.pitch, 0),
+            yaw: asNumber(hotspot.yaw, 0),
+          }))
+        : [],
     })),
   };
 }
