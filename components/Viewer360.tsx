@@ -42,7 +42,9 @@ const HOTSPOT_RADIUS = 505;
 const SPHERE_RADIUS = 500;
 const DEFAULT_FOV = 90;
 const MIN_FOV = 45;
-const MAX_FOV = 95;
+const MAX_FOV = 120;
+const ENTRY_FOV = 118;
+const SCENE_TRANSITION_MS = 560;
 const WHEEL_ZOOM_STEP = 0.035;
 
 
@@ -192,7 +194,14 @@ export default function Viewer360({
 
   const hotspotTexturesRef = useRef<THREE.Texture[]>([]);
   const lastEmittedViewRef = useRef<{ yaw: number; pitch: number } | null>(null);
+  const currentViewRef = useRef<{ yaw: number; pitch: number }>({
+    yaw: Number(initialYaw.toFixed(2)),
+    pitch: Number(initialPitch.toFixed(2)),
+  });
   const fovRef = useRef(DEFAULT_FOV);
+  const imageLoadTokenRef = useRef(0);
+  const imageTransitionRef = useRef<number | null>(null);
+  const viewTweenRef = useRef<number | null>(null);
 
   const onViewChangeRef = useRef(onViewChange);
   const onHotspotClickRef = useRef(onHotspotClick);
@@ -227,6 +236,7 @@ export default function Viewer360({
       }
     }
 
+    currentViewRef.current = view;
     lastEmittedViewRef.current = view;
     handleViewChange(view);
   }
@@ -432,6 +442,16 @@ export default function Viewer360({
       renderer.domElement.removeEventListener("pointerup", onPointerUp);
       renderer.domElement.removeEventListener("wheel", onWheel);
 
+      if (imageTransitionRef.current) {
+        window.cancelAnimationFrame(imageTransitionRef.current);
+        imageTransitionRef.current = null;
+      }
+
+      if (viewTweenRef.current) {
+        window.cancelAnimationFrame(viewTweenRef.current);
+        viewTweenRef.current = null;
+      }
+
       hotspotTexturesRef.current.forEach((texture) => texture.dispose());
       hotspotTexturesRef.current = [];
 
@@ -466,13 +486,23 @@ export default function Viewer360({
     if (!material || !renderer || !scene || !camera || !image) return;
 
     let cancelled = false;
+    const loadToken = imageLoadTokenRef.current + 1;
+    imageLoadTokenRef.current = loadToken;
+
+    if (imageTransitionRef.current) {
+      window.cancelAnimationFrame(imageTransitionRef.current);
+      imageTransitionRef.current = null;
+    }
+
+    renderer.domElement.style.opacity = material.map ? "0.35" : "0";
+
     const loader = new THREE.TextureLoader();
     loader.setCrossOrigin("anonymous");
 
     loader.load(
       image,
       (newTexture) => {
-        if (cancelled) {
+        if (cancelled || imageLoadTokenRef.current !== loadToken) {
           newTexture.dispose();
           return;
         }
@@ -490,8 +520,48 @@ export default function Viewer360({
           oldTexture.dispose();
         }
 
+        const startFov = camera.fov;
+        const endFov = DEFAULT_FOV;
+        const peakFov = THREE.MathUtils.clamp(
+          Math.max(startFov, ENTRY_FOV),
+          MIN_FOV,
+          MAX_FOV
+        );
+
+        renderer.domElement.style.opacity = "0";
         renderer.render(scene, camera);
-        renderer.domElement.style.opacity = "1";
+
+        const startedAt = performance.now();
+
+        const animateTextureIn = (now: number) => {
+          if (cancelled || imageLoadTokenRef.current !== loadToken) return;
+
+          const t = Math.min((now - startedAt) / SCENE_TRANSITION_MS, 1);
+          const eased =
+            t < 0.5
+              ? 2 * t * t
+              : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+          const nextFov = THREE.MathUtils.lerp(peakFov, endFov, eased);
+          const clampedFov = THREE.MathUtils.clamp(nextFov, MIN_FOV, MAX_FOV);
+
+          camera.fov = clampedFov;
+          camera.updateProjectionMatrix();
+          fovRef.current = clampedFov;
+
+          renderer.domElement.style.opacity = String(0.12 + 0.88 * eased);
+          renderer.render(scene, camera);
+
+          if (t < 1) {
+            imageTransitionRef.current = window.requestAnimationFrame(animateTextureIn);
+            return;
+          }
+
+          renderer.domElement.style.opacity = "1";
+          imageTransitionRef.current = null;
+        };
+
+        imageTransitionRef.current = window.requestAnimationFrame(animateTextureIn);
       },
       undefined,
       (err) => {
