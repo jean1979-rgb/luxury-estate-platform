@@ -189,6 +189,59 @@ export default async function HomePage() {
         </div>
       </section>
 
+      
+      <section className="relative border-b border-white/10 bg-[#050505] px-6 py-24 md:px-10 md:py-32">
+        <div className="mx-auto max-w-6xl">
+          <div className="max-w-3xl">
+            <p className="text-[10px] uppercase tracking-[0.4em] text-white/40">
+              Editorial Perspective
+            </p>
+
+            <h2 className="mt-6 text-4xl font-light leading-tight md:text-6xl">
+              The destination defines the residence.
+              <br />
+              The lifestyle defines the value.
+            </h2>
+
+            <p className="mt-8 max-w-2xl text-sm leading-8 text-white/60 md:text-base">
+              Private Estates Mexico is not a property catalog.
+              It is a curated environment where destinations, brands and experiences
+              shape the perception of value before a residence is even considered.
+            </p>
+          </div>
+
+          <div className="mt-16 grid gap-10 md:grid-cols-3">
+            <div className="border-t border-white/10 pt-6">
+              <p className="text-[10px] uppercase tracking-[0.34em] text-white/40">
+                Destination First
+              </p>
+              <p className="mt-4 text-sm leading-7 text-white/70">
+                The emotional decision is made before the property is seen.
+              </p>
+            </div>
+
+            <div className="border-t border-white/10 pt-6">
+              <p className="text-[10px] uppercase tracking-[0.34em] text-white/40">
+                Curated Lifestyle
+              </p>
+              <p className="mt-4 text-sm leading-7 text-white/70">
+                Experiences and partners elevate permanence and belonging.
+              </p>
+            </div>
+
+            <div className="border-t border-white/10 pt-6">
+              <p className="text-[10px] uppercase tracking-[0.34em] text-white/40">
+                Commercial Ecosystem
+              </p>
+              <p className="mt-4 text-sm leading-7 text-white/70">
+                Every placement is designed to increase perceived value.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
       <section id="partners" className="border-b border-white/10 bg-[#0c0c0c] px-6 py-16 md:px-10 md:py-20">
         <div className="mx-auto max-w-7xl">
           <div className="max-w-3xl">
@@ -201,7 +254,7 @@ export default async function HomePage() {
             </h3>
 
             <p className="mt-5 max-w-2xl text-white/60 md:text-lg">
-              {hero.partnersSubtitle}
+              "A curated selection of brands shaping the lifestyle behind each destination."
             </p>
           </div>
 
@@ -238,7 +291,7 @@ export default async function HomePage() {
                   </p>
 
                   <div className="mt-6 inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-white/55">
-                    <span>Explorar partner</span>
+                    <span>Enter brand world</span>
                     <span className="transition group-hover:translate-x-1">→</span>
                   </div>
                 </div>
@@ -297,7 +350,7 @@ export default async function HomePage() {
                   <div className="mt-8 flex items-center justify-between">
                     <div className="h-px w-16 bg-white/25" />
                     <span className="text-[10px] uppercase tracking-[0.32em] text-white/62 transition group-hover:text-white">
-                      Discover
+                      Explore experience
                     </span>
                   </div>
                 </div>

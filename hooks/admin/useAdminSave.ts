@@ -25,7 +25,7 @@ export function useAdminSave({
   setForm,
   setMessage,
 }: Params) {
-  async function handleSave() {
+  async function handleSave(): Promise<boolean> {
     setSaving(true);
     setMessage("");
 
@@ -54,8 +54,11 @@ export function useAdminSave({
         setForm,
         setMessage,
       });
+
+      return true;
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Error inesperado al guardar.");
+      return false;
     } finally {
       setSaving(false);
     }

@@ -106,16 +106,6 @@ export function useAdminMutations({
       slug: slugify(item.editorial?.title || item.base?.title || item.id || "propiedad"),
     };
 
-    const propertyId = forcedPropertyId || payload.id;
-
-    await fetch(`/api/broker/scenes/${propertyId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ scenes: payload.scenes360 }),
-    });
-
     const res = await fetch("/api/broker/properties", {
       method: "POST",
       headers: {
@@ -131,6 +121,14 @@ export function useAdminMutations({
     }
 
     const saved = data.property as AdminPropertyRecord;
+
+    await fetch(`/api/broker/scenes/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ scenes: payload.scenes360 }),
+    });
 
     setItems((prev) => {
       const exists = prev.some((entry) => entry.id === saved.id);

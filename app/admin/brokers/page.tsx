@@ -9,19 +9,50 @@ type BrokerRow = {
   email: string;
   role: "BROKER" | "ADMIN";
   status: "ACTIVE" | "PENDING" | "SUSPENDED";
+  propertyCount?: number;
   brokerProfile: {
     approved: boolean;
     canPublish: boolean;
     tokkoEnabled: boolean;
+    businessName?: string | null;
+    city?: string | null;
+    slug?: string | null;
   } | null;
-  propertyCount?: number;
 };
+
+type StatusFilter = "ALL" | "ACTIVE" | "PENDING" | "SUSPENDED";
+
+function Badge({
+  label,
+  tone = "neutral",
+}: {
+  label: string;
+  tone?: "neutral" | "green" | "yellow" | "red" | "blue";
+}) {
+  const toneClass =
+    tone === "green"
+      ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-200"
+      : tone === "yellow"
+        ? "border-amber-500/20 bg-amber-500/10 text-amber-200"
+        : tone === "red"
+          ? "border-red-500/20 bg-red-500/10 text-red-200"
+          : tone === "blue"
+            ? "border-sky-500/20 bg-sky-500/10 text-sky-200"
+            : "border-white/10 bg-white/[0.05] text-white/70";
+
+  return (
+    <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] uppercase tracking-[0.18em] ${toneClass}`}>
+      {label}
+    </span>
+  );
+}
 
 export default function AdminBrokersPage() {
   const [items, setItems] = useState<BrokerRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
 
   async function load() {
     try {
@@ -42,18 +73,39 @@ export default function AdminBrokersPage() {
     load();
   }, []);
 
+  const metrics = useMemo(() => {
+    const total = items.length;
+    const active = items.filter((item) => item.status === "ACTIVE").length;
+    const pending = items.filter((item) => item.status === "PENDING").length;
+    const publishEnabled = items.filter((item) => item.brokerProfile?.canPublish).length;
+    const tokkoEnabled = items.filter((item) => item.brokerProfile?.tokkoEnabled).length;
+    const properties = items.reduce((sum, item) => sum + (item.propertyCount ?? 0), 0);
+
+    return { total, active, pending, publishEnabled, tokkoEnabled, properties };
+  }, [items]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return items;
+
     return items.filter((item) => {
-      return [
-        item.name ?? "",
-        item.email,
-        item.role,
-        item.status,
-      ].some((v) => v.toLowerCase().includes(q));
+      const matchesQuery =
+        !q ||
+        [
+          item.name ?? "",
+          item.email,
+          item.role,
+          item.status,
+          item.brokerProfile?.businessName ?? "",
+          item.brokerProfile?.city ?? "",
+          item.brokerProfile?.slug ?? "",
+        ].some((v) => v.toLowerCase().includes(q));
+
+      const matchesStatus =
+        statusFilter === "ALL" ? true : item.status === statusFilter;
+
+      return matchesQuery && matchesStatus;
     });
-  }, [items, query]);
+  }, [items, query, statusFilter]);
 
   return (
     <main className="min-h-screen bg-neutral-950 text-white">
@@ -71,7 +123,7 @@ export default function AdminBrokersPage() {
             </p>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <Link
               href="/admin/properties"
               className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white transition hover:bg-white/[0.08]"
@@ -87,13 +139,57 @@ export default function AdminBrokersPage() {
           </div>
         </div>
 
-        <div className="mb-6">
+        <div className="mb-6 grid gap-4 md:grid-cols-3 xl:grid-cols-6">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Brokers</div>
+            <div className="mt-3 text-3xl font-light text-white">{metrics.total}</div>
+          </div>
+          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Activos</div>
+            <div className="mt-3 text-3xl font-light text-white">{metrics.active}</div>
+          </div>
+          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Pendientes</div>
+            <div className="mt-3 text-3xl font-light text-white">{metrics.pending}</div>
+          </div>
+          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Can publish</div>
+            <div className="mt-3 text-3xl font-light text-white">{metrics.publishEnabled}</div>
+          </div>
+          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Tokko on</div>
+            <div className="mt-3 text-3xl font-light text-white">{metrics.tokkoEnabled}</div>
+          </div>
+          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+            <div className="text-[11px] uppercase tracking-[0.24em] text-white/35">Propiedades</div>
+            <div className="mt-3 text-3xl font-light text-white">{metrics.properties}</div>
+          </div>
+        </div>
+
+        <div className="mb-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto]">
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar broker por nombre, correo, rol o estatus"
+            placeholder="Buscar broker por nombre, correo, firma, ciudad o slug"
             className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/20"
           />
+
+          <div className="flex flex-wrap gap-2">
+            {(["ALL", "ACTIVE", "PENDING", "SUSPENDED"] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setStatusFilter(value)}
+                className={`rounded-2xl border px-4 py-3 text-sm transition ${
+                  statusFilter === value
+                    ? "border-white bg-white text-black"
+                    : "border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
+                }`}
+              >
+                {value === "ALL" ? "Todos" : value}
+              </button>
+            ))}
+          </div>
         </div>
 
         {loading ? (
@@ -111,11 +207,9 @@ export default function AdminBrokersPage() {
                 <thead className="border-b border-white/10 bg-white/[0.03] text-white/45">
                   <tr>
                     <th className="px-4 py-4 font-medium">Broker</th>
-                    <th className="px-4 py-4 font-medium">Rol</th>
-                    <th className="px-4 py-4 font-medium">Estatus</th>
-                    <th className="px-4 py-4 font-medium">Approved</th>
-                    <th className="px-4 py-4 font-medium">Can publish</th>
-                    <th className="px-4 py-4 font-medium">Tokko</th>
+                    <th className="px-4 py-4 font-medium">Firma</th>
+                    <th className="px-4 py-4 font-medium">Estado</th>
+                    <th className="px-4 py-4 font-medium">Permisos</th>
                     <th className="px-4 py-4 font-medium">Propiedades</th>
                     <th className="px-4 py-4 font-medium">Acción</th>
                   </tr>
@@ -123,7 +217,7 @@ export default function AdminBrokersPage() {
                 <tbody>
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-4 py-8 text-center text-white/45">
+                      <td colSpan={6} className="px-4 py-8 text-center text-white/45">
                         Sin resultados
                       </td>
                     </tr>
@@ -136,20 +230,45 @@ export default function AdminBrokersPage() {
                           </div>
                           <div className="mt-1 text-xs text-white/45">{item.email}</div>
                         </td>
-                        <td className="px-4 py-4 text-white/75">{item.role}</td>
-                        <td className="px-4 py-4 text-white/75">{item.status}</td>
-                        <td className="px-4 py-4 text-white/75">
-                          {item.brokerProfile?.approved ? "Sí" : "No"}
+
+                        <td className="px-4 py-4 align-top text-white/75">
+                          <div>{item.brokerProfile?.businessName || "Sin perfil"}</div>
+                          <div className="mt-1 text-xs text-white/45">
+                            {item.brokerProfile?.city || "Sin ciudad"}
+                          </div>
                         </td>
-                        <td className="px-4 py-4 text-white/75">
-                          {item.brokerProfile?.canPublish ? "Sí" : "No"}
+
+                        <td className="px-4 py-4 align-top">
+                          {item.status === "ACTIVE" ? (
+                            <Badge label="ACTIVE" tone="green" />
+                          ) : item.status === "PENDING" ? (
+                            <Badge label="PENDING" tone="yellow" />
+                          ) : (
+                            <Badge label="SUSPENDED" tone="red" />
+                          )}
                         </td>
-                        <td className="px-4 py-4 text-white/75">
-                          {item.brokerProfile?.tokkoEnabled ? "Activo" : "Off"}
+
+                        <td className="px-4 py-4 align-top">
+                          <div className="flex flex-wrap gap-2">
+                            <Badge
+                              label={item.brokerProfile?.approved ? "APPROVED" : "NO APPROVED"}
+                              tone={item.brokerProfile?.approved ? "green" : "neutral"}
+                            />
+                            <Badge
+                              label={item.brokerProfile?.canPublish ? "CAN PUBLISH" : "NO PUBLISH"}
+                              tone={item.brokerProfile?.canPublish ? "blue" : "neutral"}
+                            />
+                            <Badge
+                              label={item.brokerProfile?.tokkoEnabled ? "TOKKO ON" : "TOKKO OFF"}
+                              tone={item.brokerProfile?.tokkoEnabled ? "green" : "neutral"}
+                            />
+                          </div>
                         </td>
+
                         <td className="px-4 py-4 text-white/75">
                           {item.propertyCount ?? 0}
                         </td>
+
                         <td className="px-4 py-4">
                           <Link
                             href={`/admin/brokers/${item.id}`}
