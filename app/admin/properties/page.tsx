@@ -94,6 +94,20 @@ export default async function AdminPropertiesPage() {
                     </Link>
 
                     <Link
+                      href={`/broker/properties/${item.id}/studio`}
+                      className="inline-flex min-h-10 items-center justify-center border border-white/10 px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-white/75 transition hover:bg-white/10 hover:text-white"
+                    >
+                      Studio 360
+                    </Link>
+
+                    <Link
+                      href={`/properties/${item.id}`}
+                      className="inline-flex min-h-10 items-center justify-center border border-white/10 px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-white/75 transition hover:bg-white/10 hover:text-white"
+                    >
+                      Vista pública
+                    </Link>
+
+                    <Link
                       href={`/admin/public/destinations?propertyId=${item.id}`}
                       className="inline-flex min-h-10 items-center justify-center border border-white/10 px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-white/75 transition hover:bg-white/10 hover:text-white"
                     >
