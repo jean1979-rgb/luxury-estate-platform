@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback, useRef, type SetStateAction } from "react";
+import { useMemo, useState, useEffect, useCallback, type SetStateAction } from "react";
 import { useAdminPropertyEditor } from "@/hooks/admin/useAdminPropertyEditor";
 import { useAdminBootstrap } from "@/hooks/admin/useAdminBootstrap";
 import { useAdminUploads } from "@/hooks/admin/useAdminUploads";
@@ -189,67 +189,6 @@ const { handleUpload } = useAdminUploads({
     setMessage,
     setForm,
   });
-
-
-
-
-
-  const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const autosaveBaselineRef = useRef("");
-
-  const autosaveSignature = useMemo(
-    () => JSON.stringify(normalizeAdminForm(form)),
-    [form]
-  );
-
-  useEffect(() => {
-    if (autosaveTimerRef.current) {
-      clearTimeout(autosaveTimerRef.current);
-      autosaveTimerRef.current = null;
-    }
-
-    autosaveBaselineRef.current = autosaveSignature;
-  }, [selectedId]);
-
-  useEffect(() => {
-    if (loading || saving) return;
-    if (selectedId === "new") return;
-
-    if (!autosaveBaselineRef.current) {
-      autosaveBaselineRef.current = autosaveSignature;
-      return;
-    }
-
-    if (autosaveBaselineRef.current === autosaveSignature) {
-      return;
-    }
-
-    if (autosaveTimerRef.current) {
-      clearTimeout(autosaveTimerRef.current);
-    }
-
-    autosaveTimerRef.current = setTimeout(async () => {
-      const ok = await handleSave();
-      if (ok) {
-        autosaveBaselineRef.current = autosaveSignature;
-      }
-    }, 650);
-
-    return () => {
-      if (autosaveTimerRef.current) {
-        clearTimeout(autosaveTimerRef.current);
-        autosaveTimerRef.current = null;
-      }
-    };
-  }, [autosaveSignature, loading, saving, selectedId, handleSave]);
-
-  useEffect(() => {
-    return () => {
-      if (autosaveTimerRef.current) {
-        clearTimeout(autosaveTimerRef.current);
-      }
-    };
-  }, []);
 
   const selectedRecord = useMemo(() => {
     return items.find((item) => item.id === selectedId) || null;
