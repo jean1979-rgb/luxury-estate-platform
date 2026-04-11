@@ -100,11 +100,14 @@ export default function Viewer360Stage({
           className="relative overflow-hidden rounded-[28px] border border-white/10 bg-black"
         >
           <div className="relative aspect-[16/10] w-full bg-black">
-            <img
-              src={current.image}
-              alt={current.title || "Vista 360"}
-              className="absolute inset-0 h-full w-full object-cover"
-              draggable={false}
+            <Viewer360Core
+              key={`inline-${current.id}`}
+              image={current.image}
+              initialYaw={targetView.yaw}
+              initialPitch={targetView.pitch}
+              hotspots={current.hotspots || []}
+              interactive={true}
+              introEnabled={false}
             />
 
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/20" />

@@ -484,7 +484,7 @@ const { handleUpload } = useAdminUploads({
 </aside>
       )}
 
-        <main className="flex-1">
+        <main className="flex-1 min-w-0 overflow-hidden">
           <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl">
             <div className="border-b border-white/10 px-8 py-7">
               <div className="mb-2 text-[11px] uppercase tracking-[0.35em] text-white/45">

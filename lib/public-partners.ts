@@ -10,6 +10,14 @@ export type PublicPartnerCard = {
 
 const FALLBACK: PublicPartnerCard[] = [
   {
+    name: "Aurora Bay House",
+    slug: "aurora-bay-house",
+    category: "Sun Club",
+    note: "Club de sol de lujo en Acapulco con vista panorámica, alberca infinity, pádel, restaurante y bar.",
+    coverImage:
+      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=2000&q=80",
+  },
+  {
     name: "Zibu",
     category: "Fine Dining",
     note: "Experiencia gastronómica clave para compradores de alto perfil.",
@@ -33,6 +41,8 @@ const FALLBACK: PublicPartnerCard[] = [
 ];
 
 const EXACT_PARTNER_IMAGES: Record<string, string> = {
+  "aurora bay house":
+    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
   "aman essentials":
     "https://image-tc.galaxy.tf/wijpeg-1h8a7vg10icm5swuzifnpcgnh/spa-40.jpg",
   zibu:

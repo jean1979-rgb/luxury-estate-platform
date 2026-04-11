@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Viewer360 from "@/components/Viewer360";
+import Viewer360AdminLegacy from "@/components/Viewer360AdminLegacy";
 import type { AdminHotspot, AdminHotspotType, AdminScene360 } from "@/types/admin";
 
 function angularDeltaDeg(a: number, b: number) {
@@ -74,14 +74,6 @@ export default function AdminScenes360Tab({
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={onAddScene}
-              className="rounded-2xl border border-white/15 px-5 py-4 text-[15px] text-white transition hover:bg-white/10"
-            >
-              Nueva escena
-            </button>
-
             <label className="inline-flex cursor-pointer items-center rounded-2xl border border-white/15 px-5 py-4 text-[15px] text-white transition hover:bg-white/10">
               <input
                 type="file"
@@ -120,16 +112,6 @@ export default function AdminScenes360Tab({
             return (
               <section
                 key={`scene-card-${sceneIndex}`}
-                draggable
-                onDragStart={() => {
-                  dragSceneIndexRef.current = sceneIndex;
-                }}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => {
-                  if (dragSceneIndexRef.current === null) return;
-                  onReorderScenes(dragSceneIndexRef.current, sceneIndex);
-                  dragSceneIndexRef.current = null;
-                }}
                 className="rounded-3xl border border-white/10 bg-white/[0.03] p-5"
               >
                 <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
@@ -278,9 +260,10 @@ export default function AdminScenes360Tab({
 </div>
 
 <div className="rounded-[24px] border border-white/10 bg-black/25 p-2.5">
-                      <div className="aspect-[16/9]  w-full overflow-hidden rounded-[20px] border border-white/10 bg-black/30">
+                      <div className="relative w-full aspect-[16/10] cursor-grab overflow-hidden rounded-[20px] border border-white/10 bg-black/30 active:cursor-grabbing">
                         {scene.image ? (
-                          <Viewer360
+                          <Viewer360AdminLegacy
+                            key={`${scene.id}-${scene.image}-${scene.initialYaw ?? 0}-${scene.initialPitch ?? 0}`}
                             image={scene.image}
                             hotspots={scene.hotspots}
                             editable={isHotspotMode}
@@ -305,7 +288,7 @@ export default function AdminScenes360Tab({
     }}
 />
                         ) : (
-                          <div className="flex aspect-[16/10] items-center justify-center text-sm text-white/35">
+                          <div className="flex h-full w-full items-center justify-center text-sm text-white/35">
                             Agrega una imagen panorámica para activar el visor.
                           </div>
                         )}
@@ -372,7 +355,7 @@ export default function AdminScenes360Tab({
                       </div>
                   </div>
 
-                  <div className="space-y-5 lg:pt-14">
+                  <div className="space-y-5 lg:pt-14 lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto lg:pr-2">
                     {scene.hotspots.length === 0 ? (
                       <div className="rounded-2xl border border-dashed border-white/10 px-4 py-6 text-sm text-white/35">
                         Esta escena aún no tiene hotspots.

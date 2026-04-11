@@ -24,6 +24,12 @@ function resolveHeroImage(partner: any) {
 
 function getPartnerGallery(slug: string, heroImage: string) {
   const map: Record<string, string[]> = {
+    "aurora-bay-house": [
+      heroImage,
+      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=80",
+      "https://images.unsplash.com/photo-1613553507747-5f8d62ad5904?auto=format&fit=crop&w=1600&q=80",
+      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1600&q=80",
+    ],
     "aman-essentials": [
       heroImage,
       "https://image-tc.galaxy.tf/wijpeg-1h8a7vg10icm5swuzifnpcgnh/spa-40.jpg",

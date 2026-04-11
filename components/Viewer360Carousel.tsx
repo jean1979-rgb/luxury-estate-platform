@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Viewer360 from "@/components/Viewer360";
-import Viewer360Planet from "@/components/Viewer360Planet";
 import VideoPlayer from "@/components/VideoPlayer";
 
 type Hotspot360 = {
@@ -85,7 +84,6 @@ export default function Viewer360Carousel({
 
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
   const [fullscreenSeed, setFullscreenSeed] = useState(0);
-  const [planetVisible, setPlanetVisible] = useState(true);
 
   const [isVideoFullscreenMounted, setIsVideoFullscreenMounted] = useState(false);
   const [isVideoFullscreenVisible, setIsVideoFullscreenVisible] = useState(false);
@@ -246,7 +244,6 @@ export default function Viewer360Carousel({
     const nextIndex = sceneIndexById.get(targetSceneId);
     if (typeof nextIndex === "number") {
       setFullscreenIndex(nextIndex);
-      setPlanetVisible(true);
       setFullscreenSeed((prev) => prev + 1);
     }
   }
@@ -270,7 +267,6 @@ export default function Viewer360Carousel({
 
     setFullscreenIndex(index);
     setFullscreenSeed((prev) => prev + 1);
-    setPlanetVisible(true);
     setIsFullscreenVisible(false);
     setIsFullscreenMounted(true);
   }
@@ -281,7 +277,6 @@ export default function Viewer360Carousel({
       setIsFullscreenMounted(false);
       setOriginRect(null);
       setViewport(null);
-      setPlanetVisible(true);
     }, 480);
   }
 
@@ -502,23 +497,7 @@ export default function Viewer360Carousel({
                 onHotspotClick={goToSceneFullscreen}
                 initialYaw={fullscreenCurrent.initialYaw || 0}
                 initialPitch={fullscreenViewerPitch}
-              />
-            </div>
-
-            <div
-              className={`absolute inset-0 transition-opacity duration-700 ${
-                planetVisible ? "opacity-100" : "opacity-0 pointer-events-none"
-              }`}
-            >
-              <Viewer360Planet
-                key={`${fullscreenCurrent.id}-planet-${fullscreenSeed}`}
-                image={fullscreenCurrent.image}
-                durationMs={3600}
-                targetYaw={fullscreenCurrent.initialYaw || 0}
-                targetPitch={fullscreenViewerPitch}
-                onComplete={() => {
-                  setPlanetVisible(false);
-                }}
+                introEnabled={true}
               />
             </div>
 

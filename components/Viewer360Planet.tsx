@@ -53,7 +53,7 @@ function shortestAngleDeltaDeg(from: number, to: number) {
 
 export default function Viewer360Planet({
   image,
-  durationMs = 3600,
+  durationMs = 2400,
   onComplete,
   targetYaw = 0,
   targetPitch = 0,
@@ -150,8 +150,17 @@ export default function Viewer360Planet({
           if (disposed) return;
 
           const rawT = clamp01((now - start) / durationMs);
-          const moveT = easeInOutCubic(rawT);
-          const fadeT = rawT > 0.94 ? easeOutQuint((rawT - 0.94) / 0.06) : 0;
+
+// Movimiento solo ocurre en la primera parte
+const MOVE_PORTION = 0.6;
+const moveProgress = clamp01(rawT / MOVE_PORTION);
+const moveT = easeInOutCubic(moveProgress);
+
+// Fade ocupa el final
+const FADE_START = 0.65;
+const fadeT = rawT > FADE_START
+  ? easeOutQuint((rawT - FADE_START) / (1 - FADE_START))
+  : 0;
 
           const yaw = startYaw + yawDelta * moveT;
           const pitch = startPitch + pitchDelta * moveT;
