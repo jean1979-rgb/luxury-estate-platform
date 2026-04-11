@@ -40,6 +40,7 @@ const FULLSCREEN_HANDOFF_PITCH = 12;
 function isHotspot(value: unknown): value is Hotspot360 {
   if (!value || typeof value !== "object") return false;
   const v = value as Record<string, unknown>;
+
   return (
     typeof v.id === "string" &&
     typeof v.pitch === "number" &&
@@ -83,7 +84,13 @@ export default function Viewer360Carousel({
   const [viewport, setViewport] = useState<ViewportState | null>(null);
 
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
-  const [fullscreenSeed, setFullscreenSeed] = useState(0);
+  
+const [fullscreenSeed, setFullscreenSeed] = useState(0);
+  const [fullscreenIntroEnabled, setFullscreenIntroEnabled] = useState(false);
+const [isFsTransitioning, setIsFsTransitioning] = useState(false);
+const [fsFade, setFsFade] = useState(false);
+const [pendingFsIndex, setPendingFsIndex] = useState<number | null>(null);
+
 
   const [isVideoFullscreenMounted, setIsVideoFullscreenMounted] = useState(false);
   const [isVideoFullscreenVisible, setIsVideoFullscreenVisible] = useState(false);
@@ -240,12 +247,27 @@ export default function Viewer360Carousel({
   }
 
   function goToSceneFullscreen(targetSceneId?: string) {
-    if (!targetSceneId) return;
+    if (!targetSceneId || isFsTransitioning) return;
+
     const nextIndex = sceneIndexById.get(targetSceneId);
-    if (typeof nextIndex === "number") {
+    if (typeof nextIndex !== "number") return;
+
+    setIsFsTransitioning(true);
+    setFsFade(true);
+
+    window.setTimeout(() => {
+      setFullscreenIntroEnabled(false);
       setFullscreenIndex(nextIndex);
       setFullscreenSeed((prev) => prev + 1);
-    }
+    }, 200);
+
+    window.setTimeout(() => {
+      setFsFade(false);
+    }, 260);
+
+    window.setTimeout(() => {
+      setIsFsTransitioning(false);
+    }, 520);
   }
 
   function openFullscreen() {
@@ -267,6 +289,7 @@ export default function Viewer360Carousel({
 
     setFullscreenIndex(index);
     setFullscreenSeed((prev) => prev + 1);
+    setFullscreenIntroEnabled(true);
     setIsFullscreenVisible(false);
     setIsFullscreenMounted(true);
   }
@@ -275,6 +298,7 @@ export default function Viewer360Carousel({
     setIsFullscreenVisible(false);
     window.setTimeout(() => {
       setIsFullscreenMounted(false);
+      setFullscreenIntroEnabled(false);
       setOriginRect(null);
       setViewport(null);
     }, 480);
@@ -494,16 +518,22 @@ export default function Viewer360Carousel({
                 key={`${fullscreenCurrent.id}-immersive-${fullscreenSeed}`}
                 image={fullscreenCurrent.image}
                 hotspots={visibleFullscreenHotspots}
-                onHotspotClick={goToSceneFullscreen}
+                onHotspotClick={isFsTransitioning ? undefined : goToSceneFullscreen}
                 initialYaw={fullscreenCurrent.initialYaw || 0}
                 initialPitch={fullscreenViewerPitch}
-                introEnabled={true}
+                introEnabled={fullscreenIntroEnabled}
               />
             </div>
 
             <div
               className={`pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.08)_48%,rgba(0,0,0,0.34)_100%)] transition-opacity duration-[1100ms] ${
                 isFullscreenVisible ? "opacity-100" : "opacity-0"
+              }`}
+            />
+
+            <div
+              className={`pointer-events-none absolute inset-0 bg-black transition-opacity duration-300 ${
+                fsFade ? "opacity-100" : "opacity-0"
               }`}
             />
           </div>

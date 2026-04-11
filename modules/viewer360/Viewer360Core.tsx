@@ -84,8 +84,8 @@ const SPHERE_RADIUS = 500;
 const HOTSPOT_RADIUS = 505;
 
 const INTRO_HOLD_MS = 300;
-const INTRO_MOVE_MS = 2200;
-const INTRO_VIEWER_LOCK_THRESHOLD = 0.80;
+const INTRO_MOVE_MS = 2600;
+const INTRO_VIEWER_LOCK_THRESHOLD = 0.985;
 const VIEWER_UNLOCK_DELAY_MS = 30;
 const VIEW_CHANGE_THRESHOLD_DEG = 0.05;
 const PLANET_YAW_OFFSET_DEG = -12;
@@ -423,10 +423,10 @@ export default function Viewer360Core({
   ) {
     runtime.interactionEnabled = false;
 
-    const startFov = 110;
-    const nearFov = 55;
+    const startFov = 98;
+    const nearFov = 82;
     const settleFov = endFov;
-    const durationMs = 1400;
+    const durationMs = 700;
     const start = performance.now();
 
     liveViewRef.current = {
@@ -887,8 +887,8 @@ export default function Viewer360Core({
 
     const END_YAW = -Math.PI / 2 - THREE.MathUtils.degToRad(introTarget.yaw + PLANET_YAW_OFFSET_DEG);
     const START_YAW = END_YAW + Math.PI;
-    const START_ZOOM = 11.5;
-    const END_ZOOM = 0.58;
+    const START_ZOOM = 8.2;
+    const END_ZOOM = 0.78;
     const START_TILT = THREE.MathUtils.degToRad(0.0);
     const END_TILT = THREE.MathUtils.degToRad(90 - introTarget.pitch);
 
@@ -924,7 +924,7 @@ export default function Viewer360Core({
         if (introEnabled) {
           currentRuntime.holdStart = performance.now();
           currentRuntime.mode = "planet-hold";
-          currentRuntime.interactionEnabled = false;
+          currentRuntime.interactionEnabled = !!interactiveRef.current;
         } else {
           const handoffRuntime = runtimeRef.current ?? currentRuntime;
               handoffRuntime.mode = "viewer";
@@ -1068,9 +1068,14 @@ renderViewer(
             pitch: introTarget.pitch,
             fov: introTarget.fov,
           };
+          targetViewRef.current = {
+            yaw: introTarget.yaw,
+            pitch: introTarget.pitch,
+            fov: introTarget.fov,
+          };
           currentRuntime.mode = "viewer";
-          currentRuntime.interactionEnabled = false;
-          currentRuntime.viewerUnlockAt = now + VIEWER_UNLOCK_DELAY_MS;
+          currentRuntime.interactionEnabled = !!interactiveRef.current;
+          currentRuntime.viewerUnlockAt = now + 900;
           emitView(true);
           renderViewer(currentRuntime, introTarget.yaw, introTarget.pitch, introTarget.fov);
           currentRuntime.frameId = window.requestAnimationFrame(animate);

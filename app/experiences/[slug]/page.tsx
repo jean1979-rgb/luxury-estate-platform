@@ -29,6 +29,13 @@ function resolveExperienceHero(item: {
 
 function getExperienceGallery(slug: string, heroImage: string) {
   const map: Record<string, string[]> = {
+    "aurora-sunset-social": [
+      heroImage,
+      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=80",
+      "https://images.unsplash.com/photo-1493558103817-58b2924bce98?auto=format&fit=crop&w=1600&q=80",
+      "https://images.unsplash.com/photo-1512100356356-de1b84283e18?auto=format&fit=crop&w=1600&q=80",
+    ],
+
     "sunset-yacht-escape": [
       heroImage,
       "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",

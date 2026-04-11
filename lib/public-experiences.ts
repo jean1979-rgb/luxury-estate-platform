@@ -10,6 +10,14 @@ export type PublicExperienceCard = {
 
 const FALLBACK: PublicExperienceCard[] = [
   {
+    title: "Aurora Sunset Social",
+    slug: "aurora-sunset-social",
+    eyebrow: "Acapulco · Sunset Culture",
+    text: "Cuando el sol comienza a caer sobre la bahía, Aurora cambia de ritmo. La luz, la música y la energía del lugar se alinean para crear un punto de encuentro donde el tiempo se desacelera.",
+    coverImage:
+      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=80",
+  },
+  {
     eyebrow: "Gastronomía",
     title: "Restaurantes que elevan el valor del destino",
     text: "El comprador no solo adquiere una propiedad. Compra el ecosistema culinario y social que lo rodea.",
@@ -35,6 +43,8 @@ const FALLBACK: PublicExperienceCard[] = [
 const EXACT_EXPERIENCE_IMAGES: Record<string, string> = {
   "sunset yacht escape":
     "https://image-tc.galaxy.tf/wijpeg-4vkjqkgb85o0alamyvada55wp/princess-2015-12.jpg",
+  "aurora sunset social":
+    "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=80",
   "restaurantes que elevan el valor del destino":
     "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1600&q=80",
   "hospitalidad privada como extensión del lujo":
@@ -117,6 +127,6 @@ export async function getPublicExperiences(): Promise<PublicExperienceCard[]> {
 
     return mergeExperiences(mapped);
   } catch {
-    return FALLBACK;
+    return FALLBACK.map(withExperienceImage);
   }
 }
