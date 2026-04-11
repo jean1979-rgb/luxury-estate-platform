@@ -84,12 +84,9 @@ export default function Viewer360Carousel({
   const [viewport, setViewport] = useState<ViewportState | null>(null);
 
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
-  
-const [fullscreenSeed, setFullscreenSeed] = useState(0);
+  const [fullscreenSeed, setFullscreenSeed] = useState(0);
   const [fullscreenIntroEnabled, setFullscreenIntroEnabled] = useState(false);
-const [isFsTransitioning, setIsFsTransitioning] = useState(false);
-const [fsFade, setFsFade] = useState(false);
-const [pendingFsIndex, setPendingFsIndex] = useState<number | null>(null);
+  const [isFsTransitioning, setIsFsTransitioning] = useState(false);
 
 
   const [isVideoFullscreenMounted, setIsVideoFullscreenMounted] = useState(false);
@@ -253,17 +250,12 @@ const [pendingFsIndex, setPendingFsIndex] = useState<number | null>(null);
     if (typeof nextIndex !== "number") return;
 
     setIsFsTransitioning(true);
-    setFsFade(true);
 
     window.setTimeout(() => {
       setFullscreenIntroEnabled(false);
       setFullscreenIndex(nextIndex);
       setFullscreenSeed((prev) => prev + 1);
     }, 200);
-
-    window.setTimeout(() => {
-      setFsFade(false);
-    }, 260);
 
     window.setTimeout(() => {
       setIsFsTransitioning(false);
@@ -531,12 +523,7 @@ const [pendingFsIndex, setPendingFsIndex] = useState<number | null>(null);
               }`}
             />
 
-            <div
-              className={`pointer-events-none absolute inset-0 bg-black transition-opacity duration-300 ${
-                fsFade ? "opacity-100" : "opacity-0"
-              }`}
-            />
-          </div>
+                      </div>
 
           <button
             type="button"

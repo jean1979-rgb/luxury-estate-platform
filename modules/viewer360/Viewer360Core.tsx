@@ -415,64 +415,6 @@ export default function Viewer360Core({
     runtime.renderer.render(runtime.perspectiveScene, runtime.perspectiveCamera);
   }
 
-  function animateViewerZoom(
-    runtime: RuntimeState,
-    yaw: number,
-    pitch: number,
-    endFov: number
-  ) {
-    runtime.interactionEnabled = false;
-
-    const startFov = 98;
-    const nearFov = 82;
-    const settleFov = endFov;
-    const durationMs = 700;
-    const start = performance.now();
-
-    liveViewRef.current = {
-      yaw,
-      pitch,
-      fov: startFov,
-    };
-
-    const step = (now: number) => {
-      const currentRuntime = runtimeRef.current;
-      if (!currentRuntime || currentRuntime.disposed) return;
-
-      const t = Math.min((now - start) / durationMs, 1);
-
-      let fov: number;
-      if (t < 0.62) {
-        const a = t / 0.62;
-        fov = startFov + (nearFov - startFov) * a;
-      } else {
-        const b = (t - 0.62) / 0.38;
-        fov = nearFov + (settleFov - nearFov) * b;
-      }
-
-      liveViewRef.current = {
-        yaw,
-        pitch,
-        fov,
-      };
-
-      renderViewer(currentRuntime, yaw, pitch, fov);
-
-      if (t < 1) {
-        currentRuntime.frameId = window.requestAnimationFrame(step);
-      } else {
-        liveViewRef.current = {
-          yaw,
-          pitch,
-          fov: settleFov,
-        };
-        renderViewer(currentRuntime, yaw, pitch, settleFov);
-        currentRuntime.interactionEnabled = !!interactiveRef.current;
-      }
-    };
-
-    runtime.frameId = window.requestAnimationFrame(step);
-  }
 
   function clearHotspots(runtime: RuntimeState) {
     runtime.hotspotMeshes.forEach((mesh) => {
@@ -924,106 +866,28 @@ export default function Viewer360Core({
         if (introEnabled) {
           currentRuntime.holdStart = performance.now();
           currentRuntime.mode = "planet-hold";
-          currentRuntime.interactionEnabled = !!interactiveRef.current;
+          currentRuntime.interactionEnabled = false;
         } else {
           const handoffRuntime = runtimeRef.current ?? currentRuntime;
-              handoffRuntime.mode = "viewer";
-              handoffRuntime.interactionEnabled = !!interactiveRef.current;
-              liveViewRef.current = { yaw: introTarget.yaw, pitch: introTarget.pitch, fov: 95 };
-              targetViewRef.current = { yaw: introTarget.yaw, pitch: introTarget.pitch, fov: 65 };
-              uniforms.uOpacity.value = 0.0;
-              emitView(true);
-
-
-              // 🔥 ZOOM REAL DESPUÉS DEL HANDOFF
-              if (introEnabled) {
-                const runtimeNow = runtimeRef.current;
-                if (!runtimeNow) return;
-
-                runtimeNow.interactionEnabled = false;
-
-                let startTime = performance.now();
-                const DURATION = 1200;
-
-                const START_FOV = 110;
-                const MID_FOV = 55;
-                const END_FOV = 70;
-
-                liveViewRef.current.fov = START_FOV;
-
-                const animate = (now: number) => {
-                  const t = Math.min((now - startTime) / DURATION, 1);
-
-                  // easing suave
-                  const ease = t < 0.5
-                    ? 4 * t * t * t
-                    : 1 - Math.pow(-2 * t + 2, 3) / 2;
-
-                  let fov;
-
-                  if (t < 0.6) {
-                    const tt = t / 0.6;
-                    fov = START_FOV + (MID_FOV - START_FOV) * tt;
-                  } else {
-                    const tt = (t - 0.6) / 0.4;
-                    fov = MID_FOV + (END_FOV - MID_FOV) * tt;
-                  }
-
-                  liveViewRef.current.fov = fov;
-
-                  renderViewer(
-                    runtimeNow,
-                    introTarget.yaw,
-                    introTarget.pitch,
-                    fov
-                  );
-
-                  if (t < 1) {
-                    requestAnimationFrame(animate);
-                  } else {
-                    runtimeNow.interactionEnabled = true;
-                  }
-                };
-
-                requestAnimationFrame(animate);
-              }
-
-renderViewer(
-                handoffRuntime,
-                introTarget.yaw,
-                introTarget.pitch,
-                introTarget.fov
-              );
-              requestAnimationFrame(() => {
-                const currentRuntime = runtimeRef.current;
-                if (!currentRuntime || currentRuntime.disposed) return;
-                currentRuntime.uniforms.uOpacity.value = 1.0;
-                renderViewer(
-                  currentRuntime,
-                  introTarget.yaw,
-                  introTarget.pitch,
-                  introTarget.fov
-                );
-              });
-              requestAnimationFrame(() => {
-                const currentRuntime = runtimeRef.current;
-                if (!currentRuntime || currentRuntime.disposed) return;
-                currentRuntime.uniforms.uOpacity.value = 1.0;
-                renderViewer(
-                  currentRuntime,
-                  introTarget.yaw,
-                  introTarget.pitch,
-                  introTarget.fov
-                );
-              });
-          currentRuntime.interactionEnabled = !!interactiveRef.current;
+          handoffRuntime.mode = "viewer";
+          handoffRuntime.interactionEnabled = !!interactiveRef.current;
           liveViewRef.current = {
             yaw: introTarget.yaw,
             pitch: introTarget.pitch,
             fov: introTarget.fov,
           };
+          targetViewRef.current = {
+            yaw: introTarget.yaw,
+            pitch: introTarget.pitch,
+            fov: introTarget.fov,
+          };
           emitView(true);
-          renderViewer(currentRuntime, introTarget.yaw, introTarget.pitch, introTarget.fov);
+          renderViewer(
+            handoffRuntime,
+            introTarget.yaw,
+            introTarget.pitch,
+            introTarget.fov
+          );
         }
       },
       undefined,
@@ -1074,10 +938,15 @@ renderViewer(
             fov: introTarget.fov,
           };
           currentRuntime.mode = "viewer";
-          currentRuntime.interactionEnabled = !!interactiveRef.current;
+          currentRuntime.interactionEnabled = false;
           currentRuntime.viewerUnlockAt = now + 900;
           emitView(true);
-          renderViewer(currentRuntime, introTarget.yaw, introTarget.pitch, introTarget.fov);
+          renderViewer(
+            currentRuntime,
+            introTarget.yaw,
+            introTarget.pitch,
+            introTarget.fov
+          );
           currentRuntime.frameId = window.requestAnimationFrame(animate);
           return;
         }
