@@ -260,7 +260,7 @@ export default async function PublicDestinationPage({
 
             {destination.partners.length > 0 ? (
               <div className="mt-8 space-y-6">
-                {destination.partners.map(({ id, partner }) => (
+                {destination.partners.map(({ id, partner }: any) => (
                   <article key={id} className="border-b border-white/10 pb-6 last:border-b-0 last:pb-0">
                     <p className="text-[10px] uppercase tracking-[0.32em] text-white/35">
                       {partner.category || "Luxury Partner"}
