@@ -209,7 +209,7 @@ export default async function PublicDestinationPage({
           {destination.lifestylePillars.length > 0 || fallbackPillars.length > 0 ? (
             <div className="mt-10 grid gap-10 md:grid-cols-2 xl:grid-cols-3">
               {(destination.lifestylePillars.length > 0
-                ? destination.lifestylePillars.map((pillar) => ({
+                ? destination.lifestylePillars.map((pillar: any) => ({
                     id: pillar.id,
                     title: pillar.title,
                     body: pillar.body || "Lifestyle pillar ready for editorial copy.",
@@ -218,7 +218,7 @@ export default async function PublicDestinationPage({
                     id: `fallback-pillar-${index}`,
                     title: pillar.title,
                     body: pillar.body,
-                  }))).map((pillar) => (
+                  }))).map((pillar: any) => (
                 <article
                   key={pillar.id}
                   className="group relative overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.04] p-8 transition hover:bg-white/[0.06]"
