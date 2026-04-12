@@ -38,6 +38,8 @@ model BrokerProfile {
 }
 
 model BrokerProperty {
+  zoneSlug   String?
+  zoneLabel  String?
   id                String             @id @default(cuid())
   ownerBrokerId     String
   title             String
@@ -73,6 +75,7 @@ model BrokerProperty {
   @@unique([ownerBrokerId, slug])
   @@index([ownerBrokerId])
 }
+
 
 model PropertyScene360 {
   id           String   @id @default(cuid())

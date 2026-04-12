@@ -85,6 +85,8 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
   const price = isTokko ? existing.price ?? "" : asTrimmedString(body.price);
   const currency = asTrimmedString(body.currency ?? existing.currency ?? "MXN") || "MXN";
   const coverImage = asTrimmedString(body.coverImage);
+  const zoneSlug = asTrimmedString(body.zoneSlug);
+  const zoneLabel = asTrimmedString(body.zoneLabel);
 
   const bedrooms = isTokko ? existing.bedrooms : asOptionalInt(body.bedrooms);
   const bathrooms = isTokko ? existing.bathrooms : asOptionalInt(body.bathrooms);
@@ -132,6 +134,8 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
       propertyType: propertyType || null,
       city: ctx.profile.city,
       location: location || null,
+      zoneSlug: zoneSlug || null,
+      zoneLabel: zoneLabel || null,
       price: price || null,
       currency,
       bedrooms,

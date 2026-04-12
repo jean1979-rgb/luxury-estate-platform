@@ -71,6 +71,8 @@ export async function PATCH(req: Request, context: RouteContext) {
       status: hydrated.status === "published" ? "published" : hydrated.status === "archived" ? "archived" : "draft",
       propertyType: hydrated.propertyType || "villa",
       location: hydrated.location || "",
+      zoneSlug: hydrated.zoneSlug || "",
+      zoneLabel: hydrated.zoneLabel || "",
       price: hydrated.price || "",
       currency: hydrated.currency || "MXN",
       bedrooms: hydrated.bedrooms ?? 0,

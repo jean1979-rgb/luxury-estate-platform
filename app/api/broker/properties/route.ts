@@ -37,6 +37,8 @@ export async function GET() {
       | "condo"
       | "land",
     location: item.location || "",
+    zoneSlug: item.zoneSlug || "",
+    zoneLabel: item.zoneLabel || "",
     price: item.price || "",
     currency: item.currency || "MXN",
     bedrooms: item.bedrooms ?? 0,
@@ -130,6 +132,8 @@ export async function POST(req: Request) {
           propertyType: body.propertyType ? String(body.propertyType).trim() : null,
           city: body.location ? String(body.location).trim() : "",
           location: body.location ? String(body.location).trim() : null,
+          zoneSlug: body.zoneSlug ? String(body.zoneSlug).trim() : null,
+          zoneLabel: body.zoneLabel ? String(body.zoneLabel).trim() : null,
           price: body.price ? String(body.price).trim() : null,
           currency: String(body.currency || "MXN").trim() || "MXN",
           bedrooms:
@@ -182,6 +186,8 @@ export async function POST(req: Request) {
       status: updated.status,
       propertyType: updated.propertyType || "villa",
       location: updated.location || "",
+      zoneSlug: updated.zoneSlug || "",
+      zoneLabel: updated.zoneLabel || "",
       price: updated.price || "",
       currency: updated.currency || "MXN",
       bedrooms: updated.bedrooms ?? 0,
