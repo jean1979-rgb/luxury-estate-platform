@@ -201,7 +201,7 @@ const { handleUpload } = useAdminUploads({
   });
 
   const selectedRecord = useMemo(() => {
-    const found = items.find((item) => item.id === selectedId);
+    const found = items.find((item: any) => item.id === selectedId);
     return found || null;
   }, [items, selectedId]);
 
@@ -415,7 +415,7 @@ const { handleUpload } = useAdminUploads({
               </div>
             ) : (
               <div className="space-y-3">
-                {items.map((item) => {
+                {items.map((item: any) => {
                   const active = item.id === selectedId;
 
                   return (
@@ -628,14 +628,14 @@ const { handleUpload } = useAdminUploads({
     value={form.zoneSlug || ""}
     onChange={(e) => {
       const nextSlug = e.target.value;
-      const match = SALE_ZONES.find((item) => item.slug === nextSlug);
+      const match = SALE_ZONES.find((item: any) => item.slug === nextSlug);
       handleChange("zoneSlug", nextSlug);
       handleChange("zoneLabel", match?.label || "");
     }}
     className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white"
   >
     <option value="">Sin colección</option>
-    {SALE_ZONES.map((item) => (
+    {SALE_ZONES.map((item: any) => (
       <option key={item.slug} value={item.slug}>
         {item.label}
       </option>

@@ -43,7 +43,7 @@ export default function PublicNavigationPage() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {ITEMS.map((item) => (
+          {ITEMS.map((item: any) => (
             <Link
               key={item.href}
               href={item.href}

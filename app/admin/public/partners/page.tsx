@@ -29,7 +29,7 @@ export default function Page() {
         <div className="text-white/60">No partners yet.</div>
       ) : (
         <div className="space-y-3">
-          {items.map((item) => (
+          {items.map((item: any) => (
             <Link
               key={item.id}
               href={`/admin/public/partners/${item.id}`}

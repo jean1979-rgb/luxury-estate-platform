@@ -98,7 +98,7 @@ export default function AdminBrokersPage() {
           item.brokerProfile?.businessName ?? "",
           item.brokerProfile?.city ?? "",
           item.brokerProfile?.slug ?? "",
-        ].some((v) => v.toLowerCase().includes(q));
+        ].some((v: any) => v.toLowerCase().includes(q));
 
       const matchesStatus =
         statusFilter === "ALL" ? true : item.status === statusFilter;
@@ -175,7 +175,7 @@ export default function AdminBrokersPage() {
           />
 
           <div className="flex flex-wrap gap-2">
-            {(["ALL", "ACTIVE", "PENDING", "SUSPENDED"] as const).map((value) => (
+            {(["ALL", "ACTIVE", "PENDING", "SUSPENDED"] as const).map((value: any) => (
               <button
                 key={value}
                 type="button"
@@ -222,7 +222,7 @@ export default function AdminBrokersPage() {
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((item) => (
+                    filtered.map((item: any) => (
                       <tr key={item.id} className="border-b border-white/6 last:border-b-0">
                         <td className="px-4 py-4 align-top">
                           <div className="font-medium text-white">

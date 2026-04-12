@@ -87,7 +87,7 @@ export default function PublicPublishingPage() {
     }
 
     setDestinations((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, status } : item))
+      prev.map((item: any) => (item.id === id ? { ...item, status } : item))
     );
     setBusyKey(null);
     setMessage("Publishing actualizado");
@@ -111,7 +111,7 @@ export default function PublicPublishingPage() {
     }
 
     setPartners((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, ...patch } : item))
+      prev.map((item: any) => (item.id === id ? { ...item, ...patch } : item))
     );
     setBusyKey(null);
     setMessage("Partner actualizado");
@@ -135,7 +135,7 @@ export default function PublicPublishingPage() {
     }
 
     setExperiences((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, ...patch } : item))
+      prev.map((item: any) => (item.id === id ? { ...item, ...patch } : item))
     );
     setBusyKey(null);
     setMessage("Experience actualizado");
@@ -222,7 +222,7 @@ export default function PublicPublishingPage() {
             </div>
           ) : (
             <div className="grid gap-4">
-              {destinations.map((item) => {
+              {destinations.map((item: any) => {
                 const busy = busyKey === `destination-status-${item.id}`;
                 const title = item.name || item.slug || item.id;
 
@@ -293,7 +293,7 @@ export default function PublicPublishingPage() {
             </div>
           ) : (
             <div className="grid gap-4">
-              {partners.map((item) => {
+              {partners.map((item: any) => {
                 const busy = busyKey === `partner-${item.id}`;
                 const title = item.name || item.slug || item.id;
 
@@ -356,7 +356,7 @@ export default function PublicPublishingPage() {
             </div>
           ) : (
             <div className="grid gap-4">
-              {experiences.map((item) => {
+              {experiences.map((item: any) => {
                 const busy = busyKey === `experience-${item.id}`;
                 const title = item.name || item.slug || item.id;
 
