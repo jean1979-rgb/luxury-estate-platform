@@ -63,10 +63,10 @@ function DestinationsPageContent() {
   }, []);
 
   const filtered = useMemo(() => {
-    return items.filter((item) => {
+    return items.filter((item: any) => {
       if (!propertyId) return true;
       if (!item.featuredProperties?.length) return false;
-      return item.featuredProperties.some((p) => p.propertyId === propertyId);
+      return item.featuredProperties.some((p: any) => p.propertyId === propertyId);
     });
   }, [items, propertyId]);
 
