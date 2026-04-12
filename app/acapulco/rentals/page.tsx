@@ -55,7 +55,7 @@ export default async function AcapulcoRentalsPage({
     : null;
 
   const filtered = activeZone
-    ? properties.filter((item) => item.zone === activeZone)
+    ? properties.filter((item: any) => item.zone === activeZone)
     : [];
 
   return (

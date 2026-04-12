@@ -75,17 +75,17 @@ type RelatedProperty = {
 };
 
 function getRelatedResidences(slug: string, properties: RelatedProperty[]) {
-  const acapulco = properties.filter((item) => typeof item.location === "string");
+  const acapulco = properties.filter((item: any) => typeof item.location === "string");
 
   if (slug === "aurora-bay-house") {
     const ranked = [
-      ...acapulco.filter((item) =>
+      ...acapulco.filter((item: any) =>
         (item.location || "").toLowerCase().includes("diamante")
       ),
-      ...acapulco.filter((item) =>
+      ...acapulco.filter((item: any) =>
         (item.location || "").toLowerCase().includes("brisas")
       ),
-      ...acapulco.filter((item) =>
+      ...acapulco.filter((item: any) =>
         (item.location || "").toLowerCase().includes("playa")
       ),
       ...acapulco,
@@ -93,7 +93,7 @@ function getRelatedResidences(slug: string, properties: RelatedProperty[]) {
 
     const seen = new Set<string>();
     return ranked
-      .filter((item) => {
+      .filter((item: any) => {
         if (!item.id || seen.has(item.id)) return false;
         seen.add(item.id);
         return true;

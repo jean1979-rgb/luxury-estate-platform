@@ -75,10 +75,10 @@ export default function AdminBrokersPage() {
 
   const metrics = useMemo(() => {
     const total = items.length;
-    const active = items.filter((item) => item.status === "ACTIVE").length;
-    const pending = items.filter((item) => item.status === "PENDING").length;
-    const publishEnabled = items.filter((item) => item.brokerProfile?.canPublish).length;
-    const tokkoEnabled = items.filter((item) => item.brokerProfile?.tokkoEnabled).length;
+    const active = items.filter((item: any) => item.status === "ACTIVE").length;
+    const pending = items.filter((item: any) => item.status === "PENDING").length;
+    const publishEnabled = items.filter((item: any) => item.brokerProfile?.canPublish).length;
+    const tokkoEnabled = items.filter((item: any) => item.brokerProfile?.tokkoEnabled).length;
     const properties = items.reduce((sum, item) => sum + (item.propertyCount ?? 0), 0);
 
     return { total, active, pending, publishEnabled, tokkoEnabled, properties };
@@ -87,7 +87,7 @@ export default function AdminBrokersPage() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
-    return items.filter((item) => {
+    return items.filter((item: any) => {
       const matchesQuery =
         !q ||
         [

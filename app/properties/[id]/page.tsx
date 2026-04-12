@@ -94,7 +94,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       : property.gallery;
 
     gallery = Array.isArray(parsed) && parsed.length > 0
-      ? parsed.filter((image): image is string => typeof image === "string" && image.trim().length > 0)
+      ? parsed.filter((image: any): image is string => typeof image === "string" && image.trim().length > 0)
       : safeCoverImage
         ? [safeCoverImage]
         : [];

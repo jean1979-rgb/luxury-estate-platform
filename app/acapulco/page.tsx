@@ -59,7 +59,7 @@ export default async function AcapulcoPage({
     : null;
 
   const filtered = activeZone
-    ? properties.filter((item) => item.zone === activeZone)
+    ? properties.filter((item: any) => item.zone === activeZone)
     : [];
 
   return (

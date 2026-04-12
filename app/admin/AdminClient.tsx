@@ -64,7 +64,7 @@ function normalizeAdminForm(value: Partial<AdminPropertyInput> | null | undefine
     areaTotal: raw.areaTotal ?? "",
     tagline: raw.tagline ?? "",
     coverImage: raw.coverImage ?? "",
-    gallery: Array.isArray(raw.gallery) ? raw.gallery.filter((item): item is string => typeof item === "string") : [],
+    gallery: Array.isArray(raw.gallery) ? raw.gallery.filter((item: any): item is string => typeof item === "string") : [],
     videoUrl: raw.videoUrl ?? "",
     videoPoster: raw.videoPoster ?? "",
     videoType: raw.videoType ?? "upload",
@@ -256,7 +256,7 @@ const { handleUpload } = useAdminUploads({
   function removeGalleryImage(index: number) {
     setForm((prev) => ({
       ...prev,
-      gallery: prev.gallery.filter((_, i) => i !== index),
+      gallery: prev.gallery.filter((_, i: any) => i !== index),
     }));
   }
 

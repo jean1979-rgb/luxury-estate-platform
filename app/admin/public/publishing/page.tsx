@@ -63,9 +63,9 @@ export default function PublicPublishingPage() {
 
   const counts = useMemo(() => {
     return {
-      publishedDestinations: destinations.filter((item) => item.status === "published").length,
-      visiblePartners: partners.filter((item) => item.isVisible).length,
-      visibleExperiences: experiences.filter((item) => item.isVisible).length,
+      publishedDestinations: destinations.filter((item: any) => item.status === "published").length,
+      visiblePartners: partners.filter((item: any) => item.isVisible).length,
+      visibleExperiences: experiences.filter((item: any) => item.isVisible).length,
     };
   }, [destinations, partners, experiences]);
 

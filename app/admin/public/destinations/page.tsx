@@ -139,7 +139,7 @@ function DestinationsPageContent() {
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((item) => (
+                    filtered.map((item: any) => (
                       <tr key={item.id} className="border-b border-white/6 last:border-b-0">
                         <td className="px-4 py-4 align-top">
                           <div className="font-medium text-white">{item.name}</div>

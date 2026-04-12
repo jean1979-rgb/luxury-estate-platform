@@ -47,12 +47,12 @@ export default function DestinationsClient() {
       ) : (
         <div className="space-y-3">
           {items
-            .filter((item) => {
+            .filter((item: any) => {
               if (!propertyId) return true;
               if (!item.featuredProperties) return false;
-              return item.featuredProperties.some((p) => p.propertyId === propertyId);
+              return item.featuredProperties.some((p: any) => p.propertyId === propertyId);
             })
-            .map((item) => (
+            .map((item: any) => (
               <Link
                 key={item.id}
                 href={`/admin/public/destinations/${item.id}`}
