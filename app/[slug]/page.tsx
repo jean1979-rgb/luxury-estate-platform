@@ -311,7 +311,7 @@ export default async function PublicDestinationPage({
                       category: experience.category,
                       name: experience.name,
                       text: experience.text,
-                    }))).map((experience) => (
+                    }))).map((experience: any) => (
                   <article key={experience.id} className="border-b border-white/10 pb-6 last:border-b-0 last:pb-0">
                     <p className="text-[10px] uppercase tracking-[0.32em] text-white/35">
                       {experience.category}
