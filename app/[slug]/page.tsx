@@ -89,7 +89,7 @@ export default async function PublicDestinationPage({
   const allProperties = await getCasaDePlayaProperties();
 
   const properties = destination.featuredProperties
-    .map((fp: any) => allProperties.find((p) => p.id === fp.propertyId))
+    .map((fp: any) => allProperties.find((p: any) => p.id === fp.propertyId))
     .filter((item: any): item is NonNullable<typeof item> => Boolean(item))
     .slice(0, 6);
 
@@ -348,7 +348,7 @@ export default async function PublicDestinationPage({
 
           {properties.length > 0 ? (
             <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {properties.map((p) => (
+              {properties.map((p: any) => (
                 <Link
                   key={p.id}
                   href={`/properties/${p.id}`}
