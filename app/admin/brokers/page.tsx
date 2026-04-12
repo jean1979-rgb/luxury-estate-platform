@@ -79,7 +79,7 @@ export default function AdminBrokersPage() {
     const pending = items.filter((item: any) => item.status === "PENDING").length;
     const publishEnabled = items.filter((item: any) => item.brokerProfile?.canPublish).length;
     const tokkoEnabled = items.filter((item: any) => item.brokerProfile?.tokkoEnabled).length;
-    const properties = items.reduce((sum, item) => sum + (item.propertyCount ?? 0), 0);
+    const properties = items.reduce((sum: any, item: any) => sum + (item.propertyCount ?? 0), 0);
 
     return { total, active, pending, publishEnabled, tokkoEnabled, properties };
   }, [items]);

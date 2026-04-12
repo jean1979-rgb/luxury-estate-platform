@@ -33,7 +33,7 @@ const COLLECTIONS: Array<{
   description: string;
   href: string;
   image: string;
-}> = ACAPULCO_RENTALS_PAGE_COPY.collections.map((item) => ({
+}> = ACAPULCO_RENTALS_PAGE_COPY.collections.map((item: any) => ({
   zone: item.zone as PropertyZone,
   title: item.title,
   description: item.description,
@@ -50,7 +50,7 @@ export default async function AcapulcoRentalsPage({
   const params = (await searchParams) ?? {};
   const requestedZone = String(params.zone || "").trim();
 
-  const activeZone = COLLECTIONS.some((item) => item.zone === requestedZone)
+  const activeZone = COLLECTIONS.some((item: any) => item.zone === requestedZone)
     ? (requestedZone as PropertyZone)
     : null;
 
@@ -136,7 +136,7 @@ export default async function AcapulcoRentalsPage({
             </div>
 
             <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {COLLECTIONS.map((item) => (
+              {COLLECTIONS.map((item: any) => (
                 <Link
                   key={item.zone}
                   href={item.href}
@@ -199,7 +199,7 @@ export default async function AcapulcoRentalsPage({
 
             {filtered.length > 0 ? (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {filtered.map((p) => (
+                {filtered.map((p: any) => (
                   <PropertyCard
                     key={p.id}
                     id={p.id}

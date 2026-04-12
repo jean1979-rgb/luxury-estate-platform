@@ -125,14 +125,14 @@ export default async function PropertyDetailPage({ params }: PageProps) {
 
 
   if (prismaScenes.length > 0) {
-    scenes360 = prismaScenes.map((scene) => ({
+    scenes360 = prismaScenes.map((scene: any) => ({
       id: scene.id,
       title: scene.title,
       image: scene.image,
       thumbnail: scene.thumbnail ?? undefined,
       initialYaw: scene.initialYaw ?? 0,
       initialPitch: scene.initialPitch ?? 0,
-      hotspots: scene.hotspots.map((h) => ({
+      hotspots: scene.hotspots.map((h: any) => ({
         id: h.id,
         pitch: h.pitch,
         yaw: h.yaw,
@@ -231,7 +231,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         </div>
 
         <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-          {experiences.slice(0,3).map((item) => (
+          {experiences.slice(0,3).map((item: any) => (
             <Link
               key={item.slug || item.title}
               href={`/experiences/${item.slug}`}
@@ -253,7 +253,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         </div>
 
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
-          {luxuryPartners.slice(0,3).map((partner) => (
+          {luxuryPartners.slice(0,3).map((partner: any) => (
             <Link
               key={partner.slug}
               href={`/partners/${partner.slug}`}

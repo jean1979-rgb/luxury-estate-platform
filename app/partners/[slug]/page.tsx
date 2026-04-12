@@ -345,7 +345,7 @@ export default async function PartnerDetailPage({
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
-            {relatedResidences.map((item) => (
+            {relatedResidences.map((item: any) => (
               <Link
                 key={item.id}
                 href={`/properties/${item.id}`}

@@ -35,7 +35,7 @@ const COLLECTIONS: Array<{
   description: string;
   href: string;
   image: string;
-}> = ACAPULCO_SALE_PAGE_COPY.collections.map((item) => ({
+}> = ACAPULCO_SALE_PAGE_COPY.collections.map((item: any) => ({
   zone: item.zone as PropertyZone,
   title: item.title,
   description: item.description,
@@ -54,7 +54,7 @@ export default async function AcapulcoPage({
   const params = (await searchParams) ?? {};
   const requestedZone = String(params.zone || "").trim();
 
-  const activeZone = COLLECTIONS.some((item) => item.zone === requestedZone)
+  const activeZone = COLLECTIONS.some((item: any) => item.zone === requestedZone)
     ? (requestedZone as PropertyZone)
     : null;
 
@@ -147,7 +147,7 @@ export default async function AcapulcoPage({
             </div>
 
             <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {COLLECTIONS.map((item) => (
+              {COLLECTIONS.map((item: any) => (
                 <Link
                   key={item.zone}
                   href={item.href}
@@ -196,7 +196,7 @@ export default async function AcapulcoPage({
             </div>
 
             <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-              {experiences.slice(0, 3).map((item) => (
+              {experiences.slice(0, 3).map((item: any) => (
                 <Link
                   key={item.slug || item.title}
                   href={`/experiences/${item.slug || item.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
@@ -246,7 +246,7 @@ export default async function AcapulcoPage({
             </div>
 
             <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-              {luxuryPartners.slice(0, 3).map((partner) => (
+              {luxuryPartners.slice(0, 3).map((partner: any) => (
                 <Link
                   key={partner.slug || partner.name}
                   href={`/partners/${partner.slug || partner.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`}
@@ -311,7 +311,7 @@ export default async function AcapulcoPage({
 
             {filtered.length > 0 ? (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {filtered.map((p) => (
+                {filtered.map((p: any) => (
                   <PropertyCard
                     key={p.id}
                     id={p.id}

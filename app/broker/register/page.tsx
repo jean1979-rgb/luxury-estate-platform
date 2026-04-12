@@ -49,7 +49,7 @@ export default function BrokerRegisterPage() {
         {error && <div className="text-red-400 text-sm">{error}</div>}
         {message && <div className="text-green-400 text-sm">{message}</div>}
 
-        {["name","email","password","businessName","city","phone"].map((field) => (
+        {["name","email","password","businessName","city","phone"].map((field: any) => (
           <input
             key={field}
             type={field === "password" ? "password" : "text"}

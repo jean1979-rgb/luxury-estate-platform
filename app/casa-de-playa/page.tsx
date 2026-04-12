@@ -23,7 +23,7 @@ export default async function CasaDePlayaPage() {
         </p>
 
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
-          {properties.map((p) => (
+          {properties.map((p: any) => (
             <PropertyCard
               key={p.id}
               id={p.id}

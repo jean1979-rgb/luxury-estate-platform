@@ -153,7 +153,7 @@ export default async function HomePage() {
           </div>
 
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {destinations.map((item) => (
+            {destinations.map((item: any) => (
               <Link
                 key={item.name}
                 href={item.href}
@@ -259,7 +259,7 @@ export default async function HomePage() {
           </div>
 
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {luxuryPartners.map((partner) => (
+            {luxuryPartners.map((partner: any) => (
               <Link
                 key={partner.name}
                 href={`/partners/${partner.slug || partner.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`}
@@ -314,7 +314,7 @@ export default async function HomePage() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-3">
-            {experiences.map((item) => (
+            {experiences.map((item: any) => (
               <Link
                 key={item.slug || item.title}
                 href={`/experiences/${item.slug || item.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
