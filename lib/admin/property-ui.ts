@@ -34,6 +34,8 @@ export function applyPropertyResult(params: {
       status: saved.status,
       propertyType: saved.propertyType,
       location: saved.location,
+      zoneSlug: saved.zoneSlug || "",
+      zoneLabel: saved.zoneLabel || "",
       price: saved.price,
       currency: saved.currency,
       bedrooms: saved.bedrooms,

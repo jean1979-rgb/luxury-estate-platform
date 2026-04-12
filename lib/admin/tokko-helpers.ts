@@ -36,6 +36,8 @@ export function mapTokkoToAdminProperty(item: TokkoAdminItem): AdminPropertyInpu
     status: "draft",
     propertyType: "residence",
     location: item.base?.locationLabel || "",
+    zoneSlug: "",
+    zoneLabel: "",
     price: item.base?.price != null ? String(item.base.price) : "",
     currency: item.base?.currency || "MXN",
     bedrooms: 0,

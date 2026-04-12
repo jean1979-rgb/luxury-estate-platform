@@ -51,6 +51,8 @@ export type AdminPropertyRecord = {
   status: AdminPropertyStatus;
   propertyType: AdminPropertyType;
   location: string;
+  zoneSlug: string;
+  zoneLabel: string;
   price: string;
   currency: string;
   bedrooms: number;
@@ -82,6 +84,8 @@ export const EMPTY_ADMIN_PROPERTY: AdminPropertyInput = {
   status: "draft",
   propertyType: "villa",
   location: "",
+  zoneSlug: "",
+  zoneLabel: "",
   price: "",
   currency: "MXN",
   bedrooms: 0,

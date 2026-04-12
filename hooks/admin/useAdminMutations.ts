@@ -54,7 +54,11 @@ export function useAdminMutations({
 
       setItems(() => json.items || []);
       setSelectedId("new");
-      setForm(EMPTY_ADMIN_PROPERTY);
+      setForm({
+        ...EMPTY_ADMIN_PROPERTY,
+        zoneSlug: "",
+        zoneLabel: "",
+      });
 
       setMessage("Propiedad eliminada correctamente");
     } catch (err) {

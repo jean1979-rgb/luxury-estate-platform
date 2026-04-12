@@ -31,6 +31,8 @@ export function buildPropertyPayload({
   return {
     ...form,
     slug: slugify(form.slug || form.title || form.id || "propiedad"),
+    zoneSlug: String(form.zoneSlug || "").trim(),
+    zoneLabel: String(form.zoneLabel || "").trim(),
     scenes360: scenes.map((scene, index) => ({
       ...scene,
       id: scene.id ? slugify(scene.id) : `scene-${index + 1}`,

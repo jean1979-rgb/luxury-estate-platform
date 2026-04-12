@@ -57,6 +57,8 @@ export function useAdminBootstrap({
           status: first.status,
           propertyType: first.propertyType,
           location: first.location,
+          zoneSlug: first.zoneSlug || "",
+          zoneLabel: first.zoneLabel || "",
           price: first.price,
           currency: first.currency,
           bedrooms: first.bedrooms,

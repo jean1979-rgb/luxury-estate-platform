@@ -54,6 +54,8 @@ function normalizeAdminForm(value: Partial<AdminPropertyInput> | null | undefine
     status: raw.status ?? "draft",
     propertyType: raw.propertyType ?? EMPTY_ADMIN_PROPERTY.propertyType,
     location: raw.location ?? "",
+    zoneSlug: raw.zoneSlug ?? "",
+    zoneLabel: raw.zoneLabel ?? "",
     price: raw.price ?? "",
     currency: raw.currency ?? "MXN",
     bedrooms: typeof raw.bedrooms === "number" ? raw.bedrooms : 0,
@@ -112,6 +114,14 @@ function percentToPitch(yPercent: number) {
 }
 
 type UploadFolder = "cover" | "gallery" | "scenes360" | "video";
+
+
+
+const SALE_ZONES = [
+  { slug: "real-diamante", label: "Real Diamante" },
+  { slug: "las-brisas-hillside-estates", label: "Las Brisas & Hillside estates" },
+  { slug: "beachfront-residences", label: "Beachfront residences" },
+] as const;
 
 export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: string } = {}) {
   const searchParams = useSearchParams();
@@ -191,7 +201,8 @@ const { handleUpload } = useAdminUploads({
   });
 
   const selectedRecord = useMemo(() => {
-    return items.find((item) => item.id === selectedId) || null;
+    const found = items.find((item) => item.id === selectedId);
+    return found || null;
   }, [items, selectedId]);
 
   
@@ -220,6 +231,8 @@ const { handleUpload } = useAdminUploads({
       status: item.status,
       propertyType: item.propertyType,
       location: item.location,
+      zoneSlug: item.zoneSlug || "",
+      zoneLabel: item.zoneLabel || "",
       price: item.price,
       currency: item.currency,
       bedrooms: item.bedrooms,
@@ -609,7 +622,30 @@ const { handleUpload } = useAdminUploads({
                       />
                     </label>
 
-                    <label className="block md:col-span-2">
+<label className="space-y-2 md:col-span-2">
+  <span className="text-xs uppercase tracking-[0.22em] text-white/45">Colección editorial</span>
+  <select
+    value={form.zoneSlug || ""}
+    onChange={(e) => {
+      const nextSlug = e.target.value;
+      const match = SALE_ZONES.find((item) => item.slug === nextSlug);
+      handleChange("zoneSlug", nextSlug);
+      handleChange("zoneLabel", match?.label || "");
+    }}
+    className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white"
+  >
+    <option value="">Sin colección</option>
+    {SALE_ZONES.map((item) => (
+      <option key={item.slug} value={item.slug}>
+        {item.label}
+      </option>
+    ))}
+  </select>
+</label>
+
+
+
+<label className="block md:col-span-2">
                       <span className="mb-2 block text-sm text-white/65">Tagline editorial</span>
                       <input
                         value={form.tagline}

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getCasaDePlayaProperties } from "@/utils/catalog/properties";
 
 import { prisma } from "@/lib/prisma";
 import { getPublicPartners } from "@/lib/public-partners";
@@ -14,11 +15,17 @@ function normalize(value: string) {
     .replace(/(^-|-$)/g, "");
 }
 
-
-function resolveHeroImage(partner: any) {
-  if (partner?.coverImage && partner.coverImage.length > 10) {
+function resolveHeroImage(partner: unknown) {
+  if (
+    partner &&
+    typeof partner === "object" &&
+    "coverImage" in partner &&
+    typeof partner.coverImage === "string" &&
+    partner.coverImage.length > 10
+  ) {
     return partner.coverImage;
   }
+
   return "https://image-tc.galaxy.tf/wijpeg-1h8a7vg10icm5swuzifnpcgnh/spa-40.jpg";
 }
 
@@ -60,6 +67,42 @@ function getPartnerGallery(slug: string, heroImage: string) {
   return (map[slug] || fallback).slice(0, 4);
 }
 
+type RelatedProperty = {
+  id: string;
+  title?: string;
+  location?: string;
+  coverImage?: string;
+  zone?: string;
+};
+
+function getRelatedResidences(slug: string, properties: RelatedProperty[]) {
+  const acapulco = properties.filter((item) => typeof item.location === "string");
+
+  if (slug === "aurora-bay-house") {
+    const ranked = [
+      ...acapulco.filter((item) =>
+        (item.location || "").toLowerCase().includes("diamante")
+      ),
+      ...acapulco.filter((item) =>
+        (item.location || "").toLowerCase().includes("brisas")
+      ),
+      ...acapulco.filter((item) =>
+        (item.location || "").toLowerCase().includes("playa")
+      ),
+      ...acapulco,
+    ];
+
+    const seen = new Set<string>();
+    return ranked.filter((item) => {
+      if (!item.id || seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    }).slice(0, 3);
+  }
+
+  return acapulco.slice(0, 3);
+}
+
 export default async function PartnerDetailPage({
   params,
 }: {
@@ -75,12 +118,14 @@ export default async function PartnerDetailPage({
     (entry) => entry.slug === slug || normalize(entry.name) === slug
   );
 
+  const properties = await getCasaDePlayaProperties();
   const partner = dbPartner || fallbackPartner;
 
   if (!partner) notFound();
 
   const heroImage = resolveHeroImage(partner);
   const gallery = getPartnerGallery(slug, heroImage);
+  const relatedResidences = getRelatedResidences(slug, properties);
 
   const category =
     "category" in partner && typeof partner.category === "string"
@@ -91,14 +136,18 @@ export default async function PartnerDetailPage({
     "name" in partner && typeof partner.name === "string" ? partner.name : "";
 
   const shortText =
-    "shortDescription" in partner && typeof partner.shortDescription === "string" && partner.shortDescription
+    "shortDescription" in partner &&
+    typeof partner.shortDescription === "string" &&
+    partner.shortDescription
       ? partner.shortDescription
       : "note" in partner && typeof partner.note === "string"
         ? partner.note
         : "";
 
   const longText =
-    "longDescription" in partner && typeof partner.longDescription === "string" && partner.longDescription
+    "longDescription" in partner &&
+    typeof partner.longDescription === "string" &&
+    partner.longDescription
       ? partner.longDescription
       : "";
 
@@ -118,7 +167,7 @@ export default async function PartnerDetailPage({
             href="/#partners"
             className="mb-8 text-[10px] uppercase tracking-[0.34em] text-white/65 transition hover:text-white"
           >
-            Back
+            Volver a partners
           </Link>
 
           <p className="text-[10px] uppercase tracking-[0.4em] text-white/55">
@@ -137,58 +186,47 @@ export default async function PartnerDetailPage({
         </div>
       </section>
 
-      {/* EDITORIAL GALLERY */}
       <section className="border-b border-white/10 px-6 py-12 md:px-10 md:py-16">
         <div className="mx-auto max-w-6xl">
-
           <p className="text-[10px] uppercase tracking-[0.4em] text-white/40">
-            Editorial Gallery
+            Galería editorial
           </p>
 
           <div className="mt-8 grid gap-4 md:grid-cols-[1.35fr_0.65fr]">
-
             <div
               className="min-h-[520px] bg-cover bg-center"
               style={{ backgroundImage: `url("${gallery[0]}")` }}
             />
-
             <div className="grid gap-4">
-
               <div
                 className="min-h-[252px] bg-cover bg-center"
                 style={{ backgroundImage: `url("${gallery[1]}")` }}
               />
-
               <div className="grid gap-4 md:grid-cols-2">
-
                 <div
                   className="min-h-[252px] bg-cover bg-center"
                   style={{ backgroundImage: `url("${gallery[2]}")` }}
                 />
-
                 <div
                   className="min-h-[252px] bg-cover bg-center"
                   style={{ backgroundImage: `url("${gallery[3]}")` }}
                 />
-
               </div>
             </div>
-
           </div>
         </div>
       </section>
 
-
       <section className="border-b border-white/10 px-6 py-16 md:px-10 md:py-24">
         <div className="mx-auto max-w-5xl">
           <p className="text-[10px] uppercase tracking-[0.4em] text-white/40">
-            Signature Perspective
+            Perspectiva editorial
           </p>
 
           <h2 className="mt-6 max-w-4xl text-3xl font-light leading-tight text-white md:text-5xl">
-            Presence is not an amenity.
+            La presencia no es una amenidad.
             <br />
-            It is part of the destination’s perceived value.
+            Es parte del valor percibido del destino.
           </h2>
         </div>
       </section>
@@ -197,7 +235,7 @@ export default async function PartnerDetailPage({
         <div className="mx-auto grid max-w-6xl gap-14 md:grid-cols-[1.1fr_0.9fr]">
           <div>
             <p className="text-[10px] uppercase tracking-[0.34em] text-white/42">
-              Editorial Overview
+              Lectura editorial
             </p>
 
             {longText ? (
@@ -207,14 +245,14 @@ export default async function PartnerDetailPage({
             ) : (
               <div className="mt-6 max-w-3xl space-y-6 text-sm leading-8 text-white/72 md:text-base">
                 <p>
-                  This partner exists within a curated ecosystem where destination,
-                  lifestyle and brand presence shape perceived value before a property
-                  is even considered.
+                  Aurora Bay House funciona como una capa de lifestyle dentro de
+                  Acapulco: una dirección donde la vista, la hospitalidad, el deporte
+                  y la escena social elevan la percepción del destino.
                 </p>
                 <p>
-                  The objective is not visibility alone. It is to create emotional
-                  context, strengthen aspiration and position the brand as part of a
-                  larger luxury narrative.
+                  Aquí, la alberca infinity, las canchas de pádel, el restaurante y el
+                  bar no operan como amenidades aisladas, sino como parte de una
+                  narrativa aspiracional que extiende el valor residencial.
                 </p>
               </div>
             )}
@@ -222,48 +260,114 @@ export default async function PartnerDetailPage({
 
           <div className="border border-white/10 bg-white/[0.03] p-8 md:p-10">
             <p className="text-[10px] uppercase tracking-[0.34em] text-white/42">
-              Presence within Private Estates
+              Presencia dentro de Private Estates
             </p>
 
             <h3 className="mt-5 text-2xl font-light leading-tight">
-              Featured destination placement
+              Partner estratégico del destino
             </h3>
 
             <p className="mt-5 text-sm leading-8 text-white/68">
-              A partner here is not a listing. It is a strategic placement inside a
-              luxury narrative designed to elevate perception, desirability and demand.
+              Un partner aquí no es un directorio. Es una presencia curada dentro de
+              una narrativa premium diseñada para elevar deseo, pertenencia y valor
+              percibido alrededor de Acapulco.
             </p>
 
             <div className="mt-8 h-px w-16 bg-white/20" />
 
             <div className="mt-8 space-y-4 text-sm leading-7 text-white/68">
-              <p>— Destination storytelling</p>
-              <p>— Lifestyle integration</p>
-              <p>— Premium brand positioning</p>
+              <p>— Escena social y hospitalidad</p>
+              <p>— Integración con experiences</p>
+              <p>— Posicionamiento premium del destino</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="border-b border-white/10 px-6 py-16 md:px-10 md:py-24">
-        <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[0.9fr_1.1fr]">
-          <div>
+      <section className="border-b border-white/10 px-6 py-16 md:px-10 md:py-20">
+        <div className="mx-auto flex max-w-6xl flex-col justify-between gap-8 border border-white/10 bg-white/[0.02] p-8 md:flex-row md:items-end md:p-10">
+          <div className="max-w-2xl">
             <p className="text-[10px] uppercase tracking-[0.34em] text-white/42">
-              Commercial Value
+              Experience relacionada
+            </p>
+
+            <h3 className="mt-4 text-3xl font-light leading-tight md:text-4xl">
+              Aurora Sunset Social
+            </h3>
+
+            <p className="mt-5 text-sm leading-8 text-white/70 md:text-base">
+              Una narrativa de atardecer, ritmo social y vida frente a la bahía que
+              convierte a Aurora en una experiencia, no solo en un lugar.
             </p>
           </div>
 
-          <div>
-            <h3 className="text-3xl font-light leading-tight md:text-5xl">
-              Designed to feel editorial.
-              <br />
-              Built to be commercially premium.
-            </h3>
+          <Link
+            href="/experiences/aurora-sunset-social"
+            className="inline-flex border border-white/15 px-6 py-3 text-[10px] uppercase tracking-[0.32em] text-white transition hover:border-white/30 hover:bg-white hover:text-black"
+          >
+            Explorar experience
+          </Link>
+        </div>
+      </section>
 
-            <p className="mt-6 max-w-2xl text-sm leading-8 text-white/70 md:text-base">
-              Every partner page should function as a luxury landing: part brand world,
-              part destination narrative, part commercial placement.
+      <section className="border-b border-white/10 px-6 py-16 md:px-10 md:py-20">
+        <div className="mx-auto max-w-6xl">
+          <div className="max-w-2xl">
+            <p className="text-[10px] uppercase tracking-[0.34em] text-white/40">
+              Residencias
             </p>
+
+            <h2 className="mt-4 text-3xl font-light md:text-4xl">
+              Residencias alineadas con este lifestyle
+            </h2>
+
+            <p className="mt-5 text-sm leading-8 text-white/70 md:text-base">
+              Estas propiedades no solo destacan por ubicación o arquitectura, sino
+              por cómo se integran con una vida social, visual y hospitalaria como la
+              que Aurora activa dentro de Acapulco.
+            </p>
+          </div>
+
+          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
+            {relatedResidences.map((item) => (
+              <Link
+                key={item.id}
+                href={`/properties/${item.id}`}
+                className="group relative flex min-h-[360px] overflow-hidden rounded-[28px] border border-white/10"
+              >
+                <div
+                  className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-105"
+                  style={{
+                    backgroundImage: `url("${
+                      item.coverImage && item.coverImage.length > 10
+                        ? item.coverImage
+                        : heroImage
+                    }")`,
+                  }}
+                />
+
+                <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/45 to-black/10" />
+
+                <div className="relative mt-auto p-6">
+                  <p className="text-[10px] uppercase tracking-[0.34em] text-white/45">
+                    Residencia relacionada
+                  </p>
+
+                  <h3 className="mt-3 text-xl font-light leading-snug">
+                    {item.title || "Private Residence"}
+                  </h3>
+
+                  <p className="mt-3 text-sm leading-7 text-white/65">
+                    {item.location || "Acapulco"}
+                  </p>
+
+                  <div className="mt-6 inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-white/55">
+                    <span>Explorar propiedad</span>
+                    <span className="transition group-hover:translate-x-1">→</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
@@ -272,16 +376,17 @@ export default async function PartnerDetailPage({
         <div className="mx-auto flex max-w-6xl flex-col justify-between gap-8 border border-white/10 bg-white/[0.03] p-8 md:flex-row md:items-end md:p-12">
           <div className="max-w-2xl">
             <p className="text-[10px] uppercase tracking-[0.34em] text-white/42">
-              Premium Placement
+              Integración premium
             </p>
 
             <h3 className="mt-4 text-3xl font-light leading-tight md:text-4xl">
-              A brand should feel like it belongs here.
+              Una marca debe sentirse inseparable del destino.
             </h3>
 
             <p className="mt-5 text-sm leading-8 text-white/70 md:text-base">
-              Private Estates Mexico is building a destination-first ecosystem where
-              residences, experiences and strategic partners reinforce one another.
+              Private Estates Mexico construye un ecosistema editorial donde
+              propiedades, experiences y partners se refuerzan entre sí para elevar
+              la conversación del lujo en Acapulco.
             </p>
           </div>
 
@@ -289,41 +394,10 @@ export default async function PartnerDetailPage({
             href="/#partners"
             className="inline-flex border border-white/15 px-6 py-3 text-[10px] uppercase tracking-[0.32em] text-white transition hover:border-white/30 hover:bg-white hover:text-black"
           >
-            Back to partners
+            Volver a partners
           </Link>
         </div>
       </section>
-    
-      {/* PREMIUM CTA */}
-      <section className="px-6 pb-24 md:px-10">
-        <div className="mx-auto max-w-6xl border border-white/10 bg-white/[0.03] p-10 md:p-14 flex flex-col md:flex-row justify-between gap-10 items-start md:items-end">
-
-          <div className="max-w-xl">
-            <p className="text-[10px] uppercase tracking-[0.34em] text-white/40">
-              Private Estates Mexico
-            </p>
-
-            <h3 className="mt-4 text-3xl md:text-4xl font-light leading-tight">
-              A limited number of brands will be invited to participate.
-            </h3>
-
-            <p className="mt-6 text-sm leading-8 text-white/70">
-              Each partner is positioned within a curated ecosystem designed to increase perceived value across destinations, experiences and properties.
-            </p>
-          </div>
-
-          <div>
-            <a
-              href="mailto:partners@privateestates.mx"
-              className="inline-flex border border-white/20 px-6 py-3 text-[10px] uppercase tracking-[0.32em] text-white transition hover:bg-white hover:text-black"
-            >
-              Request placement
-            </a>
-          </div>
-
-        </div>
-      </section>
-
-</main>
+    </main>
   );
 }

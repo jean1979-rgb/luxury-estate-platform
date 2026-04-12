@@ -8,6 +8,8 @@ import Viewer360Carousel from "@/components/Viewer360Carousel";
 import PropertyVideoTeaser from "@/components/PropertyVideoTeaser";
 import ContactCTA from "@/components/ContactCTA";
 import { prisma } from "@/lib/prisma";
+import { getPublicPartners } from "@/lib/public-partners";
+import { getPublicExperiences } from "@/lib/public-experiences";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -118,6 +120,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
 
   const prismaScenes = await getPrismaScenes(property.id);
 
+  const luxuryPartners = await getPublicPartners();
+  const experiences = await getPublicExperiences();
+
+
   if (prismaScenes.length > 0) {
     scenes360 = prismaScenes.map((scene) => ({
       id: scene.id,
@@ -208,6 +214,67 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           </div>
         </div>
       </section>
+
+      <section className="mx-auto max-w-[1680px] px-6 pb-20 md:px-10">
+        <div className="max-w-3xl">
+          <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+            Lifestyle Nearby
+          </p>
+
+          <h2 className="mt-3 text-2xl font-light md:text-4xl">
+            Lo que define esta propiedad
+          </h2>
+
+          <p className="mt-3 text-sm leading-7 text-white/55 md:text-base">
+            El valor real no está solo en la arquitectura, sino en lo que ocurre alrededor: experiencias, hospitalidad y lugares que construyen una vida difícil de replicar.
+          </p>
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+          {experiences.slice(0,3).map((item) => (
+            <Link
+              key={item.slug || item.title}
+              href={`/experiences/${item.slug}`}
+              className="group relative flex min-h-[320px] overflow-hidden rounded-[28px] border border-white/10"
+            >
+              <div
+                className="absolute inset-0 bg-cover bg-center transition group-hover:scale-105"
+                style={{ backgroundImage: `url("${item.coverImage}")` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+              <div className="relative mt-auto p-6">
+                <p className="text-[10px] uppercase tracking-[0.34em] text-white/45">
+                  {item.eyebrow}
+                </p>
+                <h3 className="mt-2 text-xl font-light">{item.title}</h3>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
+          {luxuryPartners.slice(0,3).map((partner) => (
+            <Link
+              key={partner.slug}
+              href={`/partners/${partner.slug}`}
+              className="group relative flex min-h-[320px] overflow-hidden rounded-[28px] border border-white/10"
+            >
+              <div
+                className="absolute inset-0 bg-cover bg-center transition group-hover:scale-105"
+                style={{ backgroundImage: `url("${partner.coverImage}")` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+              <div className="relative mt-auto p-6">
+                <p className="text-[10px] uppercase tracking-[0.34em] text-white/45">
+                  {partner.category}
+                </p>
+                <h3 className="mt-2 text-xl font-light">{partner.name}</h3>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
 
       <section className="mx-auto grid max-w-[1680px] gap-12 px-6 py-14 md:grid-cols-2 xl:grid-cols-[1.2fr_0.8fr] md:px-10">
         <div className="space-y-12">

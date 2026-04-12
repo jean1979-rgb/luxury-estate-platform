@@ -1,4 +1,5 @@
 import Link from "next/link";
+import NewBrokerPropertyButton from "@/components/broker/NewBrokerPropertyButton";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import TokkoResyncButton from "@/components/broker/TokkoResyncButton";
@@ -33,12 +34,7 @@ export default async function BrokerPropertiesPage() {
         <div className="flex flex-wrap items-center gap-3">
           <TokkoResyncButton />
 
-          <Link
-            href="/broker/properties/new"
-            className="inline-flex min-h-11 items-center justify-center border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:bg-white hover:text-black"
-          >
-            Nueva propiedad
-          </Link>
+          <NewBrokerPropertyButton />
         </div>
       </div>
 

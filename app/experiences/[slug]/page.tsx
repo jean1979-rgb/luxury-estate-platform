@@ -198,6 +198,31 @@ export default async function ExperienceDetailPage({ params }: Props) {
         </div>
       </section>
 
+      <section className="border-b border-white/10 px-6 py-16 md:px-10 md:py-20">
+        <div className="mx-auto flex max-w-6xl flex-col justify-between gap-8 border border-white/10 bg-white/[0.02] p-8 md:flex-row md:items-end md:p-10">
+          <div className="max-w-2xl">
+            <p className="text-[10px] uppercase tracking-[0.34em] text-white/42">
+              Hosted At
+            </p>
+
+            <h3 className="mt-4 text-3xl font-light leading-tight md:text-4xl">
+              Aurora Bay House
+            </h3>
+
+            <p className="mt-5 text-sm leading-8 text-white/70 md:text-base">
+              Sun club de lujo en Acapulco con alberca infinity, pádel, restaurante, bar y una vista dominante sobre la bahía.
+            </p>
+          </div>
+
+          <Link
+            href="/partners/aurora-bay-house"
+            className="inline-flex border border-white/15 px-6 py-3 text-[10px] uppercase tracking-[0.32em] text-white transition hover:border-white/30 hover:bg-white hover:text-black"
+          >
+            Explore partner
+          </Link>
+        </div>
+      </section>
+
       <section className="px-6 py-16 md:px-10 md:py-24">
         <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-8 border border-white/10 bg-white/[0.03] p-8 md:flex-row md:items-end md:p-12">
           <div className="max-w-2xl">

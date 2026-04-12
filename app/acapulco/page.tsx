@@ -6,6 +6,8 @@ import {
   type PropertyZone,
 } from "@/utils/catalog/properties";
 import { ACAPULCO_SALE_PAGE_COPY } from "@/lib/acapulco-editorial";
+import { getPublicPartners } from "@/lib/public-partners";
+import { getPublicExperiences } from "@/lib/public-experiences";
 
 function getZoneTitle(zone: PropertyZone) {
   if (zone === "playa") return "Beachfront residences";
@@ -47,6 +49,8 @@ export default async function AcapulcoPage({
   searchParams?: SearchParams;
 }) {
   const properties = await getCasaDePlayaProperties();
+  const luxuryPartners = await getPublicPartners();
+  const experiences = await getPublicExperiences();
   const params = (await searchParams) ?? {};
   const requestedZone = String(params.zone || "").trim();
 
@@ -175,6 +179,107 @@ export default async function AcapulcoPage({
                 </Link>
               ))}
             </div>
+
+          <section className="mt-16 border-t border-white/10 pt-16">
+            <div className="max-w-3xl">
+              <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+                Lifestyle
+              </p>
+
+              <h2 className="mt-3 text-2xl font-light md:text-4xl">
+                Lifestyle en Acapulco
+              </h2>
+
+              <p className="mt-3 text-sm leading-7 text-white/55 md:text-base">
+                No solo importa qué propiedad compras, sino qué vida puedes construir alrededor de ella: escena social, hospitalidad, gastronomía y experiencias que elevan la permanencia.
+              </p>
+            </div>
+
+            <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+              {experiences.slice(0, 3).map((item) => (
+                <Link
+                  key={item.slug || item.title}
+                  href={`/experiences/${item.slug || item.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                  className="group relative flex min-h-[340px] overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.03]"
+                >
+                  <div
+                    className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-105"
+                    style={{ backgroundImage: `url("${item.coverImage || ""}")` }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/45 to-black/10" />
+                  <div className="relative mt-auto p-7 md:p-8">
+                    <p className="text-[10px] uppercase tracking-[0.34em] text-white/45">
+                      {item.eyebrow}
+                    </p>
+
+                    <h3 className="mt-3 text-2xl font-light md:text-3xl">
+                      {item.title}
+                    </h3>
+
+                    <p className="mt-3 max-w-xl text-sm leading-7 text-white/65 md:text-base">
+                      {item.text}
+                    </p>
+
+                    <div className="mt-6 inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-white/55">
+                      <span>Explorar experience</span>
+                      <span className="transition group-hover:translate-x-1">→</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          <section className="mt-16 border-t border-white/10 pt-16">
+            <div className="max-w-3xl">
+              <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+                Destination Ecosystem
+              </p>
+
+              <h2 className="mt-3 text-2xl font-light md:text-4xl">
+                Ecosistema del destino
+              </h2>
+
+              <p className="mt-3 text-sm leading-7 text-white/55 md:text-base">
+                Acapulco se entiende mejor cuando se lee a través de sus aliados: lugares que estructuran deseo, pertenencia y estilo de vida alrededor del destino.
+              </p>
+            </div>
+
+            <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+              {luxuryPartners.slice(0, 3).map((partner) => (
+                <Link
+                  key={partner.slug || partner.name}
+                  href={`/partners/${partner.slug || partner.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}`}
+                  className="group relative flex min-h-[340px] overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.03]"
+                >
+                  <div
+                    className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-105"
+                    style={{ backgroundImage: `url("${partner.coverImage || ""}")` }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/45 to-black/10" />
+                  <div className="relative mt-auto p-7 md:p-8">
+                    <p className="text-[10px] uppercase tracking-[0.34em] text-white/45">
+                      {partner.category}
+                    </p>
+
+                    <h3 className="mt-3 text-2xl font-light md:text-3xl">
+                      {partner.name}
+                    </h3>
+
+                    <p className="mt-3 max-w-xl text-sm leading-7 text-white/65 md:text-base">
+                      {partner.note}
+                    </p>
+
+                    <div className="mt-6 inline-flex items-center gap-3 text-[11px] uppercase tracking-[0.28em] text-white/55">
+                      <span>Explorar partner</span>
+                      <span className="transition group-hover:translate-x-1">→</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+
           </div>
         )}
 
