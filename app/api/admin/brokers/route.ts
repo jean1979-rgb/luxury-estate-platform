@@ -16,7 +16,7 @@ export async function GET() {
     });
 
     const propertyCounts = await Promise.all(
-      users.map(async (user) => {
+      users.map(async (user: any) => {
         const count = await prisma.brokerProperty.count({
           where: { ownerBrokerId: user.id },
         });
