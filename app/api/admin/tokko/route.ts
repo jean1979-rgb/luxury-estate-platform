@@ -46,7 +46,7 @@ export async function GET() {
 
     const items = json
       .filter(includeInAdminFeed)
-      .map((item) => ({
+      .map((item: any) => ({
         id: item.id,
         title: item.editorial?.title || item.base?.title || "Propiedad",
         price: item.base?.price ?? "",

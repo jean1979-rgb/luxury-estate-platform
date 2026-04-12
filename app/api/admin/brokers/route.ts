@@ -27,7 +27,7 @@ export async function GET() {
 
     const countMap = new Map(propertyCounts);
 
-    const items = users.map((user) => ({
+    const items = users.map((user: any) => ({
       id: user.id,
       name: user.name,
       email: user.email,
