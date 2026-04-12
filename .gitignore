@@ -29,3 +29,8 @@ backups/
 scripts/tmp/
 
 next-env.d.ts
+# heavy media
+public/uploads/
+*.mp4
+*.mov
+*.zip
