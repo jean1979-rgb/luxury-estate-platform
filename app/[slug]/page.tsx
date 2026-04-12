@@ -90,7 +90,7 @@ export default async function PublicDestinationPage({
 
   const properties = destination.featuredProperties
     .map((fp: any) => allProperties.find((p) => p.id === fp.propertyId))
-    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+    .filter((item: any): item is NonNullable<typeof item> => Boolean(item))
     .slice(0, 6);
 
   const fallbackPillars = isAcapulco ? ACAPULCO_DESTINATION_COPY.pillars : [];
