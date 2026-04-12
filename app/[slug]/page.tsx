@@ -297,7 +297,7 @@ export default async function PublicDestinationPage({
             {destination.experiences.length > 0 || fallbackExperiences.length > 0 ? (
               <div className="mt-8 space-y-6">
                 {(destination.experiences.length > 0
-                  ? destination.experiences.map(({ id, experience }) => ({
+                  ? destination.experiences.map(({ id, experience }: any) => ({
                       id,
                       category: experience.category || "Experience",
                       name: experience.name,
