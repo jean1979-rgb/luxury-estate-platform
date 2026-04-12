@@ -89,7 +89,7 @@ export default async function PublicDestinationPage({
   const allProperties = await getCasaDePlayaProperties();
 
   const properties = destination.featuredProperties
-    .map((fp) => allProperties.find((p) => p.id === fp.propertyId))
+    .map((fp: any) => allProperties.find((p) => p.id === fp.propertyId))
     .filter((item): item is NonNullable<typeof item> => Boolean(item))
     .slice(0, 6);
 
