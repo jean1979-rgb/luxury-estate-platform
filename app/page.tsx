@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { getPublicHomeHero } from "@/lib/public-home";
 import { getPublicDestinations } from "@/lib/public-destinations";

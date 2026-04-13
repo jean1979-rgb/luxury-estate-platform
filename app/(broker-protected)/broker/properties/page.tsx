@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 import NewBrokerPropertyButton from "@/components/broker/NewBrokerPropertyButton";
 import { auth } from "@/lib/auth";

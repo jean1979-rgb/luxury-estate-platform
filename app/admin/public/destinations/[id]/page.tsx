@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import PublicDestinationForm from "@/components/admin/PublicDestinationForm";
 
 type Props = {

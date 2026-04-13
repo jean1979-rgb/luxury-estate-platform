@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import PublicPartnerForm from "@/components/admin/PublicPartnerForm";
 
 type Props = {

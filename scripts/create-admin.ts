@@ -1,28 +1,5 @@
-import fs from "node:fs";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-
-function readEnvValue(filePath: string, key: string) {
-  const raw = fs.readFileSync(filePath, "utf8");
-  const line = raw
-    .split(/\r?\n/)
-    .map((v) => v.trim())
-    .find((v) => v.startsWith(`${key}=`));
-
-  if (!line) {
-    throw new Error(`${key} not found in ${filePath}`);
-  }
-
-  const value = line.slice(key.length + 1).trim();
-
-  if (!value) {
-    throw new Error(`${key} is empty in ${filePath}`);
-  }
-
-  return value.replace(/^"(.*)"$/, "$1").replace(/^'(.*)'$/, "$1");
-}
-
-process.env.DATABASE_URL = readEnvValue(".vercel/.env.production.local", "DATABASE_URL");
 
 const prisma = new PrismaClient();
 

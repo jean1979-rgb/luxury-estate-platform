@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { Viewer360Stage } from "@/modules/viewer360";
 
 const DEMO_SCENES = [

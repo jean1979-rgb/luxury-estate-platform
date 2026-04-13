@@ -1,7 +1,7 @@
+export const dynamic = "force-dynamic";
 import PropertyCard from "@/components/PropertyCard";
 import { getCasaDePlayaProperties, getPropertyBadge } from "@/utils/catalog/properties";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function CasaDePlayaPage() {
