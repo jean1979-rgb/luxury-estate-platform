@@ -13,7 +13,7 @@ export async function GET() {
   }
 
   const items = await prisma.brokerProperty.findMany({
-    where: { ownerBrokerId: session.user.id },
+    where: session.user.role === "ADMIN" ? {} : { ownerBrokerId: session.user.id },
     orderBy: { updatedAt: "desc" },
     include: {
       sceneItems: {

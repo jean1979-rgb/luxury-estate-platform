@@ -34,11 +34,12 @@ async function getBrokerContext(userId: string) {
     include: { brokerProfile: true },
   });
 
-  if (!user || !user.brokerProfile) return null;
+  if (!user) return null;
 
   return {
     user,
     profile: user.brokerProfile,
+    isAdmin: user.role === "ADMIN",
   };
 }
 
@@ -64,11 +65,13 @@ export async function deleteBrokerProperty(userId: string, id: string) {
 
 export async function updateBrokerProperty(userId: string, id: string, body: PropertyUpdateInput) {
   const ctx = await getBrokerContext(userId);
-  if (!ctx) {
+  if (!ctx || (!ctx.profile && !ctx.isAdmin)) {
     throw new Error("BROKER_NOT_FOUND");
   }
 
-  const existing = await getBrokerProperty(userId, id);
+  const existing = ctx.isAdmin
+    ? await prisma.brokerProperty.findUnique({ where: { id } })
+    : await getBrokerProperty(userId, id);
   if (!existing) return null;
 
   const isTokko = existing.sourceProvider === "TOKKO";
@@ -132,7 +135,7 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
       status: published ? "published" : "draft",
       publicationStatus,
       propertyType: propertyType || null,
-      city: ctx.profile.city,
+      city: ctx.isAdmin ? (location || existing.city || "") : ctx.profile!.city,
       location: location || null,
       zoneSlug: zoneSlug || null,
       zoneLabel: zoneLabel || null,
