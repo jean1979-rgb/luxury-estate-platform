@@ -9,6 +9,18 @@ function angularDeltaDeg(a: number, b: number) {
   return diff > 180 ? 360 - diff : diff;
 }
 
+function sceneIdFromFileName(name: string) {
+  return name
+    .replace(/\.[^.]+$/, "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+\|-+$/g, "")
+    .replace(/-{2,}/g, "-");
+}
+
 type Props = {
   scenes: AdminScene360[];
   uploadingScenes: boolean;
@@ -107,6 +119,7 @@ export default function AdminScenes360Tab({
   })
   .map(({ scene, realSceneIndex }) => {
             const sceneIndex = realSceneIndex;
+            const sceneViewKey = `-`;
             const isHotspotMode = activeHotspotScene === scene.id;
 
             return (
@@ -223,7 +236,7 @@ export default function AdminScenes360Tab({
 
       return (
         <button
-          key={item.id || `scene-chip-${idx}`}
+          key={`scene-chip-${idx}`}
           type="button"
           draggable
           onDragStart={() => {
@@ -275,7 +288,7 @@ export default function AdminScenes360Tab({
                             initialYaw={scene.initialYaw ?? 0}
                             initialPitch={scene.initialPitch ?? 0}
                             onViewChange={(view) => {
-                              latestViewRef.current[scene.id] = {
+                              latestViewRef.current[sceneViewKey] = {
                                 yaw: Number(view.yaw.toFixed(2)),
                                 pitch: Number(view.pitch.toFixed(2)),
                               };
@@ -316,7 +329,7 @@ export default function AdminScenes360Tab({
                         <button
                           type="button"
                           onClick={() => {
-                            const view = latestViewRef.current[scene.id] ?? {
+                            const view = latestViewRef.current[sceneViewKey] ?? {
                               yaw: Number((scene.initialYaw ?? 0).toFixed(2)),
                               pitch: Number((scene.initialPitch ?? 0).toFixed(2)),
                             };
@@ -334,7 +347,7 @@ export default function AdminScenes360Tab({
                         <button
                           type="button"
                           onClick={() => {
-                            const view = latestViewRef.current[scene.id] ?? {
+                            const view = latestViewRef.current[sceneViewKey] ?? {
                               yaw: Number((scene.initialYaw ?? 0).toFixed(2)),
                               pitch: Number((scene.initialPitch ?? 0).toFixed(2)),
                             };

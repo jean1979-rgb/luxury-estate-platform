@@ -27,7 +27,19 @@ export default function LoginForm() {
       return;
     }
 
-    window.location.href = "/broker";
+    const session = await fetch("/api/auth/session").then(r => r.json());
+
+    if (session?.user?.role === "ADMIN") {
+      window.location.href = "/admin/properties";
+    } else {
+      const session = await fetch("/api/auth/session").then(r => r.json());
+
+    if (session?.user?.role === "ADMIN") {
+      window.location.href = "/admin/properties";
+    } else {
+      window.location.href = "/broker";
+    }
+    }
   }
 
   return (
