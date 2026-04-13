@@ -27,7 +27,7 @@ export async function GET() {
     },
   });
 
-  const normalized = items.map((item) => ({
+  const normalized = items.map((item: any) => ({
     id: item.id,
     title: item.title,
     slug: item.slug,
@@ -54,14 +54,14 @@ export async function GET() {
     videoUrl: item.videoUrl || "",
     videoPoster: item.videoPoster || "",
     videoType: item.videoType || "upload",
-    scenes360: item.sceneItems.map((scene) => ({
+    scenes360: item.sceneItems.map((scene: any) => ({
       id: scene.id,
       title: scene.title,
       image: scene.image,
       thumbnail: scene.thumbnail || scene.image,
       initialYaw: scene.initialYaw ?? 0,
       initialPitch: scene.initialPitch ?? 0,
-      hotspots: scene.hotspots.map((h) => ({
+      hotspots: scene.hotspots.map((h: any) => ({
         id: h.id,
         pitch: h.pitch,
         yaw: h.yaw,

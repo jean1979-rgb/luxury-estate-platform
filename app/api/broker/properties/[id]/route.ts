@@ -88,14 +88,14 @@ export async function PATCH(req: Request, context: RouteContext) {
       videoUrl: hydrated.videoUrl || "",
       videoPoster: hydrated.videoPoster || "",
       videoType: hydrated.videoType || "upload",
-      scenes360: hydrated.sceneItems.map((scene) => ({
+      scenes360: hydrated.sceneItems.map((scene: any) => ({
         id: scene.id,
         title: scene.title,
         image: scene.image,
         thumbnail: scene.thumbnail || scene.image,
         initialYaw: scene.initialYaw ?? 0,
         initialPitch: scene.initialPitch ?? 0,
-        hotspots: scene.hotspots.map((h) => ({
+        hotspots: scene.hotspots.map((h: any) => ({
           id: h.id,
           pitch: h.pitch,
           yaw: h.yaw,
