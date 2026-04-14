@@ -1,7 +1,6 @@
 "use client";
 
-import Viewer360Core from "../modules/viewer360/Viewer360Core";
-import type { Viewer360Hotspot } from "../modules/viewer360/Viewer360.types";
+import Viewer360AdminLegacy from "@/components/Viewer360AdminLegacy";
 
 type HotspotType =
   | "nav"
@@ -14,7 +13,10 @@ type HotspotType =
 
 type HotspotSize = "sm" | "md" | "lg";
 
-type Hotspot360 = Viewer360Hotspot & {
+type Hotspot360 = {
+  id: string;
+  pitch: number;
+  yaw: number;
   label?: string;
   targetSceneId?: string;
   type?: HotspotType;
@@ -45,12 +47,7 @@ export default function Viewer360({
   onSceneClick,
   initialYaw = 0,
   initialPitch = 0,
-  initialFov,
-  minFov,
-  maxFov,
   onViewChange,
-  interactive = true,
-  introEnabled = false,
 }: Viewer360Props) {
   return (
     <div
@@ -58,7 +55,7 @@ export default function Viewer360({
       onWheelCapture={(e) => e.preventDefault()}
       onTouchMoveCapture={(e) => e.preventDefault()}
     >
-      <Viewer360Core
+      <Viewer360AdminLegacy
         image={image}
         hotspots={hotspots}
         onHotspotClick={onHotspotClick}
@@ -66,12 +63,7 @@ export default function Viewer360({
         onSceneClick={onSceneClick}
         initialYaw={initialYaw}
         initialPitch={initialPitch}
-        initialFov={initialFov}
-        minFov={minFov}
-        maxFov={maxFov}
         onViewChange={onViewChange}
-        interactive={interactive}
-        introEnabled={introEnabled}
       />
     </div>
   );

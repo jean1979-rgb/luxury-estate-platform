@@ -1,32 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-function slugify(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .replace(/-{2,}/g, "-");
-}
-
-function getSafeExtension(filename: string) {
-  const ext = path.extname(filename || "").toLowerCase();
-  const allowed = [".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov", ".webm", ".m4v"];
-  if (allowed.includes(ext)) return ext;
-  return ".mp4";
-}
-
-function getEntityFolder(entityType: string) {
-  if (entityType === "property") return "properties";
-  return `${entityType}s`;
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,57 +9,47 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file");
 
     if (!(file instanceof File)) {
-      return NextResponse.json(
-        {
-          ok: false,
-          message: "No se recibió ningún archivo.",
-        },
-        { status: 400 }
-      );
+      return NextResponse.json({ ok: false, message: "No file" }, { status: 400 });
     }
 
-    const entityType = String(formData.get("entityType") || "property");
-    const entityId = slugify(String(formData.get("entityId") || "temp-property"));
-    const folder = slugify(String(formData.get("folder") || "gallery"));
+    const cloud = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const preset =
+      file.type.startsWith("video/")
+        ? process.env.NEXT_PUBLIC_CLOUDINARY_VIDEO_UPLOAD_PRESET
+        : process.env.NEXT_PUBLIC_CLOUDINARY_IMAGE_UPLOAD_PRESET;
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    if (!cloud || !preset) {
+      throw new Error("Cloudinary no configurado");
+    }
 
-    const ext = getSafeExtension(file.name);
-    const filenameBase = slugify(path.basename(file.name, path.extname(file.name)) || "image");
-    const stamp = Date.now();
-    const finalFileName = `${filenameBase}-${stamp}${ext}`;
+    const uploadForm = new FormData();
+    uploadForm.append("file", file);
+    uploadForm.append("upload_preset", preset);
 
-    const entityFolder = getEntityFolder(entityType);
-    const relativeDir = path.join("uploads", entityFolder, entityId, folder);
-    const absoluteDir = path.join(process.cwd(), "public", relativeDir);
+    const isVideo = file.type.startsWith("video/");
 
-    await fs.mkdir(absoluteDir, { recursive: true });
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloud}/${isVideo ? "video" : "image"}/upload`,
+      {
+        method: "POST",
+        body: uploadForm,
+      }
+    );
 
-    const absolutePath = path.join(absoluteDir, finalFileName);
-    await fs.writeFile(absolutePath, buffer);
+    const data = await res.json();
 
-    const publicUrl = `/${relativeDir.replace(/\\/g, "/")}/${finalFileName}`;
+    if (!res.ok || !data.secure_url) {
+      throw new Error("Upload failed");
+    }
 
     return NextResponse.json({
       ok: true,
       file: {
-        name: finalFileName,
-        originalName: file.name,
-        url: publicUrl,
-        size: file.size,
-        type: file.type || "application/octet-stream",
+        url: data.secure_url,
       },
     });
-  } catch (error) {
-    console.error("POST /api/admin/upload error", error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        message: "No fue posible subir el archivo.",
-      },
-      { status: 500 }
-    );
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ ok: false, message: "Upload error" }, { status: 500 });
   }
 }
