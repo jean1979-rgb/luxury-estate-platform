@@ -83,16 +83,16 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
 
   const description = asTrimmedString(body.description);
   const tagline = asTrimmedString(body.tagline);
-  const location = isTokko ? existing.location ?? "" : asTrimmedString(body.location);
-  const propertyType = isTokko ? existing.propertyType ?? "" : asTrimmedString(body.propertyType);
-  const price = isTokko ? existing.price ?? "" : asTrimmedString(body.price);
+  const location = asTrimmedString(body.location);
+  const propertyType = asTrimmedString(body.propertyType);
+  const price = asTrimmedString(body.price);
   const currency = asTrimmedString(body.currency ?? existing.currency ?? "MXN") || "MXN";
   const coverImage = asTrimmedString(body.coverImage);
   const zoneSlug = asTrimmedString(body.zoneSlug);
   const zoneLabel = asTrimmedString(body.zoneLabel);
 
-  const bedrooms = isTokko ? existing.bedrooms : asOptionalInt(body.bedrooms);
-  const bathrooms = isTokko ? existing.bathrooms : asOptionalInt(body.bathrooms);
+  const bedrooms = asOptionalInt(body.bedrooms);
+  const bathrooms = asOptionalInt(body.bathrooms);
   const areaInterior = asOptionalFloat(body.areaInterior);
   const areaTotal = asOptionalFloat(body.areaTotal);
 
