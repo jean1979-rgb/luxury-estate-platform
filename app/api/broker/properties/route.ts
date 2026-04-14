@@ -203,7 +203,7 @@ export async function POST(req: Request) {
       videoUrl: updated.videoUrl || "",
       videoPoster: updated.videoPoster || "",
       videoType: updated.videoType || "upload",
-      scenes360: [],
+      scenes360: Array.isArray(updated.scenes360) ? updated.scenes360 : [],
       source: updated.sourceProvider
         ? {
             provider:
