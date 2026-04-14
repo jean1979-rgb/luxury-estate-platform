@@ -98,6 +98,7 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
 
   const featured = asBoolean(body.featured);
   const published = asBoolean(body.published);
+  const luxuryScore = asOptionalInt(body.luxuryScore) ?? existing.luxuryScore ?? 85;
   const status = published ? "published" : "draft";
   const publicationStatus = published ? "PUBLISHED" : "DRAFT";
 
@@ -155,6 +156,7 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
 
       featured,
       published,
+      luxuryScore,
     },
   });
 }
