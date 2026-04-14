@@ -4,7 +4,6 @@ node_modules
 backups
 tmp
 touch
-public/uploads
 BACKUP_GLOBAL_*.tar.gz
 *.tar.gz
 *.zip
