@@ -203,7 +203,7 @@ export async function POST(req: Request) {
       videoUrl: updated.videoUrl || "",
       videoPoster: updated.videoPoster || "",
       videoType: updated.videoType || "upload",
-      scenes360: Array.isArray(updated.scenes360) ? updated.scenes360 : [],
+      scenes360: Array.isArray((updated as any).sceneItems) ? (updated as any).sceneItems.sort((a: any, b: any) => a.sortOrder - b.sortOrder) : [],
       source: updated.sourceProvider
         ? {
             provider:
