@@ -70,7 +70,9 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
   }
 
   const existing = ctx.isAdmin
-    ? await prisma.brokerProperty.findUnique({ where: { id } })
+    ? await prisma.brokerProperty.findUnique({ where: { id } ,
+  include: { sceneItems: true }
+})
     : await getBrokerProperty(userId, id);
   if (!existing) return null;
 
@@ -158,5 +160,6 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
       published,
       luxuryScore,
     },
+    include: { sceneItems: true },
   });
 }

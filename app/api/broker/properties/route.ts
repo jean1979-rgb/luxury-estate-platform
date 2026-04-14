@@ -179,7 +179,8 @@ export async function POST(req: Request) {
                 ? String(id).replace(/^admin-/, "")
                 : null,
         },
-      });
+    include: { sceneItems: true },
+  });
     }
 
     const normalized = {
