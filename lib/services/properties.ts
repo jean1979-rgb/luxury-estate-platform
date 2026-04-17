@@ -49,6 +49,9 @@ export async function getBrokerProperty(userId: string, id: string) {
       id,
       ownerBrokerId: userId,
     },
+    include: {
+      sceneItems: true,
+    },
   });
 }
 
@@ -70,9 +73,10 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
   }
 
   const existing = ctx.isAdmin
-    ? await prisma.brokerProperty.findUnique({ where: { id } ,
-  include: { sceneItems: true }
-})
+    ? await prisma.brokerProperty.findUnique({
+        where: { id },
+        include: { sceneItems: true },
+      })
     : await getBrokerProperty(userId, id);
   if (!existing) return null;
 

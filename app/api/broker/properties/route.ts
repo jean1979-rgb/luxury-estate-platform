@@ -124,6 +124,24 @@ export async function POST(req: Request) {
     let updated = await updateBrokerProperty(session.user.id, id, body);
 
     if (!updated) {
+      const existingById = await prisma.brokerProperty.findUnique({
+        where: { id },
+        include: { sceneItems: true },
+      });
+
+      if (existingById) {
+        return NextResponse.json(
+          {
+            ok: false,
+            message:
+              existingById.ownerBrokerId === session.user.id
+                ? "La propiedad ya existe pero no pudo actualizarse con el flujo actual."
+                : "Ya existe una propiedad con ese ID asignada a otro broker.",
+          },
+          { status: 409 }
+        );
+      }
+
       updated = await prisma.brokerProperty.create({
         data: {
           id,
