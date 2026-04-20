@@ -1,4 +1,3 @@
-import { addScene, buildScene } from "@/lib/admin/editor-commands";
 import type { AdminPropertyInput } from "@/types/admin";
 
 type UploadFolder = "cover" | "gallery" | "scenes360" | "video";
@@ -6,13 +5,25 @@ type UploadFolder = "cover" | "gallery" | "scenes360" | "video";
 type Params = {
   form: AdminPropertyInput;
   selectedId: string;
-  slugify: (value: string) => string;
-  setUploadingCover: (value: boolean) => void;
-  setUploadingGallery: (value: boolean) => void;
-  setUploadingScenes: (value: boolean) => void;
-  setMessage: (value: string) => void;
-  setForm: (value: AdminPropertyInput | ((prev: AdminPropertyInput) => AdminPropertyInput)) => void;
+  slugify: (v: string) => string;
+  setUploadingCover: (v: boolean) => void;
+  setUploadingGallery: (v: boolean) => void;
+  setUploadingScenes: (v: boolean) => void;
+  setMessage: (msg: string) => void;
+  setForm: (updater: AdminPropertyInput | ((prev: AdminPropertyInput) => AdminPropertyInput)) => void;
 };
+
+function sceneIdFromFileName(name: string) {
+  return name
+    .replace(/\.[^.]+$/, "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-");
+}
 
 export function useAdminUploads({
   form,
@@ -24,80 +35,86 @@ export function useAdminUploads({
   setMessage,
   setForm,
 }: Params) {
-  async function handleUpload(file: File, folder: UploadFolder) {
-    const computedEntityId = slugify(
-      form.slug ||
-      form.id ||
-      (selectedId !== "new" ? selectedId : "") ||
-      form.title ||
-      "temp-property"
-    );
-
-    if (folder === "cover") setUploadingCover(true);
-    if (folder === "gallery") setUploadingGallery(true);
-    if (folder === "scenes360") setUploadingScenes(true);
-
-    setMessage("");
+  async function onUpload(file: File, folder: UploadFolder) {
+    const setUploading =
+      folder === "cover"
+        ? setUploadingCover
+        : folder === "gallery"
+          ? setUploadingGallery
+          : folder === "scenes360"
+            ? setUploadingScenes
+            : setUploadingCover;
 
     try {
-      const body = new FormData();
-      body.append("file", file);
-      body.append("entityType", "property");
-      body.append("entityId", computedEntityId);
-      body.append("folder", folder);
+      setUploading(true);
+      setMessage("");
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("kind", folder);
 
       const res = await fetch("/api/admin/upload", {
         method: "POST",
-        body,
+        body: formData,
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
-      if (!res.ok || !data.ok) {
-        throw new Error(data.message || "No se pudo subir el archivo.");
+      if (!res.ok || !data?.url) {
+        throw new Error(data?.error || data?.message || "No se pudo subir el archivo.");
       }
 
-      const uploadedUrl = data.file.url as string;
+      const url = String(data.url);
 
       if (folder === "cover") {
         setForm((prev) => ({
           ...prev,
-          id: prev.id || computedEntityId,
-          slug: prev.slug || prev.id || computedEntityId,
-          coverImage: uploadedUrl,
+          coverImage: url,
         }));
+        setMessage("Cover subida correctamente.");
+        return;
       }
 
       if (folder === "gallery") {
         setForm((prev) => ({
           ...prev,
-          id: prev.id || computedEntityId,
-          slug: prev.slug || computedEntityId,
-          gallery: [...prev.gallery, uploadedUrl],
+          gallery: [...prev.gallery, url],
         }));
+        setMessage("Imagen agregada a la galería.");
+        return;
       }
 
       if (folder === "scenes360") {
-        const cleanName = file.name.replace(/\.[^/.]+$/, "");
-        const scene = buildScene(cleanName, uploadedUrl, slugify);
+        const baseId = sceneIdFromFileName(file.name) || `scene-${Date.now()}`;
 
         setForm((prev) => ({
           ...prev,
-          id: prev.id || computedEntityId,
-          slug: prev.slug || computedEntityId,
-          scenes360: addScene(prev.scenes360, scene),
+          scenes360: [
+            ...prev.scenes360,
+            {
+              id: baseId,
+              title: file.name.replace(/\.[^.]+$/, ""),
+              image: url,
+              thumbnail: url,
+              initialYaw: 0,
+              initialPitch: 0,
+              hotspots: [],
+            },
+          ],
         }));
+        setMessage("Panorama 360 agregado correctamente.");
+        return;
       }
 
-      setMessage("Archivo subido correctamente. Imagen agregada correctamente.");
+      setMessage("Upload completado.");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Error inesperado al subir archivo.");
+      setMessage(error instanceof Error ? error.message : "Error subiendo archivo.");
     } finally {
-      if (folder === "cover") setUploadingCover(false);
-      if (folder === "gallery") setUploadingGallery(false);
-      if (folder === "scenes360") setUploadingScenes(false);
+      setUploading(false);
     }
   }
 
-  return { handleUpload };
+  return {
+    handleUpload: onUpload,
+  };
 }
