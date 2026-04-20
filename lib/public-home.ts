@@ -31,7 +31,7 @@ const FALLBACK_HOME: PublicHomeHero = {
   heroSecondaryCtaLabel: "Descubrir Acapulco",
   heroSecondaryCtaHref: "/acapulco",
   heroBackgroundImage:
-    "/uploads/properties/sample-villa-diamante/cover/img-20260206-140512380-hdr-1774378789479.jpg",
+    "https://pub-97c7fb12e7244f288f056306452e2d7d.r2.dev/cover/sample-villa-diamante.jpg",
   destinationsTitle: "Explora el lujo por ciudad, no por ruido de inventario",
   destinationsSubtitle:
     "Cada destino debe sentirse como una experiencia de lujo propia, con propiedades, estilo de vida, hospitalidad, gastronomía, marina, golf, wellness y contexto local.",

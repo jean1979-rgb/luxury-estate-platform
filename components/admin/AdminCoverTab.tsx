@@ -54,7 +54,7 @@ export default function AdminCoverTab({
           value={coverImage}
           onChange={(e) => onCoverImageChange(e.target.value)}
           className="mb-4 w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
-          placeholder="/uploads/properties/mi-propiedad/cover/imagen.jpg"
+          placeholder="https://pub-97c7fb12e7244f288f056306452e2d7d.r2.dev/cover/mi-propiedad.jpg"
         />
 
         <div className="relative aspect-[16/9] overflow-hidden rounded-[24px] border border-white/10 bg-black/30">

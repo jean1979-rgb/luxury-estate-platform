@@ -187,7 +187,7 @@ export default function AdminScenes360Tab({
                           })
                         }
                         className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-white/25"
-                        placeholder="/uploads/properties/mi-propiedad/scenes360/panorama.jpg"
+                        placeholder="https://pub-97c7fb12e7244f288f056306452e2d7d.r2.dev/scenes360/panorama.jpg"
                       />
                     </label>
 
