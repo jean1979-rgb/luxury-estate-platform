@@ -66,13 +66,16 @@ export async function deleteBrokerProperty(userId: string, id: string) {
   return existing.id;
 }
 
-export async function updateBrokerProperty(userId: string, id: string, body: PropertyUpdateInput) {
+export async function updateBrokerProperty(userId: string, id: string, body: PropertyUpdateInput, authRole?: string) {
   const ctx = await getBrokerContext(userId);
-  if (!ctx || (!ctx.profile && !ctx.isAdmin)) {
+  const isAdminOverride = authRole === "ADMIN";
+  const effectiveIsAdmin = Boolean(isAdminOverride || ctx?.isAdmin);
+
+  if (!effectiveIsAdmin && (!ctx || !ctx.profile)) {
     throw new Error("BROKER_NOT_FOUND");
   }
 
-  const existing = ctx.isAdmin
+  const existing = effectiveIsAdmin
     ? await prisma.brokerProperty.findUnique({
         where: { id },
         include: { sceneItems: true },
@@ -142,7 +145,7 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
       status: published ? "published" : "draft",
       publicationStatus,
       propertyType: propertyType || null,
-      city: ctx.isAdmin ? (location || existing.city || "") : ctx.profile!.city,
+      city: effectiveIsAdmin ? (location || existing.city || "") : ctx!.profile!.city,
       location: location || null,
       zoneSlug: zoneSlug || null,
       zoneLabel: zoneLabel || null,

@@ -15,16 +15,22 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-[#f5f1eb]">
-      <section className="relative overflow-hidden border-b border-white/10">
+      <section className="relative min-h-screen overflow-hidden border-b border-white/10">
         <div className="absolute inset-0">
-          <img
-            src={hero.heroBackgroundImage}
-            alt={hero.heroEyebrow}
-            className="h-full w-full object-cover"
+          <div
+            className="absolute inset-0 scale-105 bg-cover bg-center transition duration-[4000ms] ease-out"
+            style={{
+              backgroundImage: `url("${hero.heroBackgroundImage || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2400&q=90"}")`,
+              backgroundPosition: "center center",
+              backgroundSize: "cover",
+            }}
           />
-          <div className="absolute inset-0 bg-black/55" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/55" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/70" />
+
+          <div className="absolute inset-0 bg-black/58" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/88 via-black/58 to-black/72" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/34 via-black/10 to-black/88" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_22%,rgba(214,185,126,0.18),transparent_42%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_45%,rgba(255,255,255,0.08),transparent_35%)]" />
         </div>
 
         <div className="relative z-10 mx-auto max-w-7xl px-6 py-8 md:px-10 md:py-10">
@@ -66,17 +72,17 @@ export default async function HomePage() {
             </nav>
           </div>
 
-          <div className="grid gap-10 py-16 md:grid-cols-[1.15fr_0.85fr] md:py-24">
+          <div className="grid min-h-[calc(100vh-90px)] items-center gap-12 py-20 md:grid-cols-[1.15fr_0.85fr] md:py-28">
             <div className="max-w-3xl">
               <p className="text-[10px] uppercase tracking-[0.4em] text-[#e7d1a1]">
                 Luxury Real Estate Platform
               </p>
 
-              <h1 className="mt-5 text-5xl font-light leading-[0.95] text-white md:text-7xl">
+              <h1 className="mt-5 text-6xl font-light leading-[0.9] tracking-[-0.05em] text-white md:text-8xl xl:text-9xl">
                 {hero.heroTitle}
               </h1>
 
-              <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/82 md:text-xl">
+              <p className="mt-8 max-w-3xl text-lg leading-8 text-white/82 md:text-2xl md:leading-9">
                 {hero.heroSubtitle}
               </p>
 
@@ -98,7 +104,7 @@ export default async function HomePage() {
             </div>
 
             <div className="md:justify-self-end">
-              <div className="border border-white/15 bg-black/35 p-6 backdrop-blur-md md:p-7">
+              <div className="border border-white/15 bg-black/30 p-7 backdrop-blur-xl shadow-[0_20px_80px_rgba(0,0,0,0.6)] md:p-8">
                 <p className="text-[10px] uppercase tracking-[0.34em] text-white/45">
                   Qué ofrece la plataforma
                 </p>
@@ -153,34 +159,39 @@ export default async function HomePage() {
             </p>
           </div>
 
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {destinations.map((item: any) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className="group relative overflow-hidden rounded-[28px] border border-white/10 bg-black"
+                className="group relative flex min-h-[390px] overflow-hidden rounded-[34px] border border-white/10 bg-[#050505] shadow-[0_24px_90px_rgba(0,0,0,0.45)] transition hover:-translate-y-1 hover:border-white/25"
               >
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-110"
-                  style={{ backgroundImage: `url(${item.image})` }}
-                />
+                {item.image ? (
+                  <div
+                    className="absolute inset-0 bg-cover bg-center opacity-80 transition duration-700 group-hover:scale-110 group-hover:opacity-100"
+                    style={{ backgroundImage: `url("${item.image}")` }}
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(214,185,126,0.22),transparent_35%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.01))]" />
+                )}
 
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/58 to-black/10" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-transparent to-black/25" />
 
-                <div className="relative p-6">
-                  <p className="text-[10px] uppercase tracking-[0.34em] text-[#d8c7a6]">
+                <div className="relative mt-auto flex min-h-[390px] w-full flex-col justify-end p-7 md:p-8">
+                  <p className="text-[10px] uppercase tracking-[0.36em] text-[#e7d1a1]">
                     {item.name === hero.featuredDestinationName ? "featured destination" : item.status}
                   </p>
 
-                  <h3 className="mt-4 text-3xl font-light text-white">
+                  <h3 className="mt-4 text-3xl font-light leading-tight text-white md:text-4xl">
                     {item.name}
                   </h3>
 
-                  <p className="mt-4 text-sm leading-relaxed text-white/70">
+                  <p className="mt-4 max-w-md text-sm leading-7 text-white/74">
                     {item.text}
                   </p>
 
-                  <div className="mt-8 inline-flex items-center border border-white/20 px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-white transition group-hover:bg-white group-hover:text-black">
+                  <div className="mt-8 inline-flex w-fit items-center border border-white/25 bg-black/25 px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-white backdrop-blur-md transition group-hover:bg-white group-hover:text-black">
                     Entrar destino
                   </div>
                 </div>

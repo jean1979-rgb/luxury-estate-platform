@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import Gallery from "@/components/Gallery";
 import LuxuryScore from "@/components/LuxuryScore";
 import PropertyFacts from "@/components/PropertyFacts";
@@ -142,6 +143,10 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       })),
     }));
   }
+  if (property.slug && property.slug !== id) {
+    redirect(`/properties/${property.slug}`);
+  }
+
   const safeLocation = property.location ?? "Ubicación premium";
   const safePrice = property.price ?? "Precio disponible bajo solicitud";
   const safeBedrooms = property.bedrooms ?? 0;

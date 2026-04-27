@@ -31,17 +31,17 @@ export default async function AdminPropertiesPage() {
           </Link>
 
           <Link
-            href="/admin/public"
-            className="inline-flex min-h-11 items-center justify-center border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:bg-white hover:text-black"
-          >
-            Capa pública
-          </Link>
-
-          <Link
             href="/admin"
             className="inline-flex min-h-11 items-center justify-center border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:bg-white hover:text-black"
           >
             Nueva propiedad
+          </Link>
+
+          <Link
+            href="/admin/public"
+            className="inline-flex min-h-11 items-center justify-center border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:bg-white hover:text-black"
+          >
+            Capa pública
           </Link>
         </div>
       </div>
@@ -95,13 +95,6 @@ export default async function AdminPropertiesPage() {
                     </Link>
 
                     <Link
-                      href={`/broker/properties/${item.id}/studio`}
-                      className="inline-flex min-h-10 items-center justify-center border border-white/10 px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-white/75 transition hover:bg-white/10 hover:text-white"
-                    >
-                      Studio 360
-                    </Link>
-
-                    <Link
                       href={`/properties/${item.id}`}
                       className="inline-flex min-h-10 items-center justify-center border border-white/10 px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-white/75 transition hover:bg-white/10 hover:text-white"
                     >
@@ -113,13 +106,6 @@ export default async function AdminPropertiesPage() {
                       className="inline-flex min-h-10 items-center justify-center border border-white/10 px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-white/75 transition hover:bg-white/10 hover:text-white"
                     >
                       Ver en destinos
-                    </Link>
-
-                    <Link
-                      href="/admin/public"
-                      className="inline-flex min-h-10 items-center justify-center border border-white/10 px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-white/75 transition hover:bg-white/10 hover:text-white"
-                    >
-                      Capa pública
                     </Link>
                   </div>
                 </div>

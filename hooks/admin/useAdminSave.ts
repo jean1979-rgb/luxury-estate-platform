@@ -37,17 +37,35 @@ export function useAdminSave({
         slugify
       );
 
-      const payload = buildPropertyPayload({
+      console.log("DEBUG_SCENES360_SAVE", JSON.stringify(form.scenes360, null, 2));
+    const payload = buildPropertyPayload({
         form,
         normalizedScenes,
         sceneIdAliases,
         slugify,
       });
 
+      console.log("ADMIN_SAVE_PAYLOAD", JSON.stringify({ videoUrl: payload.videoUrl, videoPoster: payload.videoPoster, videoType: payload.videoType, id: payload.id, title: payload.title }, null, 2));
+      console.log("ADMIN_SAVE_PAYLOAD", JSON.stringify({
+        id: payload.id,
+        title: payload.title,
+        videoUrl: payload.videoUrl,
+        videoPoster: payload.videoPoster,
+        videoType: payload.videoType
+      }, null, 2));
+
       const result = await saveProperty({
         payload,
         forcedPropertyId,
       });
+
+      console.log("ADMIN_SAVE_RESULT", JSON.stringify({
+        id: result.saved.id,
+        videoUrl: result.saved.videoUrl,
+        videoPoster: result.saved.videoPoster,
+        videoType: result.saved.videoType
+      }, null, 2));
+      console.log("ADMIN_SAVE_RESULT", JSON.stringify({ videoUrl: result.saved.videoUrl, videoPoster: result.saved.videoPoster, videoType: result.saved.videoType, id: result.saved.id }, null, 2));
 
       applyPropertyResult({
         saved: result.saved,

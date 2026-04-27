@@ -164,9 +164,9 @@ export default function PublicDestinationForm({ id }: Props) {
         <input className="w-full p-3 bg-black border border-white/20 rounded-xl" placeholder="Slug" value={form.slug} onChange={(e) => update("slug", e.target.value)} />
 
         <select className="w-full p-3 bg-black border border-white/20 rounded-xl" value={form.status} onChange={(e) => update("status", e.target.value)}>
-          <option value="live">live</option>
+          <option value="published">published</option>
           <option value="coming_soon">coming_soon</option>
-          <option value="hidden">hidden</option>
+          <option value="draft">draft</option>
         </select>
 
         <input type="number" className="w-full p-3 bg-black border border-white/20 rounded-xl" placeholder="Sort order" value={form.sortOrder} onChange={(e) => update("sortOrder", Number(e.target.value))} />

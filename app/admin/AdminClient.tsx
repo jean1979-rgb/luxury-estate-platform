@@ -67,7 +67,7 @@ function normalizeAdminForm(value: Partial<AdminPropertyInput> | null | undefine
     gallery: Array.isArray(raw.gallery) ? raw.gallery.filter((item: any): item is string => typeof item === "string") : [],
     videoUrl: raw.videoUrl ?? "",
     videoPoster: raw.videoPoster ?? "",
-    videoType: raw.videoType ?? "upload",
+    videoType: raw.videoType || "upload",
     scenes360: Array.isArray(raw.scenes360)
       ? raw.scenes360.map((scene, sceneIndex) => ({
           id: scene?.id ?? `scene-${sceneIndex + 1}`,
@@ -244,7 +244,7 @@ const { handleUpload } = useAdminUploads({
       gallery: item.gallery,
       videoUrl: item.videoUrl || "",
       videoPoster: item.videoPoster || "",
-      videoType: item.videoType || "upload",
+      videoType: item.videoType ? item.videoType : "upload",
       scenes360: Array.isArray(item.scenes360) ? item.scenes360 : [],
       featured: item.featured,
       published: item.published,

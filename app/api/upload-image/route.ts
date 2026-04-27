@@ -51,8 +51,8 @@ export async function POST(req: Request) {
       })
     );
 
-    const url = `${publicUrl.replace(/\/+$/, "")}/${key}`;
-
+    const base = (publicUrl ?? "").replace(/\/+$/, "");
+    const url = `${base}/${key}`;
     return NextResponse.json({
       ok: true,
       url,

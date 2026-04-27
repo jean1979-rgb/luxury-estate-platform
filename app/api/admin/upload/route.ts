@@ -3,25 +3,6 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
-const accountId = process.env.R2_ACCOUNT_ID;
-const accessKeyId = process.env.R2_ACCESS_KEY_ID;
-const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
-const bucket = process.env.R2_BUCKET;
-const publicUrl = process.env.R2_PUBLIC_URL;
-
-if (!accountId || !accessKeyId || !secretAccessKey || !bucket || !publicUrl) {
-  throw new Error("Missing R2 environment variables");
-}
-
-const s3 = new S3Client({
-  region: "auto",
-  endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId,
-    secretAccessKey,
-  },
-});
-
 function sanitizeFileName(name: string) {
   return name
     .normalize("NFKD")
@@ -37,6 +18,28 @@ function buildKey(kind: string, fileName: string) {
 }
 
 export async function POST(req: Request) {
+  const accountId = process.env.R2_ACCOUNT_ID;
+  const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+  const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+  const bucket = process.env.R2_BUCKET;
+  const publicUrl = process.env.R2_PUBLIC_URL;
+
+  if (!accountId || !accessKeyId || !secretAccessKey || !bucket || !publicUrl) {
+    return NextResponse.json(
+      { ok: false, error: "Missing R2 environment variables" },
+      { status: 500 }
+    );
+  }
+
+  const s3 = new S3Client({
+    region: "auto",
+    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+  });
+
   try {
     const formData = await req.formData();
     const file = formData.get("file");
@@ -65,7 +68,8 @@ export async function POST(req: Request) {
       })
     );
 
-    const url = `${publicUrl.replace(/\/+$/, "")}/${key}`;
+    const base = publicUrl.replace(/\/+$/, "");
+    const url = `${base}/${key}`;
 
     return NextResponse.json({
       ok: true,
