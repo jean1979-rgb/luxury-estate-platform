@@ -4,6 +4,7 @@ export const revalidate = 0;
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { slugify } from "@/lib/slugify";
 
 export async function GET() {
   const session = await auth();
@@ -121,7 +122,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, message: "ID requerido" }, { status: 400 });
     }
 
-    let updated = await updateBrokerProperty(session.user.id, id, body);
+    let updated = await updateBrokerProperty(session.user.id, id, body, session.user.role);
 
     if (!updated) {
       const existingById = await prisma.brokerProperty.findUnique({
@@ -142,12 +143,31 @@ export async function POST(req: Request) {
         );
       }
 
+      let createSlugBase = slugify(String(body.slug || body.title || id).trim() || id);
+      if (!createSlugBase) createSlugBase = String(id);
+
+      let createSlug = createSlugBase;
+      let createSlugCounter = 1;
+
+      while (
+        await prisma.brokerProperty.findFirst({
+          where: {
+            ownerBrokerId: session.user.id,
+            slug: createSlug,
+          },
+          select: { id: true },
+        })
+      ) {
+        createSlug = `${createSlugBase}-${createSlugCounter}`;
+        createSlugCounter += 1;
+      }
+
       updated = await prisma.brokerProperty.create({
         data: {
           id,
           ownerBrokerId: session.user.id,
           title: String(body.title || "Propiedad").trim() || "Propiedad",
-          slug: String(body.slug || id).trim() || id,
+          slug: createSlug,
           status: body.published ? "published" : "draft",
           publicationStatus: body.published ? "PUBLISHED" : "DRAFT",
           propertyType: body.propertyType ? String(body.propertyType).trim() : null,
