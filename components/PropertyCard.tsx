@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { buildPremiumTitle } from "@/lib/premium-title";
 
 type Props = {
   id: string;
@@ -26,7 +27,7 @@ export default function PropertyCard({
         <div className="relative h-[620px] overflow-hidden">
           <img
             src={image}
-            alt={title}
+            alt={buildPremiumTitle({ title, location })}
             className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
           />
 
@@ -48,7 +49,7 @@ export default function PropertyCard({
             </p>
 
             <h3 className="mt-3 text-2xl font-light leading-tight text-white md:text-[30px]">
-              {title}
+              {buildPremiumTitle({ title, location })}
             </h3>
 
             <p className="mt-3 max-w-[85%] text-sm text-white/68 md:text-[15px]">

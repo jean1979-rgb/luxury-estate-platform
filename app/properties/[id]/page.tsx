@@ -75,11 +75,6 @@ export default async function PropertyDetailPage({ params }: PageProps) {
   });
 
   
-  console.log("PROPERTY VIDEO DEBUG:", {
-    id: property?.id,
-    videoUrl: property?.videoUrl,
-    videoPoster: property?.videoPoster,
-  });
 
 
   if (!property) {

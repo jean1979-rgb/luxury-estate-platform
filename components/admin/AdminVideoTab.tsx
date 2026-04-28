@@ -44,29 +44,44 @@ export default function AdminVideoTab({
     setUploadError("");
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("kind", "videos");
-
-      const res = await fetch("/api/admin/upload", {
+      const presignRes = await fetch("/api/admin/upload/presign", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type || "application/octet-stream",
+          kind: "videos",
+        }),
       });
 
-      const data = await res.json().catch(() => ({}));
+      const presignData = await presignRes.json();
 
-      if (!res.ok || !data?.url) {
-        throw new Error(
-          data?.error || data?.message || "No se pudo subir el video a Cloudflare R2."
-        );
+      if (!presignRes.ok || !presignData.ok || !presignData.uploadUrl || !presignData.url) {
+        throw new Error(presignData.error || "No se pudo preparar la subida directa a R2.");
       }
 
-      onVideoUrlChange(String(data.url));
+      const uploadRes = await fetch(presignData.uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type || "application/octet-stream",
+        },
+        body: file,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error(`R2 upload failed: ${uploadRes.status} ${uploadRes.statusText}`);
+      }
+
+      onVideoUrlChange(presignData.url);
       onVideoTypeChange("upload");
+
+      if (onUploadVideo) {
+        await onUploadVideo(file);
+      }
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "No se pudo subir el video.";
-      setUploadError(message);
+      setUploadError(error instanceof Error ? error.message : "No se pudo subir el video.");
     } finally {
       setUploading(false);
     }

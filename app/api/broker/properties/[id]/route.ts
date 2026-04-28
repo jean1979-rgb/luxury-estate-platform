@@ -38,24 +38,9 @@ export async function PATCH(req: Request, context: RouteContext) {
 
   const { id } = await context.params;
   const body = await req.json();
-  console.log("API_PATCH_BODY_VIDEO", JSON.stringify({
-    id,
-    title: body.title,
-    videoUrl: body.videoUrl,
-    videoPoster: body.videoPoster,
-    videoType: body.videoType
-  }, null, 2));
-  console.log("API_PATCH_BODY_VIDEO", JSON.stringify({ id, videoUrl: body.videoUrl, videoPoster: body.videoPoster, videoType: body.videoType }, null, 2));
 
   try {
     const item = await updateBrokerProperty(session.user.id, id, body, session.user.role);
-    console.log("API_PATCH_UPDATED_ITEM_VIDEO", JSON.stringify(item ? {
-      id: item.id,
-      videoUrl: item.videoUrl,
-      videoPoster: item.videoPoster,
-      videoType: item.videoType
-    } : null, null, 2));
-    console.log("API_PATCH_UPDATED_ITEM_VIDEO", JSON.stringify(item ? { id: item.id, videoUrl: item.videoUrl, videoPoster: item.videoPoster, videoType: item.videoType } : null, null, 2));
 
     if (!item) {
       return NextResponse.json({ ok: false, message: "Propiedad no encontrada." }, { status: 404 });
@@ -140,21 +125,9 @@ export async function PATCH(req: Request, context: RouteContext) {
       updatedAt: hydrated.updatedAt.toISOString(),
     };
 
-    console.log("API_PATCH_NORMALIZED_VIDEO", JSON.stringify({ id: normalized.id, videoUrl: normalized.videoUrl, videoPoster: normalized.videoPoster, videoType: normalized.videoType }, null, 2));
-    console.log("API_PATCH_NORMALIZED_VIDEO", JSON.stringify({
-      id: normalized.id,
-      videoUrl: normalized.videoUrl,
-      videoPoster: normalized.videoPoster,
-      videoType: normalized.videoType
-    }, null, 2));
     return NextResponse.json({ ok: true, item: normalized });
   } catch (error) {
     const message = error instanceof Error ? error.message : "PATCH_FAILED";
-    console.log("API_PATCH_ERROR", JSON.stringify({
-      id,
-      message,
-      name: error instanceof Error ? error.name : "UNKNOWN"
-    }, null, 2));
     return NextResponse.json({ ok: false, message }, { status: 400 });
   }
 }
