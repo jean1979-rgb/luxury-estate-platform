@@ -10,6 +10,7 @@ import { ACAPULCO_SALE_PAGE_COPY } from "@/lib/acapulco-editorial";
 import { getPublicPartners } from "@/lib/public-partners";
 import { getPublicExperiences } from "@/lib/public-experiences";
 import { prisma } from "@/lib/prisma";
+import SeamlessVideoHero from "@/components/SeamlessVideoHero";
 
 function getZoneTitle(zone: PropertyZone) {
   if (zone === "playa") return "Beachfront residences";
@@ -82,20 +83,13 @@ export default async function AcapulcoPage({
       <div>
         {destination?.heroVideoUrl ? (
           <section className="relative -mt-12 h-screen min-h-[760px] w-full overflow-hidden bg-black">
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster={destination.heroVideoPoster || destination.heroImage || ""}
-              className="absolute inset-0 h-full w-full object-cover"
-            >
-              <source src={destination.heroVideoUrl} type="video/mp4" />
-            </video>
+            <SeamlessVideoHero
+              src={destination.heroVideoUrl}
+              poster={destination.heroVideoPoster || destination.heroImage || undefined}
+            />
 
-            <div className="absolute inset-0 bg-black/28" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/68 via-black/22 to-black/18" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/10 to-black/20" />
+            <div className="absolute inset-0 bg-black/20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
 
             <div className="relative z-10 flex h-full max-w-7xl flex-col justify-center px-8 pt-28 pb-48 md:px-20 md:pt-32 md:pb-56">
               <p className="text-[10px] uppercase tracking-[0.38em] text-[#e7d1a1]">
@@ -115,9 +109,9 @@ export default async function AcapulcoPage({
                 <p className="text-[10px] uppercase tracking-[0.34em] text-white/70">Colecciones</p>
                 <p className="mt-3 max-w-xs text-sm leading-6 text-white/55">Explora nuestras colecciones más exclusivas. →</p>
               </a>
-              <a href="#properties" className="border-white/10 px-8 py-8 transition hover:bg-white/5 md:border-r">
-                <p className="text-[10px] uppercase tracking-[0.34em] text-white/70">Propiedades</p>
-                <p className="mt-3 max-w-xs text-sm leading-6 text-white/55">Residencias únicas en los destinos más icónicos de México. →</p>
+              <a href="#partners" className="border-white/10 px-8 py-8 transition hover:bg-white/5 md:border-r">
+                <p className="text-[10px] uppercase tracking-[0.34em] text-white/70">Partners</p>
+                <p className="mt-3 max-w-xs text-sm leading-6 text-white/55">Arquitectura, hospitalidad y marcas que definen el estilo de vida del destino. →</p>
               </a>
               <a href="#experiences" className="px-8 py-8 transition hover:bg-white/5">
                 <p className="text-[10px] uppercase tracking-[0.34em] text-white/70">Experiencias</p>

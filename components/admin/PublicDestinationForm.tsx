@@ -248,7 +248,21 @@ export default function PublicDestinationForm({ id }: Props) {
           </label>
 
           {form.heroVideoUrl ? (
-            <video src={form.heroVideoUrl} controls className="w-full rounded-xl mt-3" />
+            <div className="mt-3 space-y-3">
+              <video src={form.heroVideoUrl} controls className="w-full rounded-xl" />
+
+              <button
+                type="button"
+                onClick={() => {
+                  update("heroVideoUrl", "");
+                  update("heroVideoPoster", "");
+                  update("heroVideoTitle", "");
+                }}
+                className="rounded-xl border border-red-400/30 px-4 py-3 text-sm text-red-200 transition hover:bg-red-500/10"
+              >
+                Eliminar video hero
+              </button>
+            </div>
           ) : null}
         </div>
       </section>
