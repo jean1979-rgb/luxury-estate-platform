@@ -9,6 +9,8 @@ export type PublicHomeHero = {
   heroSecondaryCtaLabel: string;
   heroSecondaryCtaHref: string;
   heroBackgroundImage: string;
+  heroVideoUrl: string;
+  heroVideoPoster: string;
   destinationsTitle: string;
   destinationsSubtitle: string;
   partnersTitle: string;
@@ -32,6 +34,8 @@ const FALLBACK_HOME: PublicHomeHero = {
   heroSecondaryCtaHref: "/acapulco",
   heroBackgroundImage:
     "https://pub-97c7fb12e7244f288f056306452e2d7d.r2.dev/cover/sample-villa-diamante.jpg",
+  heroVideoUrl: "",
+  heroVideoPoster: "",
   destinationsTitle: "Explora el lujo por ciudad, no por ruido de inventario",
   destinationsSubtitle:
     "Cada destino debe sentirse como una experiencia de lujo propia, con propiedades, estilo de vida, hospitalidad, gastronomía, marina, golf, wellness y contexto local.",
@@ -83,6 +87,8 @@ export async function getPublicHomeHero(): Promise<PublicHomeHero> {
         home.heroBackgroundImage ||
         featured?.heroImage ||
         FALLBACK_HOME.heroBackgroundImage,
+      heroVideoUrl: home.heroVideoUrl || FALLBACK_HOME.heroVideoUrl,
+      heroVideoPoster: home.heroVideoPoster || home.heroBackgroundImage || FALLBACK_HOME.heroVideoPoster,
       destinationsTitle:
         home.destinationsTitle || FALLBACK_HOME.destinationsTitle,
       destinationsSubtitle:

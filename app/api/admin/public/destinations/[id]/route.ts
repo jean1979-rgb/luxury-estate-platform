@@ -52,6 +52,8 @@ export async function PUT(req: Request, ctx: Ctx) {
       heroTitle: body.heroTitle ?? "",
       heroSubtitle: body.heroSubtitle ?? "",
       heroImage: body.heroImage ?? "",
+      heroVideoUrl: body.heroVideoUrl ?? "",
+      heroVideoPoster: body.heroVideoPoster ?? "",
 
       overviewTitle: body.overviewTitle ?? "",
       overviewBody: body.overviewBody ?? "",

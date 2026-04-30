@@ -17,14 +17,27 @@ export default async function HomePage() {
     <main className="min-h-screen bg-[#0a0a0a] text-[#f5f1eb]">
       <section className="relative min-h-screen overflow-hidden border-b border-white/10">
         <div className="absolute inset-0">
-          <div
-            className="absolute inset-0 scale-105 bg-cover bg-center transition duration-[4000ms] ease-out"
-            style={{
-              backgroundImage: `url("${hero.heroBackgroundImage || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2400&q=90"}")`,
-              backgroundPosition: "center center",
-              backgroundSize: "cover",
-            }}
-          />
+          {hero.heroVideoUrl ? (
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              poster={hero.heroVideoPoster || hero.heroBackgroundImage}
+              className="absolute inset-0 h-full w-full object-cover"
+            >
+              <source src={hero.heroVideoUrl} type="video/mp4" />
+            </video>
+          ) : (
+            <div
+              className="absolute inset-0 scale-105 bg-cover bg-center transition duration-[4000ms] ease-out"
+              style={{
+                backgroundImage: `url("${hero.heroBackgroundImage || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2400&q=90"}")`,
+                backgroundPosition: "center center",
+                backgroundSize: "cover",
+              }}
+            />
+          )}
 
           <div className="absolute inset-0 bg-black/58" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/88 via-black/58 to-black/72" />

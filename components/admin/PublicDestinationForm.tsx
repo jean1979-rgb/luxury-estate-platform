@@ -64,7 +64,7 @@ export default function PublicDestinationForm({ id }: Props) {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [loading, setLoading] = useState(Boolean(id));
   const [saving, setSaving] = useState(false);
-
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const [properties, setProperties] = useState<any[]>([]);
   const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
 
@@ -78,8 +78,7 @@ export default function PublicDestinationForm({ id }: Props) {
           ? data.items
           : [];
 
-        const published = list.filter((p: any) => p.published);
-        setProperties(published);
+        setProperties(list.filter((p: any) => p.published));
       });
   }, []);
 
@@ -89,7 +88,6 @@ export default function PublicDestinationForm({ id }: Props) {
     setSelectedProperties(ids);
   }, [form]);
 
-
   useEffect(() => {
     if (!id) return;
 
@@ -98,16 +96,55 @@ export default function PublicDestinationForm({ id }: Props) {
       .then((data) => {
         setForm({
           ...EMPTY_FORM,
-          ...data,
+          ...Object.fromEntries(
+            Object.entries(data || {}).map(([key, value]) => [key, value ?? ""])
+          ),
           sortOrder: Number(data?.sortOrder ?? 0),
           isFeatured: Boolean(data?.isFeatured),
-        });
+        } as FormState);
       })
       .finally(() => setLoading(false));
   }, [id]);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function uploadHeroVideo(file: File) {
+    setUploadingVideo(true);
+
+    try {
+      const res = await fetch("/api/admin/upload/presign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type || "video/mp4",
+          kind: "destination-hero-videos",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok || !data.uploadUrl || !data.url) {
+        throw new Error(data.error || "No se pudo preparar la subida.");
+      }
+
+      const upload = await fetch(data.uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type || "video/mp4" },
+        body: file,
+      });
+
+      if (!upload.ok) throw new Error(`Upload failed: ${upload.status}`);
+
+      update("heroVideoUrl", data.url);
+    } catch (error) {
+      console.error("Hero video upload error:", error);
+      alert(error instanceof Error ? error.message : "Error subiendo video");
+    } finally {
+      setUploadingVideo(false);
+    }
   }
 
   async function handleSave() {
@@ -184,52 +221,52 @@ export default function PublicDestinationForm({ id }: Props) {
         <input className="w-full p-3 bg-black border border-white/20 rounded-xl" placeholder="Hero title" value={form.heroTitle} onChange={(e) => update("heroTitle", e.target.value)} />
         <textarea className="w-full p-3 bg-black border border-white/20 rounded-xl min-h-28" placeholder="Hero subtitle" value={form.heroSubtitle} onChange={(e) => update("heroSubtitle", e.target.value)} />
         <input className="w-full p-3 bg-black border border-white/20 rounded-xl" placeholder="Hero image URL" value={form.heroImage} onChange={(e) => update("heroImage", e.target.value)} />
+
         <div className="border-t border-white/10 pt-4 mt-4 space-y-4">
           <h3 className="text-sm uppercase tracking-[0.24em] text-white/40">
-            Destination Film (future)
+            Destination Film
           </h3>
 
-          <input
-            className="w-full p-3 bg-black border border-white/20 rounded-xl"
-            placeholder="Video URL (YouTube, Vimeo, MP4)"
-            value={form.heroVideoUrl}
-            onChange={(e) => update("heroVideoUrl", e.target.value)}
-          />
+          <input className="w-full p-3 bg-black border border-white/20 rounded-xl" placeholder="Video URL" value={form.heroVideoUrl} onChange={(e) => update("heroVideoUrl", e.target.value)} />
+          <input className="w-full p-3 bg-black border border-white/20 rounded-xl" placeholder="Video poster image" value={form.heroVideoPoster} onChange={(e) => update("heroVideoPoster", e.target.value)} />
+          <input className="w-full p-3 bg-black border border-white/20 rounded-xl" placeholder="Video title" value={form.heroVideoTitle} onChange={(e) => update("heroVideoTitle", e.target.value)} />
 
-          <input
-            className="w-full p-3 bg-black border border-white/20 rounded-xl"
-            placeholder="Video poster image"
-            value={form.heroVideoPoster}
-            onChange={(e) => update("heroVideoPoster", e.target.value)}
-          />
+          <label className="inline-block cursor-pointer rounded-xl border border-white/20 px-4 py-2">
+            <input
+              type="file"
+              accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov,.m4v"
+              className="hidden"
+              disabled={uploadingVideo}
+              onChange={async (e) => {
+                const input = e.currentTarget;
+                const file = input.files?.[0];
+                if (file) await uploadHeroVideo(file);
+                input.value = "";
+              }}
+            />
+            {uploadingVideo ? "Subiendo..." : "Subir video hero"}
+          </label>
 
-          <input
-            className="w-full p-3 bg-black border border-white/20 rounded-xl"
-            placeholder="Video title"
-            value={form.heroVideoTitle}
-            onChange={(e) => update("heroVideoTitle", e.target.value)}
-          />
+          {form.heroVideoUrl ? (
+            <video src={form.heroVideoUrl} controls className="w-full rounded-xl mt-3" />
+          ) : null}
         </div>
-
       </section>
 
       <section className="space-y-4 border border-white/10 rounded-2xl p-6">
         <h2 className="text-xl font-light">Overview</h2>
-
         <input className="w-full p-3 bg-black border border-white/20 rounded-xl" placeholder="Overview title" value={form.overviewTitle} onChange={(e) => update("overviewTitle", e.target.value)} />
         <textarea className="w-full p-3 bg-black border border-white/20 rounded-xl min-h-32" placeholder="Overview body" value={form.overviewBody} onChange={(e) => update("overviewBody", e.target.value)} />
       </section>
 
       <section className="space-y-4 border border-white/10 rounded-2xl p-6">
         <h2 className="text-xl font-light">Thesis</h2>
-
         <input className="w-full p-3 bg-black border border-white/20 rounded-xl" placeholder="Thesis title" value={form.thesisTitle} onChange={(e) => update("thesisTitle", e.target.value)} />
         <textarea className="w-full p-3 bg-black border border-white/20 rounded-xl min-h-32" placeholder="Thesis body" value={form.thesisBody} onChange={(e) => update("thesisBody", e.target.value)} />
       </section>
 
       <section className="space-y-4 border border-white/10 rounded-2xl p-6">
         <h2 className="text-xl font-light">CTAs</h2>
-
         <input className="w-full p-3 bg-black border border-white/20 rounded-xl" placeholder="Primary CTA label" value={form.primaryCtaLabel} onChange={(e) => update("primaryCtaLabel", e.target.value)} />
         <input className="w-full p-3 bg-black border border-white/20 rounded-xl" placeholder="Primary CTA href" value={form.primaryCtaHref} onChange={(e) => update("primaryCtaHref", e.target.value)} />
         <input className="w-full p-3 bg-black border border-white/20 rounded-xl" placeholder="Secondary CTA label" value={form.secondaryCtaLabel} onChange={(e) => update("secondaryCtaLabel", e.target.value)} />
@@ -238,13 +275,11 @@ export default function PublicDestinationForm({ id }: Props) {
 
       <section className="space-y-4 border border-white/10 rounded-2xl p-6">
         <h2 className="text-xl font-light">SEO</h2>
-
         <input className="w-full p-3 bg-black border border-white/20 rounded-xl" placeholder="SEO title" value={form.seoTitle} onChange={(e) => update("seoTitle", e.target.value)} />
         <textarea className="w-full p-3 bg-black border border-white/20 rounded-xl min-h-28" placeholder="SEO description" value={form.seoDescription} onChange={(e) => update("seoDescription", e.target.value)} />
         <input className="w-full p-3 bg-black border border-white/20 rounded-xl" placeholder="OG image URL" value={form.ogImage} onChange={(e) => update("ogImage", e.target.value)} />
       </section>
 
-      
       <section className="space-y-4 border border-white/10 rounded-2xl p-6">
         <h2 className="text-xl font-light">Featured Residences</h2>
 
@@ -268,7 +303,7 @@ export default function PublicDestinationForm({ id }: Props) {
         </div>
       </section>
 
-<div className="flex gap-4">
+      <div className="flex gap-4">
         <button onClick={handleSave} className="bg-white text-black px-5 py-3 rounded-xl">
           {saving ? "Guardando..." : "Guardar"}
         </button>

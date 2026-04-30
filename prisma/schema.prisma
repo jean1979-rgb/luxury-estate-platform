@@ -121,6 +121,8 @@ model PublicHome {
   heroSecondaryCtaLabel   String?
   heroSecondaryCtaHref    String?
   heroBackgroundImage     String?
+  heroVideoUrl        String?
+  heroVideoPoster     String?
   offerTitle              String?
   offerItemsJson          String?
   destinationsTitle       String?
@@ -161,7 +163,9 @@ model PublicDestination {
   heroEyebrow       String?
   heroTitle         String?
   heroSubtitle      String?
-  heroImage         String?
+  heroImage String?
+  heroVideoUrl String?
+  heroVideoPoster String?
   overviewTitle     String?
   overviewBody      String?
   thesisTitle       String?

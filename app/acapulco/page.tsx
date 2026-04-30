@@ -9,6 +9,7 @@ import {
 import { ACAPULCO_SALE_PAGE_COPY } from "@/lib/acapulco-editorial";
 import { getPublicPartners } from "@/lib/public-partners";
 import { getPublicExperiences } from "@/lib/public-experiences";
+import { prisma } from "@/lib/prisma";
 
 function getZoneTitle(zone: PropertyZone) {
   if (zone === "playa") return "Beachfront residences";
@@ -49,6 +50,10 @@ export default async function AcapulcoPage({
 }: {
   searchParams?: SearchParams;
 }) {
+  const destination = await prisma.publicDestination.findUnique({
+    where: { slug: "acapulco" },
+  });
+
   const properties = await getCasaDePlayaProperties();
   const luxuryPartners = await getPublicPartners();
   const experiences = await getPublicExperiences();
@@ -64,8 +69,8 @@ export default async function AcapulcoPage({
     : [];
 
   return (
-    <main className="min-h-screen bg-black px-6 py-12 text-white md:px-10">
-      <div className="mx-auto max-w-[1680px] px-6 pt-6 md:px-10">
+    <main className="min-h-screen bg-black text-white">
+      <div className="absolute left-6 top-8 z-30 md:left-10">
         <Link
           href="/"
           className="inline-flex border border-white/20 px-4 py-2 text-xs uppercase tracking-[0.22em] text-white transition hover:bg-white hover:text-black"
@@ -74,18 +79,67 @@ export default async function AcapulcoPage({
         </Link>
       </div>
 
-      <div className="mx-auto max-w-7xl">
-        <p className="text-[10px] uppercase tracking-[0.38em] text-white/45">
-          Destination
-        </p>
+      <div>
+        {destination?.heroVideoUrl ? (
+          <section className="relative -mt-12 h-screen min-h-[760px] w-full overflow-hidden bg-black">
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              poster={destination.heroVideoPoster || destination.heroImage || ""}
+              className="absolute inset-0 h-full w-full object-cover"
+            >
+              <source src={destination.heroVideoUrl} type="video/mp4" />
+            </video>
 
-        <h1 className="mt-4 text-4xl font-light md:text-6xl">Acapulco</h1>
+            <div className="absolute inset-0 bg-black/28" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/68 via-black/22 to-black/18" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/10 to-black/20" />
 
-        <p className="mt-4 max-w-4xl text-white/65 md:text-lg">
-          {ACAPULCO_SALE_PAGE_COPY.intro}
-        </p>
+            <div className="relative z-10 flex h-full max-w-7xl flex-col justify-center px-8 pt-28 pb-48 md:px-20 md:pt-32 md:pb-56">
+              <p className="text-[10px] uppercase tracking-[0.38em] text-[#e7d1a1]">
+                {destination.heroEyebrow || "Destination"}
+              </p>
 
-        <div className="mt-10 grid gap-4 md:grid-cols-2">
+              <h1 className="mt-5 font-serif text-5xl font-light leading-none tracking-[-0.05em] text-white md:text-7xl">
+                {destination.heroTitle || "Acapulco"}
+              </h1>
+
+              <p className="mt-6 max-w-xl text-lg leading-8 text-white/78 md:text-xl">
+                {destination.heroSubtitle || ACAPULCO_SALE_PAGE_COPY.intro}
+              </p>
+            </div>
+          <div className="absolute bottom-0 left-0 right-0 z-20 grid border-t border-white/10 bg-black/58 backdrop-blur-xl md:grid-cols-3">
+              <a href="#collections" className="border-white/10 px-8 py-8 transition hover:bg-white/5 md:border-r md:px-20">
+                <p className="text-[10px] uppercase tracking-[0.34em] text-white/70">Colecciones</p>
+                <p className="mt-3 max-w-xs text-sm leading-6 text-white/55">Explora nuestras colecciones más exclusivas. →</p>
+              </a>
+              <a href="#properties" className="border-white/10 px-8 py-8 transition hover:bg-white/5 md:border-r">
+                <p className="text-[10px] uppercase tracking-[0.34em] text-white/70">Propiedades</p>
+                <p className="mt-3 max-w-xs text-sm leading-6 text-white/55">Residencias únicas en los destinos más icónicos de México. →</p>
+              </a>
+              <a href="#experiences" className="px-8 py-8 transition hover:bg-white/5">
+                <p className="text-[10px] uppercase tracking-[0.34em] text-white/70">Experiencias</p>
+                <p className="mt-3 max-w-xs text-sm leading-6 text-white/55">Vive Acapulco más allá de lo extraordinario. →</p>
+              </a>
+            </div>
+          </section>
+        ) : (
+          <>
+            <p className="text-[10px] uppercase tracking-[0.38em] text-white/45">
+              Destination
+            </p>
+
+            <h1 className="mt-4 text-4xl font-light md:text-6xl">Acapulco</h1>
+
+            <p className="mt-4 max-w-4xl text-white/65 md:text-lg">
+              {ACAPULCO_SALE_PAGE_COPY.intro}
+            </p>
+          </>
+        )}
+
+        <div id="collections" className="mx-auto mt-16 grid max-w-7xl gap-4 px-6 md:grid-cols-2 md:px-10">
           <Link
             href="/acapulco"
             className="group relative overflow-hidden rounded-[30px] border border-white/12 bg-white px-7 py-8 text-black transition hover:scale-[1.01] hover:shadow-[0_20px_80px_rgba(255,255,255,0.08)]"
