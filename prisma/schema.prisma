@@ -17,6 +17,7 @@ model User {
   updatedAt    DateTime @updatedAt
 
   brokerProfile BrokerProfile?
+  emailVerificationTokens EmailVerificationToken[]
 }
 
 model BrokerProfile {
@@ -276,5 +277,17 @@ model PublicDestinationExperience {
   experience  PublicExperience  @relation(fields: [experienceId], references: [id], onDelete: Cascade)
 
   @@unique([destinationId, experienceId])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
