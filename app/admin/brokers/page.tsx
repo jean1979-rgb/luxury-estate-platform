@@ -8,6 +8,7 @@ type BrokerRow = {
   id: string;
   name: string | null;
   email: string;
+  emailVerified?: string | null;
   role: "BROKER" | "ADMIN";
   status: "ACTIVE" | "PENDING" | "SUSPENDED";
   propertyCount?: number;
@@ -261,6 +262,17 @@ export default function AdminBrokersPage() {
                             {item.name || "Sin nombre"}
                           </div>
                           <div className="mt-1 text-xs text-white/45">{item.email}</div>
+<div className="mt-2">
+  {item.emailVerified ? (
+    <span className="inline-flex rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-1 text-[10px] uppercase tracking-[0.15em] text-emerald-200">
+      Email verified
+    </span>
+  ) : (
+    <span className="inline-flex rounded-full border border-white/10 bg-white/[0.05] px-2 py-1 text-[10px] uppercase tracking-[0.15em] text-white/50">
+      Email not verified
+    </span>
+  )}
+</div>
                         </td>
 
                         <td className="px-4 py-4 align-top text-white/75">
