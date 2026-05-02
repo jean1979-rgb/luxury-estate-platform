@@ -53,17 +53,10 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const status =
-    typeof body.status === "string" ? body.status : undefined;
-
-  const approved =
-    typeof body.approved === "boolean" ? body.approved : undefined;
-
-  const canPublish =
-    typeof body.canPublish === "boolean" ? body.canPublish : undefined;
-
-  const tokkoEnabled =
-    typeof body.tokkoEnabled === "boolean" ? body.tokkoEnabled : undefined;
+  const status = typeof body.status === "string" ? body.status : undefined;
+  const approved = typeof body.approved === "boolean" ? body.approved : undefined;
+  const canPublish = typeof body.canPublish === "boolean" ? body.canPublish : undefined;
+  const tokkoEnabled = typeof body.tokkoEnabled === "boolean" ? body.tokkoEnabled : undefined;
 
   const tokkoApiKey =
     typeof body.tokkoApiKey === "string"
@@ -99,11 +92,7 @@ export async function PUT(req: NextRequest, context: RouteContext) {
     existingUser.brokerProfile?.slug ||
     `${slugify(baseName) || "broker"}-${id.slice(0, 8).toLowerCase()}`;
 
-  const createCity =
-    city ||
-    existingUser.brokerProfile?.city ||
-    "CDMX";
-
+  const createCity = city || existingUser.brokerProfile?.city || "CDMX";
   const createBusinessName = baseName;
 
   await prisma.user.update({
@@ -146,4 +135,60 @@ export async function PUT(req: NextRequest, context: RouteContext) {
   });
 
   return NextResponse.json(updated);
+}
+
+export async function DELETE(_req: NextRequest, context: RouteContext) {
+  const { id } = await context.params;
+
+  try {
+    const properties = await prisma.brokerProperty.findMany({
+      where: { ownerBrokerId: id },
+      select: { id: true },
+    });
+
+    const propertyIds = properties.map((item) => item.id);
+
+    if (propertyIds.length > 0) {
+      const scenes = await prisma.propertyScene360.findMany({
+        where: { propertyId: { in: propertyIds } },
+        select: { id: true },
+      });
+
+      const sceneIds = scenes.map((item) => item.id);
+
+      if (sceneIds.length > 0) {
+        await prisma.sceneHotspot.deleteMany({
+          where: { sceneId: { in: sceneIds } },
+        });
+      }
+
+      await prisma.propertyScene360.deleteMany({
+        where: { propertyId: { in: propertyIds } },
+      });
+    }
+
+    await prisma.emailVerificationToken.deleteMany({
+      where: { userId: id },
+    });
+
+    await prisma.brokerProperty.deleteMany({
+      where: { ownerBrokerId: id },
+    });
+
+    await prisma.brokerProfile.deleteMany({
+      where: { userId: id },
+    });
+
+    await prisma.user.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("DELETE /api/admin/brokers/[id]", error);
+    return NextResponse.json(
+      { ok: false, message: "No se pudo eliminar broker" },
+      { status: 500 }
+    );
+  }
 }
