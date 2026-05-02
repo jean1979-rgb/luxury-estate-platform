@@ -54,14 +54,14 @@ export async function POST(req: NextRequest) {
         email,
         passwordHash,
         role: "BROKER",
-        status: "ACTIVE",
+        status: "PENDING",
         brokerProfile: {
           create: {
             businessName: data.businessName.trim(),
             slug,
             phone: data.phone?.trim() || "",
             city: data.city.trim(),
-            approved: true,
+            approved: false,
           },
         },
       },

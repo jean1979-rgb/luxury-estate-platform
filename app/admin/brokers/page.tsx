@@ -251,18 +251,12 @@ export default function AdminBrokersPage() {
 
                         <td className="px-4 py-4 align-top">
                           <div className="flex flex-wrap gap-2">
-                            <Badge
-                              label={item.brokerProfile?.approved ? "APPROVED" : "NO APPROVED"}
-                              tone={item.brokerProfile?.approved ? "green" : "neutral"}
-                            />
-                            <Badge
-                              label={item.brokerProfile?.canPublish ? "CAN PUBLISH" : "NO PUBLISH"}
-                              tone={item.brokerProfile?.canPublish ? "blue" : "neutral"}
-                            />
-                            <Badge
-                              label={item.brokerProfile?.tokkoEnabled ? "TOKKO ON" : "TOKKO OFF"}
-                              tone={item.brokerProfile?.tokkoEnabled ? "green" : "neutral"}
-                            />
+                            <button onClick={() => toggle(item.id, "approved", !item.brokerProfile?.approved)} className="cursor-pointer">
+<Badge label={item.brokerProfile?.approved ? "APPROVED" : "NO APPROVED"} tone={item.brokerProfile?.approved ? "green" : "neutral"} 
+                            <button onClick={() => toggle(item.id, "canPublish", !item.brokerProfile?.canPublish)} className="cursor-pointer">
+<Badge label={item.brokerProfile?.canPublish ? "CAN PUBLISH" : "NO PUBLISH"} tone={item.brokerProfile?.canPublish ? "blue" : "neutral"} 
+                            <button onClick={() => toggle(item.id, "tokkoEnabled", !item.brokerProfile?.tokkoEnabled)} className="cursor-pointer">
+<Badge label={item.brokerProfile?.tokkoEnabled ? "TOKKO ON" : "TOKKO OFF"} tone={item.brokerProfile?.tokkoEnabled ? "green" : "neutral"} 
                           </div>
                         </td>
 

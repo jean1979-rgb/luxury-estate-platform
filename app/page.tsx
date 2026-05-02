@@ -4,6 +4,7 @@ import { getPublicHomeHero } from "@/lib/public-home";
 import { getPublicDestinations } from "@/lib/public-destinations";
 import { getPublicPartners } from "@/lib/public-partners";
 import { getPublicExperiences } from "@/lib/public-experiences";
+import SeamlessVideoHero from "@/components/SeamlessVideoHero";
 
 // destinations now from DB
 
@@ -18,16 +19,10 @@ export default async function HomePage() {
       <section className="relative min-h-screen overflow-hidden border-b border-white/10">
         <div className="absolute inset-0">
           {hero.heroVideoUrl ? (
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster={hero.heroVideoPoster || hero.heroBackgroundImage}
-              className="absolute inset-0 h-full w-full object-cover"
-            >
-              <source src={hero.heroVideoUrl} type="video/mp4" />
-            </video>
+            <SeamlessVideoHero
+  src={hero.heroVideoUrl}
+  poster={hero.heroVideoPoster || hero.heroBackgroundImage}
+/>
           ) : (
             <div
               className="absolute inset-0 scale-105 bg-cover bg-center transition duration-[4000ms] ease-out"
@@ -39,9 +34,9 @@ export default async function HomePage() {
             />
           )}
 
-          <div className="absolute inset-0 bg-black/58" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/88 via-black/58 to-black/72" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/34 via-black/10 to-black/88" />
+          <div className="absolute inset-0 bg-black/35" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/58 to-black/72" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/34 via-black/10 to-black/70" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_22%,rgba(214,185,126,0.18),transparent_42%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_45%,rgba(255,255,255,0.08),transparent_35%)]" />
         </div>
