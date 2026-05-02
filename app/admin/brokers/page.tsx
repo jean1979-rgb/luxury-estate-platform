@@ -74,6 +74,25 @@ export default function AdminBrokersPage() {
     load();
   }, []);
 
+  async function toggle(id: string, field: "approved" | "canPublish" | "tokkoEnabled", value: boolean) {
+    try {
+      setError("");
+      const res = await fetch(`/api/admin/brokers/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [field]: value }),
+      });
+
+      if (!res.ok) {
+        throw new Error("No se pudo actualizar el permiso.");
+      }
+
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error actualizando permiso");
+    }
+  }
+
   const metrics = useMemo(() => {
     const total = items.length;
     const active = items.filter((item: any) => item.status === "ACTIVE").length;
@@ -251,12 +270,40 @@ export default function AdminBrokersPage() {
 
                         <td className="px-4 py-4 align-top">
                           <div className="flex flex-wrap gap-2">
-                            <button onClick={() => toggle(item.id, "approved", !item.brokerProfile?.approved)} className="cursor-pointer">
-<Badge label={item.brokerProfile?.approved ? "APPROVED" : "NO APPROVED"} tone={item.brokerProfile?.approved ? "green" : "neutral"} 
-                            <button onClick={() => toggle(item.id, "canPublish", !item.brokerProfile?.canPublish)} className="cursor-pointer">
-<Badge label={item.brokerProfile?.canPublish ? "CAN PUBLISH" : "NO PUBLISH"} tone={item.brokerProfile?.canPublish ? "blue" : "neutral"} 
-                            <button onClick={() => toggle(item.id, "tokkoEnabled", !item.brokerProfile?.tokkoEnabled)} className="cursor-pointer">
-<Badge label={item.brokerProfile?.tokkoEnabled ? "TOKKO ON" : "TOKKO OFF"} tone={item.brokerProfile?.tokkoEnabled ? "green" : "neutral"} 
+
+                            <button
+                              type="button"
+                              onClick={() => toggle(item.id, "approved", !item.brokerProfile?.approved)}
+                              className="cursor-pointer"
+                            >
+                              <Badge
+                                label={item.brokerProfile?.approved ? "APPROVED" : "NO APPROVED"}
+                                tone={item.brokerProfile?.approved ? "green" : "neutral"}
+                              />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => toggle(item.id, "canPublish", !item.brokerProfile?.canPublish)}
+                              className="cursor-pointer"
+                            >
+                              <Badge
+                                label={item.brokerProfile?.canPublish ? "CAN PUBLISH" : "NO PUBLISH"}
+                                tone={item.brokerProfile?.canPublish ? "blue" : "neutral"}
+                              />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => toggle(item.id, "tokkoEnabled", !item.brokerProfile?.tokkoEnabled)}
+                              className="cursor-pointer"
+                            >
+                              <Badge
+                                label={item.brokerProfile?.tokkoEnabled ? "TOKKO ON" : "TOKKO OFF"}
+                                tone={item.brokerProfile?.tokkoEnabled ? "green" : "neutral"}
+                              />
+                            </button>
+
                           </div>
                         </td>
 
