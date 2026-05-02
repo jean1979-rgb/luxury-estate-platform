@@ -1,11 +1,5 @@
 import nodemailer from "nodemailer";
 
-const host = process.env.SMTP_HOST || "smtpout.secureserver.net";
-const port = Number(process.env.SMTP_PORT || 465);
-const user = process.env.SMTP_USER;
-const pass = process.env.SMTP_PASS;
-const from = process.env.SMTP_FROM || user;
-
 export async function sendMail({
   to,
   subject,
@@ -15,22 +9,47 @@ export async function sendMail({
   subject: string;
   html: string;
 }) {
-  if (!user || !pass || !from) {
-    console.warn("SMTP no configurado. Email no enviado:", { to, subject });
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT || 465);
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  const from = process.env.EMAIL_FROM;
+
+  console.log("📨 sendMail START", { to, subject });
+
+  if (!host || !port || !user || !pass || !from) {
+    console.warn("❌ SMTP no configurado correctamente", {
+      host,
+      port,
+      user,
+      pass: pass ? "***" : undefined,
+      from,
+    });
     return;
   }
 
-  const transporter = nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: { user, pass },
-  });
+  try {
+    const transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465,
+      auth: {
+        user,
+        pass,
+      },
+    });
 
-  await transporter.sendMail({
-    from: `"Private Estates Mexico" <${from}>`,
-    to,
-    subject,
-    html,
-  });
+    console.log("📨 sending email...");
+
+    await transporter.sendMail({
+      from,
+      to,
+      subject,
+      html,
+    });
+
+    console.log("✅ EMAIL SENT");
+  } catch (err) {
+    console.error("❌ EMAIL ERROR:", err);
+  }
 }
