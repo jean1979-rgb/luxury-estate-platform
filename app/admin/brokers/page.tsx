@@ -48,6 +48,7 @@ function Badge({
   );
 }
 
+
 export default function AdminBrokersPage() {
   const [items, setItems] = useState<BrokerRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,6 +70,17 @@ export default function AdminBrokersPage() {
       setLoading(false);
     }
   }
+
+  
+  const deleteBroker = async (id: string) => {
+    if (!confirm("¿Eliminar broker? Esto borra TODO.")) return;
+
+    await fetch(`/api/admin/brokers/${id}`, {
+      method: "DELETE",
+    });
+
+    window.location.reload();
+  };
 
   useEffect(() => {
     load();
