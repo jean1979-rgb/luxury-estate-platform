@@ -33,6 +33,13 @@ export default async function BrokerPropertiesPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/broker/profile"
+            className="inline-flex min-h-10 items-center justify-center border border-white/20 px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-white transition hover:bg-white hover:text-black"
+          >
+            Mi perfil
+          </Link>
+
           <TokkoResyncButton />
 
           <NewBrokerPropertyButton />
