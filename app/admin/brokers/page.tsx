@@ -158,6 +158,12 @@ export default function AdminBrokersPage() {
 
           <div className="flex flex-wrap gap-3">
             <Link
+              href="/admin/broker-requests"
+              className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white transition hover:bg-white/[0.08]"
+            >
+              Solicitudes
+            </Link>
+            <Link
               href="/admin/properties"
               className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white transition hover:bg-white/[0.08]"
             >
