@@ -82,7 +82,7 @@ export default async function AcapulcoPage({
 
       <div>
         {destination?.heroVideoUrl ? (
-          <section className="relative -mt-12 h-screen min-h-[760px] w-full overflow-hidden bg-black">
+          <section className="relative -mt-12 h-[100svh] min-h-[760px] w-full overflow-hidden bg-black">
             <SeamlessVideoHero
               src={destination.heroVideoUrl}
               poster={destination.heroVideoPoster || destination.heroImage || undefined}
@@ -91,7 +91,7 @@ export default async function AcapulcoPage({
             <div className="absolute inset-0 bg-black/20" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
 
-            <div className="relative z-10 flex h-full max-w-7xl flex-col justify-center px-8 pt-28 pb-48 md:px-20 md:pt-32 md:pb-56">
+            <div className="relative z-10 flex h-full max-w-7xl flex-col justify-center px-8 pt-28 pb-28 md:px-20 md:pt-32 md:pb-56">
               <p className="text-[10px] uppercase tracking-[0.38em] text-[#e7d1a1]">
                 {destination.heroEyebrow || "Destination"}
               </p>
@@ -104,18 +104,18 @@ export default async function AcapulcoPage({
                 {destination.heroSubtitle || ACAPULCO_SALE_PAGE_COPY.intro}
               </p>
             </div>
-          <div className="absolute bottom-0 left-0 right-0 z-20 grid border-t border-white/10 bg-black/58 backdrop-blur-xl md:grid-cols-3">
-              <a href="#collections" className="border-white/10 px-8 py-8 transition hover:bg-white/5 md:border-r md:px-20">
+          <div className="absolute bottom-0 left-0 right-0 z-20 grid grid-cols-3 border-t border-white/10 bg-black/50 backdrop-blur-xl">
+              <a href="#collections" className="border-r border-white/10 px-3 py-4 transition hover:bg-white/5 md:px-20 md:py-8">
                 <p className="text-[10px] uppercase tracking-[0.34em] text-white/70">Colecciones</p>
-                <p className="mt-3 max-w-xs text-sm leading-6 text-white/55">Explora nuestras colecciones más exclusivas. →</p>
+                <p className="mt-2 hidden max-w-xs text-sm leading-6 text-white/55 md:block">Explora nuestras colecciones más exclusivas. →</p>
               </a>
-              <a href="#partners" className="border-white/10 px-8 py-8 transition hover:bg-white/5 md:border-r">
+              <a href="#partners" className="border-r border-white/10 px-3 py-4 transition hover:bg-white/5 md:px-8 md:py-8">
                 <p className="text-[10px] uppercase tracking-[0.34em] text-white/70">Partners</p>
-                <p className="mt-3 max-w-xs text-sm leading-6 text-white/55">Arquitectura, hospitalidad y marcas que definen el estilo de vida del destino. →</p>
+                <p className="mt-2 hidden max-w-xs text-sm leading-6 text-white/55 md:block">Arquitectura, hospitalidad y marcas que definen el estilo de vida del destino. →</p>
               </a>
-              <a href="#experiences" className="px-8 py-8 transition hover:bg-white/5">
+              <a href="#experiences" className="px-3 py-4 transition hover:bg-white/5 md:px-8 md:py-8">
                 <p className="text-[10px] uppercase tracking-[0.34em] text-white/70">Experiencias</p>
-                <p className="mt-3 max-w-xs text-sm leading-6 text-white/55">Vive Acapulco más allá de lo extraordinario. →</p>
+                <p className="mt-2 hidden max-w-xs text-sm leading-6 text-white/55 md:block">Vive Acapulco más allá de lo extraordinario. →</p>
               </a>
             </div>
           </section>

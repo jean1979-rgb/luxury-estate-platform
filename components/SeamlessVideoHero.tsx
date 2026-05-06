@@ -52,7 +52,7 @@ export default function SeamlessVideoHero({ src, poster, className = "" }: Props
   }
 
   const baseClass =
-    "absolute inset-0 h-full w-full object-cover scale-[1.06] animate-[heroZoom_20s_ease-in-out_infinite] transition-opacity duration-[1200ms] ease-out";
+    "absolute inset-0 h-full w-full object-cover object-[center_bottom] scale-100 animate-[heroZoom_20s_ease-in-out_infinite] transition-opacity duration-[1200ms] ease-out";
 
   return (
     <div className={`absolute inset-0 overflow-hidden bg-black ${className}`}>
@@ -60,6 +60,7 @@ export default function SeamlessVideoHero({ src, poster, className = "" }: Props
         ref={firstRef}
         src={src}
         poster={poster || undefined}
+        autoPlay
         muted
         playsInline
         preload="auto"
@@ -71,6 +72,7 @@ export default function SeamlessVideoHero({ src, poster, className = "" }: Props
         ref={secondRef}
         src={src}
         poster={poster || undefined}
+        autoPlay
         muted
         playsInline
         preload="auto"
