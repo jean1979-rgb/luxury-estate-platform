@@ -10,6 +10,14 @@ export type PublicPartnerCard = {
 
 const FALLBACK: PublicPartnerCard[] = [
   {
+    name: "TRES VIDAS",
+    slug: "tres-vidas",
+    category: "Golf & Ocean Estates",
+    note: "Enclave privado frente al Pacífico con golf, homesites oceanfront, arquitectura futura y una lectura más silenciosa y exclusiva de Acapulco.",
+    coverImage:
+      "https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?auto=format&fit=crop&w=2000&q=90",
+  },
+  {
     name: "Aurora Bay House",
     slug: "aurora-bay-house",
     category: "Sun Club",

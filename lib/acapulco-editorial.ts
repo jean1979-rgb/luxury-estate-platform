@@ -103,6 +103,14 @@ export const ACAPULCO_SALE_PAGE_COPY = {
       image:
         "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1600&q=80",
     },
+    {
+      zone: "tres-vidas",
+      title: "TRES VIDAS",
+      description:
+        "Golf & ocean homesites frente al Pacífico dentro del enclave más privado y silencioso de Acapulco.",
+      image:
+        "https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?auto=format&fit=crop&w=1600&q=80",
+    },
   ],
 };
 

@@ -229,7 +229,7 @@ export default async function AcapulcoPage({
               ))}
             </div>
 
-          <section className="mt-16 border-t border-white/10 pt-16">
+          <section id="experiences" className="mt-16 scroll-mt-28 border-t border-white/10 pt-16">
             <div className="max-w-3xl">
               <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
                 Lifestyle
@@ -279,7 +279,7 @@ export default async function AcapulcoPage({
             </div>
           </section>
 
-          <section className="mt-16 border-t border-white/10 pt-16">
+          <section id="partners" className="mt-16 scroll-mt-28 border-t border-white/10 pt-16">
             <div className="max-w-3xl">
               <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
                 Destination Ecosystem

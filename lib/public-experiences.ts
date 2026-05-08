@@ -10,6 +10,14 @@ export type PublicExperienceCard = {
 
 const FALLBACK: PublicExperienceCard[] = [
   {
+    eyebrow: "Golf & Ocean Lifestyle",
+    title: "TRES VIDAS · Private Golf & Ocean Escape",
+    slug: "tres-vidas-private-golf-ocean-escape",
+    text: "Golf frente al Pacífico, arquitectura residencial, wellness privado y una experiencia diseñada alrededor de naturaleza, océano y lifestyle de club.",
+    coverImage:
+      "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?auto=format&fit=crop&w=1800&q=85",
+  },
+  {
     title: "Aurora Sunset Social",
     slug: "aurora-sunset-social",
     eyebrow: "Acapulco · Sunset Culture",

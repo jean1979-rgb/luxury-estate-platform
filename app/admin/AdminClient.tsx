@@ -121,6 +121,7 @@ const SALE_ZONES = [
   { slug: "real-diamante", label: "Real Diamante" },
   { slug: "las-brisas-hillside-estates", label: "Las Brisas & Hillside estates" },
   { slug: "beachfront-residences", label: "Beachfront residences" },
+  { slug: "tres-vidas-golf-ocean-estates", label: "TRES VIDAS" },
 ] as const;
 
 export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: string } = {}) {
