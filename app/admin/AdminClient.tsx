@@ -16,8 +16,19 @@ import type {
 import { EMPTY_ADMIN_PROPERTY } from "@/types/admin";
 import AdminMediaTabs from "@/components/admin/AdminMediaTabs";
 import AdminTokkoPanel from "@/components/admin/AdminTokkoPanel";
+import LogoutButton from "@/components/auth/LogoutButton";
 import { buildScene, buildHotspot } from "@/lib/admin/editor-commands";
 import type { TokkoAdminItem } from "@/lib/admin/tokko-helpers";
+
+function AdminTopbar() {
+  return (
+    <div className="mb-6 flex items-center justify-end">
+      <LogoutButton />
+    </div>
+  );
+}
+
+
 
 function slugify(value: string) {
   return value
@@ -499,6 +510,9 @@ const { handleUpload } = useAdminUploads({
       )}
 
         <main className="flex-1 min-w-0 overflow-hidden">
+      <div className="fixed right-6 top-6 z-[9999]">
+        <LogoutButton />
+      </div>
           <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl">
             <div className="border-b border-white/10 px-8 py-7">
               <div className="mb-2 text-[11px] uppercase tracking-[0.35em] text-white/45">

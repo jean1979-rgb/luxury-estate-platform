@@ -73,8 +73,7 @@ export async function PUT(
       );
     }
 
-    const tempPassword = randomBytes(10).toString("base64url");
-    const passwordHash = await bcrypt.hash(tempPassword, 12);
+    const passwordHash = await bcrypt.hash(randomBytes(32).toString("base64url"), 12);
     const token = randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24);
 
@@ -125,7 +124,7 @@ export async function PUT(
       process.env.AUTH_URL?.replace(/\n/g, "").replace(/"/g, "").trim() ||
       "http://localhost:3000";
 
-    const verifyUrl = `${baseUrl}/api/broker/verify-email?token=${token}`;
+    const createPasswordUrl = `${baseUrl}/broker/create-password?token=${token}`;
     const loginUrl = `${baseUrl}/broker/login`;
 
     await sendMail({
@@ -135,17 +134,16 @@ export async function PUT(
         <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111">
           <h2>Tu acceso broker fue aprobado</h2>
           <p>Hola ${user.name || ""},</p>
-          <p>Tu cuenta broker en Private Estates México ya fue creada.</p>
-          <p>Primero verifica tu correo:</p>
+          <p>Tu solicitud fue aprobada. Para activar tu cuenta, crea tu contraseña de acceso.</p>
           <p>
-            <a href="${verifyUrl}" style="display:inline-block;padding:12px 18px;background:#111;color:#fff;text-decoration:none;border-radius:8px">
-              Verificar correo
+            <a href="${createPasswordUrl}" style="display:inline-block;padding:12px 18px;background:#111;color:#fff;text-decoration:none;border-radius:8px">
+              Crear contraseña
             </a>
           </p>
-          <p>Después puedes iniciar sesión aquí:</p>
+          <p>Si el botón no funciona, copia y pega este enlace:</p>
+          <p>${createPasswordUrl}</p>
+          <p>Después podrás iniciar sesión aquí:</p>
           <p><a href="${loginUrl}">${loginUrl}</a></p>
-          <p><strong>Contraseña temporal:</strong> ${tempPassword}</p>
-          <p>Por seguridad, recomendamos cambiarla después de entrar.</p>
         </div>
       `,
     });

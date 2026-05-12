@@ -4,6 +4,7 @@ import NewBrokerPropertyButton from "@/components/broker/NewBrokerPropertyButton
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import TokkoResyncButton from "@/components/broker/TokkoResyncButton";
+import LogoutButton from "@/components/auth/LogoutButton";
 
 export default async function BrokerPropertiesPage() {
   const session = await auth();
@@ -43,6 +44,8 @@ export default async function BrokerPropertiesPage() {
           <TokkoResyncButton />
 
           <NewBrokerPropertyButton />
+
+          <LogoutButton />
         </div>
       </div>
 

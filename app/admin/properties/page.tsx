@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 import Link from "next/link";
+import LogoutButton from "@/components/auth/LogoutButton";
 import { prisma } from "@/lib/prisma";
 
 export default async function AdminPropertiesPage() {
@@ -20,6 +21,10 @@ export default async function AdminPropertiesPage() {
           <p className="mt-2 text-white/60">
             Aquí ves todo el inventario y los accesos editoriales principales.
           </p>
+
+          <div className="mt-5">
+            <LogoutButton />
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
