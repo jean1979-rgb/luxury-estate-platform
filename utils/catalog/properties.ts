@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 
-export type PropertyZone = "playa" | "real-diamante" | "las-brisas";
+export type PropertyZone = "playa" | "real-diamante" | "las-brisas" | "tres-vidas";
 
 export type CatalogProperty = {
   id: string;
@@ -21,11 +21,38 @@ function inferZone(value: string): PropertyZone {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
-  if (v.includes("real diamante") || v.includes("diamante")) {
+  if (
+    v.includes("tres vidas") ||
+    v.includes("tres-vidas")
+  ) {
+    return "tres-vidas";
+  }
+
+  if (
+    v.includes("beachfront-residences") ||
+    v.includes("playa diamante") ||
+    v.includes("playamar") ||
+    v.includes("bonfil") ||
+    v.includes("plan de los amates") ||
+    v.includes("pie de playa") ||
+    v.includes("playa")
+  ) {
+    return "playa";
+  }
+
+  if (
+    v.includes("real-diamante") ||
+    v.includes("real diamante") ||
+    v.includes("cima real")
+  ) {
     return "real-diamante";
   }
 
-  if (v.includes("brisas")) {
+  if (
+    v.includes("las-brisas-hillside-estates") ||
+    v.includes("brisas") ||
+    v.includes("lomas del marques")
+  ) {
     return "las-brisas";
   }
 
@@ -73,6 +100,8 @@ async function getCatalogPropertiesFromPrisma(): Promise<CatalogProperty[]> {
       source: true,
       propertyType: true,
       featured: true,
+      zoneSlug: true,
+      zoneLabel: true,
     },
   });
 
@@ -88,7 +117,7 @@ async function getCatalogPropertiesFromPrisma(): Promise<CatalogProperty[]> {
       location: row.location ?? "Ubicación premium",
       coverImage: image,
       price: row.price ?? "Precio disponible bajo solicitud",
-      zone: inferZone(`${row.title} ${row.location ?? ""}`),
+      zone: inferZone(`${row.zoneSlug ?? ""} ${row.zoneLabel ?? ""} ${row.title} ${row.location ?? ""}`),
       operation: inferOperation(row),
       featured: row.featured,
       source: row.source ?? undefined,
@@ -125,7 +154,7 @@ export async function getCasaDePlayaProperties(): Promise<CatalogProperty[]> {
 
   return properties
     .filter((item) => item.operation === "sale")
-    .filter((item) => ["playa", "real-diamante", "las-brisas"].includes(item.zone))
+    .filter((item) => ["playa", "real-diamante", "las-brisas", "tres-vidas"].includes(item.zone))
     .sort((a, b) => Number(b.featured) - Number(a.featured));
 }
 
@@ -134,6 +163,6 @@ export async function getAcapulcoRentalProperties(): Promise<CatalogProperty[]> 
 
   return properties
     .filter((item) => item.operation === "rental")
-    .filter((item) => ["playa", "real-diamante", "las-brisas"].includes(item.zone))
+    .filter((item) => ["playa", "real-diamante", "las-brisas", "tres-vidas"].includes(item.zone))
     .sort((a, b) => Number(b.featured) - Number(a.featured));
 }
