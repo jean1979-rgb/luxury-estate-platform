@@ -258,10 +258,10 @@ const { handleUpload } = useAdminUploads({
       videoPoster: item.videoPoster || "",
       videoType: item.videoType ? item.videoType : "upload",
       scenes360: Array.isArray(item.scenes360) ? item.scenes360 : [],
+      description: item.description || "",
       featured: item.featured,
       published: item.published,
       luxuryScore: item.luxuryScore,
-      description: item.description,
     });
   }
 
