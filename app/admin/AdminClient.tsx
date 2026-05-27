@@ -19,17 +19,6 @@ import AdminTokkoPanel from "@/components/admin/AdminTokkoPanel";
 import LogoutButton from "@/components/auth/LogoutButton";
 import { buildScene, buildHotspot } from "@/lib/admin/editor-commands";
 import type { TokkoAdminItem } from "@/lib/admin/tokko-helpers";
-
-function AdminTopbar() {
-  return (
-    <div className="mb-6 flex items-center justify-end">
-      <LogoutButton />
-    </div>
-  );
-}
-
-
-
 function slugify(value: string) {
   return value
     .normalize("NFD")
@@ -510,9 +499,6 @@ const { handleUpload } = useAdminUploads({
       )}
 
         <main className="flex-1 min-w-0 overflow-hidden">
-      <div className="fixed right-6 top-6 z-[9999]">
-        <LogoutButton />
-      </div>
           <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl">
             <div className="border-b border-white/10 px-8 py-7">
               <div className="mb-2 text-[11px] uppercase tracking-[0.35em] text-white/45">
@@ -530,7 +516,9 @@ const { handleUpload } = useAdminUploads({
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <LogoutButton />
+
                   <button
                     onClick={() => handleChange("slug", slugify(form.title))}
                     className="rounded-2xl border border-white/15 px-4 py-3 text-sm text-white/80 transition hover:bg-white/10"
