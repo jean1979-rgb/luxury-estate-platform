@@ -18,6 +18,19 @@ function buildKey(kind: string, fileName: string) {
   return `${safeKind}/${Date.now()}-${safeName}`;
 }
 
+function inferContentType(file: File) {
+  const name = file.name.toLowerCase();
+
+  if (file.type) return file.type;
+  if (name.endsWith(".jpg") || name.endsWith(".jpeg")) return "image/jpeg";
+  if (name.endsWith(".png")) return "image/png";
+  if (name.endsWith(".webp")) return "image/webp";
+  if (name.endsWith(".mp4")) return "video/mp4";
+  if (name.endsWith(".mov")) return "video/quicktime";
+
+  return "application/octet-stream";
+}
+
 export async function POST(req: Request) {
   const accountId = process.env.R2_ACCOUNT_ID;
   const accessKeyId = process.env.R2_ACCESS_KEY_ID;
@@ -26,39 +39,19 @@ export async function POST(req: Request) {
   const publicUrl = process.env.R2_PUBLIC_URL;
 
   if (!accountId || !accessKeyId || !secretAccessKey || !bucket || !publicUrl) {
-    return NextResponse.json(
-      { ok: false, error: "Missing R2 environment variables" },
-      { status: 500 }
-    );
+    return NextResponse.json({ ok: false, error: "Missing R2 environment variables" }, { status: 500 });
   }
-
-  const s3 = new S3Client({
-    region: "auto",
-    endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    credentials: {
-      accessKeyId,
-      secretAccessKey,
-    },
-  });
 
   try {
     const formData = await req.formData();
     const file = formData.get("file");
 
     if (!(file instanceof File)) {
-      return NextResponse.json(
-        { ok: false, error: "No file provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ ok: false, error: "No file provided" }, { status: 400 });
     }
 
     const rawKind =
-      String(
-        formData.get("kind") ||
-        formData.get("folder") ||
-        formData.get("type") ||
-        "misc"
-      ).trim() || "misc";
+      String(formData.get("kind") || formData.get("folder") || formData.get("type") || "misc").trim() || "misc";
 
     const kind = rawKind
       .replace(/^\/+/, "")
@@ -66,50 +59,40 @@ export async function POST(req: Request) {
       .replace(/[^\w/-]+/g, "-");
 
     const inputBuffer = Buffer.from(await file.arrayBuffer());
-
-    const isImage =
-      file.type.startsWith("image/") ||
-      /\.(jpg|jpeg|png|webp)$/i.test(file.name);
+    const originalContentType = inferContentType(file);
 
     let finalBuffer: Buffer<ArrayBufferLike> = inputBuffer;
-    let contentType = file.type || "application/octet-stream";
-    let extension = file.name.split(".").pop() || "file";
+    let contentType = originalContentType;
+    let finalName = file.name;
+
+    const isImage =
+      originalContentType.startsWith("image/") ||
+      /\.(jpg|jpeg|png|webp)$/i.test(file.name);
 
     if (isImage) {
-      const sharpImage = sharp(inputBuffer, {
-        failOn: "none",
-      });
+      try {
+        finalBuffer = await sharp(inputBuffer, { failOn: "none" })
+          .rotate()
+          .jpeg({ quality: 92, mozjpeg: true })
+          .toBuffer();
 
-      const metadata = await sharpImage.metadata();
-
-      if (
-        metadata.width &&
-        metadata.height &&
-        metadata.width > metadata.height
-      ) {
-        const ratio = metadata.width / metadata.height;
-
-        if (ratio > 1.85 && ratio < 2.15) {
-          console.log("360 panorama detected");
-        }
+        contentType = "image/jpeg";
+        finalName = `${file.name.replace(/\.[^.]+$/, "")}.jpg`;
+      } catch (error) {
+        console.warn("Image normalization failed, uploading original file:", error);
+        finalBuffer = inputBuffer;
+        contentType = originalContentType;
+        finalName = file.name;
       }
-
-      finalBuffer = await sharpImage
-        .rotate()
-        .jpeg({
-          quality: 92,
-          mozjpeg: true,
-        })
-        .toBuffer();
-
-      contentType = "image/jpeg";
-      extension = "jpg";
     }
 
-    const cleanBaseName = file.name.replace(/\.[^.]+$/, "");
-    const finalName = `${cleanBaseName}.${extension}`;
-
     const key = buildKey(kind, finalName);
+
+    const s3 = new S3Client({
+      region: "auto",
+      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      credentials: { accessKeyId, secretAccessKey },
+    });
 
     await s3.send(
       new PutObjectCommand({
@@ -130,21 +113,14 @@ export async function POST(req: Request) {
       publicUrl: url,
       key,
       bytes: finalBuffer.length,
-      resource_type: contentType.startsWith("video/")
-        ? "video"
-        : "image",
+      originalBytes: file.size,
+      normalized: finalBuffer.length !== file.size,
+      resource_type: contentType.startsWith("video/") ? "video" : "image",
     });
   } catch (error) {
     console.error("R2 admin upload failed:", error);
-
     return NextResponse.json(
-      {
-        ok: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Upload failed",
-      },
+      { ok: false, error: error instanceof Error ? error.message : "Upload failed" },
       { status: 500 }
     );
   }
