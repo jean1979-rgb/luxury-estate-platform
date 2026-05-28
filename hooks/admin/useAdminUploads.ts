@@ -25,6 +25,41 @@ function sceneIdFromFileName(name: string) {
     .replace(/-{2,}/g, "-");
 }
 
+function isImageFile(file: File) {
+  return file.type.startsWith("image/") || /\.(jpg|jpeg|png|webp)$/i.test(file.name);
+}
+
+async function normalizeImageInBrowser(file: File) {
+  if (!isImageFile(file)) return file;
+
+  const bitmap = await createImageBitmap(file);
+  const canvas = document.createElement("canvas");
+  canvas.width = bitmap.width;
+  canvas.height = bitmap.height;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    bitmap.close();
+    return file;
+  }
+
+  ctx.drawImage(bitmap, 0, 0);
+  bitmap.close();
+
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, "image/jpeg", 0.92);
+  });
+
+  if (!blob) return file;
+
+  const cleanName = `${file.name.replace(/\.[^.]+$/, "")}.jpg`;
+
+  return new File([blob], cleanName, {
+    type: "image/jpeg",
+    lastModified: Date.now(),
+  });
+}
+
 export function useAdminUploads({
   form,
   selectedId,
@@ -47,7 +82,12 @@ export function useAdminUploads({
 
     try {
       setUploading(true);
-      setMessage("");
+      setMessage("Preparando archivo...");
+
+      const uploadFile = await normalizeImageInBrowser(file);
+      const contentType = uploadFile.type || "application/octet-stream";
+
+      setMessage("Preparando subida directa a R2...");
 
       const presignRes = await fetch("/api/admin/upload/presign", {
         method: "POST",
@@ -55,8 +95,8 @@ export function useAdminUploads({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          fileName: file.name,
-          contentType: file.type || "application/octet-stream",
+          fileName: uploadFile.name,
+          contentType,
           kind: folder,
         }),
       });
@@ -64,19 +104,28 @@ export function useAdminUploads({
       const presignData = await presignRes.json().catch(() => ({}));
 
       if (!presignRes.ok || !presignData?.uploadUrl || !presignData?.url) {
-        throw new Error(presignData?.error || presignData?.message || "No se pudo preparar la subida.");
+        throw new Error(
+          presignData?.error ||
+            presignData?.message ||
+            `No se pudo preparar la subida. Status ${presignRes.status}`
+        );
       }
+
+      setMessage("Subiendo archivo a R2...");
 
       const uploadRes = await fetch(presignData.uploadUrl, {
         method: "PUT",
         headers: {
-          "Content-Type": file.type || "application/octet-stream",
+          "Content-Type": contentType,
         },
-        body: file,
+        body: uploadFile,
       });
 
       if (!uploadRes.ok) {
-        throw new Error("No se pudo subir el archivo a R2.");
+        const errorText = await uploadRes.text().catch(() => "");
+        throw new Error(
+          `No se pudo subir el archivo a R2. Status ${uploadRes.status}. ${errorText.slice(0, 180)}`
+        );
       }
 
       const url = String(presignData.url);
@@ -100,7 +149,7 @@ export function useAdminUploads({
       }
 
       if (folder === "scenes360") {
-        const baseId = sceneIdFromFileName(file.name) || `scene-${Date.now()}`;
+        const baseId = sceneIdFromFileName(uploadFile.name) || `scene-${Date.now()}`;
 
         setForm((prev) => ({
           ...prev,
@@ -108,7 +157,7 @@ export function useAdminUploads({
             ...prev.scenes360,
             {
               id: baseId,
-              title: file.name.replace(/\.[^.]+$/, ""),
+              title: uploadFile.name.replace(/\.[^.]+$/, ""),
               image: url,
               thumbnail: url,
               initialYaw: 0,
