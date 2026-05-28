@@ -49,22 +49,37 @@ export function useAdminUploads({
       setUploading(true);
       setMessage("");
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("kind", folder);
-
-      const res = await fetch("/api/admin/upload", {
+      const presignRes = await fetch("/api/admin/upload/presign", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type || "application/octet-stream",
+          kind: folder,
+        }),
       });
 
-      const data = await res.json().catch(() => ({}));
+      const presignData = await presignRes.json().catch(() => ({}));
 
-      if (!res.ok || !data?.url) {
-        throw new Error(data?.error || data?.message || "No se pudo subir el archivo.");
+      if (!presignRes.ok || !presignData?.uploadUrl || !presignData?.url) {
+        throw new Error(presignData?.error || presignData?.message || "No se pudo preparar la subida.");
       }
 
-      const url = String(data.url);
+      const uploadRes = await fetch(presignData.uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type || "application/octet-stream",
+        },
+        body: file,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error("No se pudo subir el archivo a R2.");
+      }
+
+      const url = String(presignData.url);
 
       if (folder === "cover") {
         setForm((prev) => ({
