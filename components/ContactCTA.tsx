@@ -9,9 +9,9 @@ export default function ContactCTA({ title }: Props) {
         Private Access
       </p>
 
-      <div className="mt-5 flex flex-col gap-6 xl:grid xl:grid-cols-12 xl:items-center">
-        <div className="xl:col-span-7">
-          <h3 className="max-w-[18ch] md:max-w-[14ch] text-3xl font-light leading-[0.98] md:text-3xl xl:text-[44px]">
+      <div className="mt-5 flex flex-col gap-8">
+        <div>
+          <h3 className="max-w-[14ch] text-3xl font-light leading-[0.98] md:text-3xl xl:text-[44px]">
             Solicita acceso privado a {title}
           </h3>
 
@@ -21,10 +21,10 @@ export default function ContactCTA({ title }: Props) {
           </p>
         </div>
 
-        <div className="xl:col-span-5 xl:flex xl:justify-end">
+        <div className="flex">
           <a
             href="https://wa.me/527442250891?text=Hola,%20me%20interesa%20la%20propiedad"
-            className="inline-flex min-h-[58px] w-full items-center justify-center rounded-full border border-[#d6c3a1] px-6 py-3 text-xs uppercase tracking-[0.28em] text-[#f5f1eb] transition hover:bg-[#d6c3a1] hover:text-black xl:w-auto xl:min-w-[220px]"
+            className="inline-flex min-h-[58px] w-full items-center justify-center rounded-full border border-[#d6c3a1] px-6 py-3 text-xs uppercase tracking-[0.28em] text-[#f5f1eb] transition hover:bg-[#d6c3a1] hover:text-black md:w-auto md:min-w-[220px]"
           >
             Contactar ahora
           </a>
