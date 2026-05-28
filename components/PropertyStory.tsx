@@ -16,9 +16,16 @@ export default function PropertyStory({ tagline, description }: Props) {
       </div>
 
       <div className="md:col-span-8">
-        <p className="max-w-3xl text-base leading-8 text-[#b8afa3] md:text-lg">
-          {description}
-        </p>
+        <div className="max-w-3xl space-y-6 text-base leading-8 text-[#b8afa3] md:text-lg">
+          {description
+            .split(/\n\s*\n/)
+            .filter(Boolean)
+            .map((paragraph, index) => (
+              <p key={index}>
+                {paragraph}
+              </p>
+            ))}
+        </div>
       </div>
     </section>
   );
