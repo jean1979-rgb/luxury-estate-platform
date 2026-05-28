@@ -516,9 +516,7 @@ const { handleUpload } = useAdminUploads({
                   </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <LogoutButton />
-
+                <div className="flex items-center gap-3">
                   <button
                     onClick={() => handleChange("slug", slugify(form.title))}
                     className="rounded-2xl border border-white/15 px-4 py-3 text-sm text-white/80 transition hover:bg-white/10"
