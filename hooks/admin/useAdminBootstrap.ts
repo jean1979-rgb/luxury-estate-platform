@@ -47,7 +47,7 @@ export function useAdminBootstrap({
       const nextItems = data.items || [];
       onItemsChange(nextItems);
 
-      if (!forcedPropertyId && nextItems.length > 0 && selectedId === "new") {
+      if (!propertyIdFromUrl && !forcedPropertyId && nextItems.length > 0 && selectedId === "new") {
         const first = nextItems[0] as AdminPropertyRecord;
         onSelectedIdChange(first.id);
         onFormChange({
@@ -136,7 +136,7 @@ export function useAdminBootstrap({
     if (!target) return;
 
     onSelectProperty(target);
-  }, [propertyIdFromUrl, items]);
+  }, [propertyIdFromUrl, items, onSelectProperty]);
 
   return {
     loadProperties,
