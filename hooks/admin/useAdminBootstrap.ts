@@ -136,7 +136,7 @@ export function useAdminBootstrap({
     if (!target) return;
 
     onSelectProperty(target);
-  }, [propertyIdFromUrl, items, onSelectProperty]);
+  }, [propertyIdFromUrl, items]);
 
   return {
     loadProperties,
