@@ -3,21 +3,23 @@ import type { AdminPropertyInput, AdminPropertyRecord } from "@/types/admin";
 export async function saveProperty(params: {
   payload: AdminPropertyInput;
   forcedPropertyId?: string;
+  createNew?: boolean;
 }): Promise<{ saved: AdminPropertyRecord }> {
-  const { payload, forcedPropertyId } = params;
+  const { payload, forcedPropertyId, createNew } = params;
 
   const propertyId = forcedPropertyId || payload.id || "";
   const { scenes360: _ignoredScenes, ...propertyPayload } = payload;
 
-  let saved: AdminPropertyRecord;
-
-  if (!propertyId) {
+  if (createNew) {
     const createRes = await fetch("/api/broker/properties", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(propertyPayload),
+      body: JSON.stringify({
+        ...propertyPayload,
+        id: propertyId,
+      }),
     });
 
     const createData = await createRes.json();
@@ -26,7 +28,7 @@ export async function saveProperty(params: {
       throw new Error(createData.message || "No se pudo crear la propiedad.");
     }
 
-    saved = createData.item || createData.property;
+    const saved = createData.item || createData.property;
 
     if (!saved?.id) {
       throw new Error("La API creó la propiedad pero respondió sin id.");
@@ -49,6 +51,10 @@ export async function saveProperty(params: {
     }
 
     return { saved };
+  }
+
+  if (!propertyId) {
+    throw new Error("No se pudo guardar: falta propertyId.");
   }
 
   const scenesRes = await fetch(`/api/broker/scenes/${propertyId}`, {
@@ -82,7 +88,7 @@ export async function saveProperty(params: {
     throw new Error(data.message || "No se pudo guardar la propiedad.");
   }
 
-  saved = data.item || data.property;
+  const saved = data.item || data.property;
 
   if (!saved) {
     throw new Error("La API respondió sin item/property.");

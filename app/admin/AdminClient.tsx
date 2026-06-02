@@ -213,16 +213,16 @@ const { handleUpload } = useAdminUploads({
 
   function createDraftPropertyId() {
     if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-      return `property-${crypto.randomUUID()}`;
+      return `private-estates-${crypto.randomUUID()}`;
     }
 
-    return `property-${Date.now()}`;
+    return `private-estates-${Date.now()}`;
   }
 
   function handleNew() {
     const draftId = createDraftPropertyId();
 
-    setSelectedId(draftId);
+    setSelectedId("new");
     setMessage("");
     setForm({
       ...EMPTY_ADMIN_PROPERTY,
