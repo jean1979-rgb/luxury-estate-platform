@@ -211,12 +211,22 @@ const { handleUpload } = useAdminUploads({
     dispatch({ type: "PATCH_FIELD", key, value });
   }
 
+  function createDraftPropertyId() {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+      return `property-${crypto.randomUUID()}`;
+    }
+
+    return `property-${Date.now()}`;
+  }
+
   function handleNew() {
-    setSelectedId("new");
+    const draftId = createDraftPropertyId();
+
+    setSelectedId(draftId);
     setMessage("");
     setForm({
       ...EMPTY_ADMIN_PROPERTY,
-      id: "",
+      id: draftId,
       title: "",
       slug: "",
     });
