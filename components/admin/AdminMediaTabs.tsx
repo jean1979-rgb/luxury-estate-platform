@@ -56,13 +56,26 @@ const TAB_META: Array<{ key: MediaTabKey; label: string; description: string }> 
 ];
 
 const HOTSPOT_TYPE_OPTIONS: Array<{ value: AdminHotspotType; label: string }> = [
-  { value: "nav", label: "Navegación" },
+  { value: "nav", label: "Ir / navegación" },
+  { value: "terrace", label: "Terraza" },
+  { value: "living", label: "Sala" },
+  { value: "dining", label: "Comedor" },
+  { value: "kitchen", label: "Cocina" },
+  { value: "bedroom", label: "Recámara" },
+  { value: "bathroom", label: "Baño" },
+  { value: "pool", label: "Alberca" },
+  { value: "beach", label: "Playa" },
+  { value: "view", label: "Vista" },
+  { value: "garden", label: "Jardín" },
+  { value: "parking", label: "Estacionamiento" },
+  { value: "elevator", label: "Elevador" },
+  { value: "gym", label: "Gimnasio" },
+  { value: "spa", label: "Spa" },
+  { value: "lobby", label: "Lobby" },
+  { value: "amenity", label: "Amenidad" },
   { value: "stairs-up", label: "Escalera subida" },
   { value: "stairs-down", label: "Escalera bajada" },
-  { value: "terrace", label: "Terraza" },
-  { value: "room", label: "Habitación" },
-  { value: "amenity", label: "Amenidad" },
-  { value: "kitchen", label: "Cocina" },
+  { value: "room", label: "Espacio / habitación" },
 ];
 
 export default function AdminMediaTabs({

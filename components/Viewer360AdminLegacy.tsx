@@ -11,7 +11,20 @@ type HotspotType =
   | "terrace"
   | "room"
   | "amenity"
-  | "kitchen";
+  | "kitchen"
+  | "living"
+  | "bedroom"
+  | "bathroom"
+  | "pool"
+  | "beach"
+  | "view"
+  | "garden"
+  | "parking"
+  | "elevator"
+  | "gym"
+  | "spa"
+  | "lobby"
+  | "dining";
 
 type HotspotSize = "sm" | "md" | "lg";
 
@@ -90,7 +103,7 @@ function createHotspotTexture(
   editable = false,
   type: HotspotType = "nav"
 ) {
-  const size = 320;
+  const size = 220;
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -99,13 +112,26 @@ function createHotspotTexture(
   if (!ctx) return null;
 
   const presets: Record<HotspotType, { icon: string; accent: string }> = {
-    nav: { icon: "➜", accent: "#D4AF37" },
-    "stairs-up": { icon: "↑", accent: "#7DD3FC" },
-    "stairs-down": { icon: "↓", accent: "#38BDF8" },
-    terrace: { icon: "🌴", accent: "#34D399" },
-    room: { icon: "🛏", accent: "#C084FC" },
-    amenity: { icon: "★", accent: "#F472B6" },
-    kitchen: { icon: "🍽", accent: "#FB923C" },
+    nav: { icon: "›", accent: "#D6C3A1" },
+    "stairs-up": { icon: "⌃", accent: "#D6C3A1" },
+    "stairs-down": { icon: "⌄", accent: "#D6C3A1" },
+    terrace: { icon: "T", accent: "#D6C3A1" },
+    room: { icon: "R", accent: "#D6C3A1" },
+    amenity: { icon: "A", accent: "#D6C3A1" },
+    kitchen: { icon: "K", accent: "#D6C3A1" },
+    living: { icon: "S", accent: "#D6C3A1" },
+    bedroom: { icon: "R", accent: "#D6C3A1" },
+    bathroom: { icon: "B", accent: "#D6C3A1" },
+    pool: { icon: "P", accent: "#D6C3A1" },
+    beach: { icon: "M", accent: "#D6C3A1" },
+    view: { icon: "V", accent: "#D6C3A1" },
+    garden: { icon: "J", accent: "#D6C3A1" },
+    parking: { icon: "E", accent: "#D6C3A1" },
+    elevator: { icon: "L", accent: "#D6C3A1" },
+    gym: { icon: "G", accent: "#D6C3A1" },
+    spa: { icon: "X", accent: "#D6C3A1" },
+    lobby: { icon: "O", accent: "#D6C3A1" },
+    dining: { icon: "C", accent: "#D6C3A1" },
   };
 
   const preset = presets[type] || presets.nav;
@@ -114,15 +140,15 @@ function createHotspotTexture(
 
   const cx = size / 2;
   const cy = 128;
-  const outerRadius = 108;
-  const innerRadius = 82;
+  const outerRadius = 54;
+  const innerRadius = 42;
 
   ctx.beginPath();
   ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2);
   ctx.fillStyle = editable ? "rgba(160,160,160,0.58)" : "rgba(0,0,0,0.62)";
   ctx.fill();
 
-  ctx.lineWidth = 12;
+  ctx.lineWidth = 4;
   ctx.strokeStyle = editable ? "rgba(255,255,255,0.78)" : preset.accent;
   ctx.stroke();
 
@@ -132,17 +158,17 @@ function createHotspotTexture(
   ctx.fill();
 
   ctx.fillStyle = "#ffffff";
-  ctx.font = "700 72px Arial, sans-serif";
+  ctx.font = "600 42px Arial, sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(preset.icon, cx, cy + 2);
 
   const safeLabel = String(label || "").trim().slice(0, 18);
   if (safeLabel) {
-    const pillWidth = 244;
-    const pillHeight = 52;
+    const pillWidth = 180;
+    const pillHeight = 34;
     const pillX = (size - pillWidth) / 2;
-    const pillY = 232;
+    const pillY = 150;
 
     ctx.beginPath();
     ctx.roundRect(pillX, pillY, pillWidth, pillHeight, 18);
@@ -156,7 +182,7 @@ function createHotspotTexture(
     ctx.stroke();
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = "600 24px Arial, sans-serif";
+    ctx.font = "600 16px Arial, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(safeLabel, cx, pillY + pillHeight / 2 + 1);

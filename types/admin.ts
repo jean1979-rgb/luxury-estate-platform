@@ -15,7 +15,20 @@ export type AdminHotspotType =
   | "terrace"
   | "room"
   | "amenity"
-  | "kitchen";
+  | "kitchen"
+  | "living"
+  | "bedroom"
+  | "bathroom"
+  | "pool"
+  | "beach"
+  | "view"
+  | "garden"
+  | "parking"
+  | "elevator"
+  | "gym"
+  | "spa"
+  | "lobby"
+  | "dining";
 
 export type AdminHotspotSize = "sm" | "md" | "lg";
 

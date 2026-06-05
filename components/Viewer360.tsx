@@ -9,7 +9,20 @@ type HotspotType =
   | "terrace"
   | "room"
   | "amenity"
-  | "kitchen";
+  | "kitchen"
+  | "living"
+  | "bedroom"
+  | "bathroom"
+  | "pool"
+  | "beach"
+  | "view"
+  | "garden"
+  | "parking"
+  | "elevator"
+  | "gym"
+  | "spa"
+  | "lobby"
+  | "dining";
 
 type HotspotSize = "sm" | "md" | "lg";
 
