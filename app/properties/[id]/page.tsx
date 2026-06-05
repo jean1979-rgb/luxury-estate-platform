@@ -48,6 +48,25 @@ type AdminProperty = {
   published?: boolean;
 };
 
+function formatPropertyPrice(value: unknown) {
+  const raw = String(value ?? "").trim();
+
+  if (!raw) return "Precio disponible bajo solicitud";
+  if (/bajo solicitud/i.test(raw)) return raw;
+  if (/^\$/.test(raw)) return raw;
+
+  return `$${raw}`;
+}
+
+function formatPropertyArea(value: unknown) {
+  const raw = String(value ?? "").trim();
+
+  if (!raw || raw === "N/D") return "N/D";
+  if (/m2|m²/i.test(raw)) return raw.replace(/m2/gi, "m²");
+
+  return `${raw} m²`;
+}
+
 
 
 async function getPrismaScenes(propertyId: string) {
@@ -143,16 +162,17 @@ export default async function PropertyDetailPage({ params }: PageProps) {
   }
 
   const safeLocation = property.location ?? "Ubicación premium";
-  const safePrice = property.price ?? "Precio disponible bajo solicitud";
+  const safePrice = formatPropertyPrice(property.price);
   const safeBedrooms = property.bedrooms ?? 0;
   const safeBathrooms = property.bathrooms ?? 0;
 
-  const areaLabel =
+  const areaLabel = formatPropertyArea(
     property.areaTotal != null
-      ? String(property.areaTotal)
+      ? property.areaTotal
       : property.areaInterior != null
-        ? String(property.areaInterior)
-        : "N/D";
+        ? property.areaInterior
+        : ""
+  );
 
   return (
     <>
@@ -162,8 +182,8 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         videoUrl={property.videoUrl ?? ""}
         videoPoster={property.videoPoster ?? safeCoverImage}
       />
-    <main className="min-h-screen bg-[#0a0a0a] text-[#f5f1eb]">
-      <section className="relative h-[85vh] w-full overflow-hidden">
+    <main className="min-h-screen w-full overflow-x-hidden bg-[#0a0a0a] text-[#f5f1eb]">
+      <section className="relative h-[78svh] min-h-[560px] w-full overflow-hidden md:h-[85vh] md:min-h-0">
         <img
           src={safeCoverImage}
           alt={property.title}
@@ -172,7 +192,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
 
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/10" />
 
-        <div className="absolute left-6 top-6 z-20 md:left-10">
+        <div className="absolute left-4 top-5 z-20 md:left-10">
           <Link
             href="/acapulco"
             className="text-sm text-white/70 transition hover:text-white"
@@ -181,21 +201,35 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           </Link>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 z-20 px-6 pb-12 md:px-10 md:pb-16">
+        <div className="absolute bottom-0 left-0 right-0 z-20 px-4 pb-8 md:px-10 md:pb-16">
           <div className="max-w-[1680px]">
-            <p className="text-[10px] uppercase tracking-[0.4em] text-white/40">
+            <p className="text-[9px] uppercase tracking-[0.28em] text-white/40 md:text-[10px] md:tracking-[0.4em]">
               Private Listing
             </p>
 
-            <h1 className="mt-4 max-w-4xl text-5xl font-light leading-[1.05] md:text-7xl">
+            <h1 className="mt-3 max-w-4xl text-[2.1rem] font-light leading-[1.02] md:mt-4 md:text-7xl">
               {property.title}
             </h1>
 
-            <p className="mt-6 max-w-2xl text-lg text-white/70">
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-white/70 md:mt-6 md:text-lg md:leading-normal">
               {property.tagline || "Una colección residencial de lujo presentada con curaduría visual, escala arquitectónica y vista privilegiada."}
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3 text-sm">
+            <div className="mt-5 md:hidden">
+              <p className="text-[1.55rem] font-light leading-none text-white">
+                {safePrice} MXN
+              </p>
+
+              <p className="mt-3 text-[13px] leading-6 text-white/80">
+                {safeBedrooms} Recámaras · {safeBathrooms} Baños · {areaLabel}
+              </p>
+
+              <p className="mt-2 max-w-[92%] text-[12px] leading-5 text-white/55">
+                {safeLocation}
+              </p>
+            </div>
+
+            <div className="mt-8 hidden flex-wrap gap-3 text-sm md:flex">
               <span className="rounded-full border border-white/15 px-4 py-2">
                 {safeLocation}
               </span>
@@ -216,7 +250,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1680px] px-6 pb-20 md:px-10">
+      <section className="mx-auto w-full max-w-[1680px] px-4 pb-12 pt-10 md:px-10 md:pb-20 md:pt-0">
         <div className="max-w-3xl">
           <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
             Lifestyle Nearby
@@ -231,12 +265,12 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           </p>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="mt-6 grid grid-cols-1 gap-4 md:mt-8 md:grid-cols-3 md:gap-6">
           {experiences.slice(0,3).map((item: any) => (
             <Link
               key={item.slug || item.title}
               href={`/experiences/${item.slug}`}
-              className="group relative flex min-h-[320px] overflow-hidden rounded-[28px] border border-white/10"
+              className="group relative flex min-h-[220px] overflow-hidden rounded-[24px] border border-white/10 md:min-h-[320px] md:rounded-[28px]"
             >
               <div
                 className="absolute inset-0 bg-cover bg-center transition group-hover:scale-105"
@@ -253,12 +287,12 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           ))}
         </div>
 
-        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="mt-6 grid grid-cols-1 gap-4 md:mt-12 md:grid-cols-3 md:gap-6">
           {luxuryPartners.slice(0,3).map((partner: any) => (
             <Link
               key={partner.slug}
               href={`/partners/${partner.slug}`}
-              className="group relative flex min-h-[320px] overflow-hidden rounded-[28px] border border-white/10"
+              className="group relative flex min-h-[220px] overflow-hidden rounded-[24px] border border-white/10 md:min-h-[320px] md:rounded-[28px]"
             >
               <div
                 className="absolute inset-0 bg-cover bg-center transition group-hover:scale-105"
@@ -277,8 +311,8 @@ export default async function PropertyDetailPage({ params }: PageProps) {
       </section>
 
 
-      <section className="mx-auto grid max-w-[1680px] gap-12 px-6 py-14 md:grid-cols-2 xl:grid-cols-[1.2fr_0.8fr] md:px-10">
-        <div className="space-y-12">
+      <section className="mx-auto grid w-full max-w-[1680px] gap-10 px-4 py-10 md:grid-cols-2 md:px-10 md:py-14 xl:grid-cols-[1.2fr_0.8fr]">
+        <div className="min-w-0 space-y-10 md:space-y-12">
           <div>
             <p className="text-[10px] uppercase tracking-[0.4em] text-white/30">
               Galería
@@ -294,7 +328,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
               Concepto
             </p>
 
-            <h2 className="mt-3 text-3xl font-light">
+            <h2 className="mt-3 text-2xl font-light md:text-3xl">
               Arquitectura & Experiencia
             </h2>
 
@@ -315,7 +349,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           ) : null}
         </div>
 
-        <aside className="h-fit space-y-8 md:sticky md:top-24">
+        <aside className="min-w-0 h-fit space-y-5 md:sticky md:top-24 md:space-y-8">
           <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6">
             <div className="rounded-[24px] border border-white/10 bg-[#121212] p-6">
               <p className="text-[10px] uppercase tracking-[0.35em] text-white/45">

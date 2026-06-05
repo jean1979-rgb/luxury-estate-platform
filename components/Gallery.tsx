@@ -78,7 +78,7 @@ export default function Gallery({ images = [], title = "Propiedad" }: GalleryPro
     <>
       <div className="space-y-4">
         <div className="relative overflow-hidden bg-black">
-          <div className="relative h-[560px] w-full cursor-zoom-in md:h-[680px]" onClick={() => setOpen(true)}>
+          <div className="relative h-[360px] w-full cursor-zoom-in md:h-[680px]" onClick={() => setOpen(true)}>
             <img
               src={current}
               alt={`${title} ${selectedIndex + 1}`}
@@ -111,7 +111,7 @@ export default function Gallery({ images = [], title = "Propiedad" }: GalleryPro
 
         <div className="bg-transparent px-0 pb-0 pt-2">
           {total > 1 ? (
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex w-full items-center justify-center gap-2 overflow-hidden md:gap-3">
               <button
                 type="button"
                 onClick={goPrev}
@@ -121,7 +121,7 @@ export default function Gallery({ images = [], title = "Propiedad" }: GalleryPro
                 ‹
               </button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex min-w-0 items-center gap-2 overflow-x-auto">
                 {visibleThumbs.map((image, localIndex) => {
                   const realIndex = start + localIndex;
                   const active = realIndex === selectedIndex;
@@ -131,7 +131,7 @@ export default function Gallery({ images = [], title = "Propiedad" }: GalleryPro
                       key={`${image}-${realIndex}`}
                       type="button"
                       onClick={() => setSelectedIndex(realIndex)}
-                      className={`relative h-[84px] w-[126px] shrink-0 overflow-hidden border ${
+                      className={`relative h-[64px] w-[96px] shrink-0 overflow-hidden border md:h-[84px] md:w-[126px] ${
                         active ? "border-neutral-900 ring-1 ring-neutral-900" : "border-neutral-200"
                       }`}
                       aria-label={`Ver imagen ${realIndex + 1}`}
