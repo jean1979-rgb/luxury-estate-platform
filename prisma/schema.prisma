@@ -121,6 +121,7 @@ model SceneHotspot {
   label         String?
   targetSceneId String?
   type          String?  @default("nav")
+  size          String?  @default("md")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

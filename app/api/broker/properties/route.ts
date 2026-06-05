@@ -76,7 +76,21 @@ export async function GET() {
           | "room"
           | "amenity"
           | "kitchen"
+          | "living"
+          | "bedroom"
+          | "bathroom"
+          | "pool"
+          | "beach"
+          | "view"
+          | "garden"
+          | "parking"
+          | "elevator"
+          | "gym"
+          | "spa"
+          | "lobby"
+          | "dining"
           | undefined) || "nav",
+        size: h.size || "md",
       })),
     })),
     source: item.source

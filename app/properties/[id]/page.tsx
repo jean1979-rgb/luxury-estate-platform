@@ -154,6 +154,8 @@ export default async function PropertyDetailPage({ params }: PageProps) {
         yaw: h.yaw,
         label: h.label ?? undefined,
         targetSceneId: h.targetSceneId ?? undefined,
+        type: h.type ?? undefined,
+        size: h.size ?? undefined,
       })),
     }));
   }

@@ -4,12 +4,38 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Viewer360 from "@/components/Viewer360";
 import VideoPlayer from "@/components/VideoPlayer";
 
+type HotspotType =
+  | "nav"
+  | "stairs-up"
+  | "stairs-down"
+  | "terrace"
+  | "room"
+  | "amenity"
+  | "kitchen"
+  | "living"
+  | "bedroom"
+  | "bathroom"
+  | "pool"
+  | "beach"
+  | "view"
+  | "garden"
+  | "parking"
+  | "elevator"
+  | "gym"
+  | "spa"
+  | "lobby"
+  | "dining";
+
+type HotspotSize = "sm" | "md" | "lg";
+
 type Hotspot360 = {
   id: string;
   pitch: number;
   yaw: number;
   label?: string;
   targetSceneId?: string;
+  type?: HotspotType;
+  size?: HotspotSize;
 };
 
 type Scene360 = {
