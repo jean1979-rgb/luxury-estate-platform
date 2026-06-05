@@ -320,22 +320,31 @@ const { handleUpload } = useAdminUploads({
     hotspotIndex: number,
     patch: Partial<AdminHotspot>
   ) {
-    const normalizedPatch: Partial<AdminHotspot> = {
-      ...patch,
-      pitch:
-        patch.pitch !== undefined
-          ? Number(clamp(Number(patch.pitch), -90, 90).toFixed(2))
-          : undefined,
-      yaw:
-        patch.yaw !== undefined
-          ? Number(clamp(Number(patch.yaw), -180, 180).toFixed(2))
-          : undefined,
-      label: patch.label !== undefined ? patch.label : undefined,
-      targetSceneId:
-        patch.targetSceneId !== undefined ? patch.targetSceneId : undefined,
-      type: patch.type !== undefined ? patch.type : undefined,
-      size: patch.size !== undefined ? patch.size : undefined,
-    };
+    const normalizedPatch: Partial<AdminHotspot> = {};
+
+    if (patch.pitch !== undefined) {
+      normalizedPatch.pitch = Number(clamp(Number(patch.pitch), -90, 90).toFixed(2));
+    }
+
+    if (patch.yaw !== undefined) {
+      normalizedPatch.yaw = Number(clamp(Number(patch.yaw), -180, 180).toFixed(2));
+    }
+
+    if (patch.label !== undefined) {
+      normalizedPatch.label = patch.label;
+    }
+
+    if (patch.targetSceneId !== undefined) {
+      normalizedPatch.targetSceneId = patch.targetSceneId;
+    }
+
+    if (patch.type !== undefined) {
+      normalizedPatch.type = patch.type;
+    }
+
+    if (patch.size !== undefined) {
+      normalizedPatch.size = patch.size;
+    }
 
     dispatch({
       type: "UPDATE_HOTSPOT",
