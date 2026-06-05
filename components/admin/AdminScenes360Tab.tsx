@@ -415,11 +415,23 @@ export default function AdminScenes360Tab({
                               </span>
                               <select
                                 value={hotspot.targetSceneId || ""}
-                                onChange={(e) =>
+                                onChange={(e) => {
+                                  const targetSceneId = e.target.value;
+                                  const targetScene = scenes.find((item) => item.id === targetSceneId);
+                                  const currentLabel = String(hotspot.label ?? "").trim();
+                                  const shouldAutoLabel =
+                                    !currentLabel ||
+                                    /^Hotspot \d+$/i.test(currentLabel) ||
+                                    currentLabel === "Destino" ||
+                                    currentLabel === "Destino disponible";
+
                                   onUpdateHotspot(sceneIndex, hotspotIndex, {
-                                    targetSceneId: e.target.value,
-                                  })
-                                }
+                                    targetSceneId,
+                                    label: shouldAutoLabel
+                                      ? (targetScene?.title || currentLabel || "Destino")
+                                      : currentLabel,
+                                  });
+                                }}
                                 className="w-full rounded-2xl border border-white/10 bg-[#111111] px-5 py-4 text-[15px] text-white outline-none transition focus:border-white/25"
                               >
                                 <option value="">Sin destino</option>
