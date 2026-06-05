@@ -102,7 +102,6 @@ export async function PATCH(req: Request, context: RouteContext) {
           label: h.label || "",
           targetSceneId: h.targetSceneId || "",
           type: h.type || "nav",
-          size: h.size || "md",
         })),
       })),
       source: hydrated.sourceProvider
