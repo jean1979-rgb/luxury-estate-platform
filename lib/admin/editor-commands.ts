@@ -18,7 +18,7 @@ export function buildHotspot(index: number, pitch: number, yaw: number): AdminHo
     id: `hotspot-${Date.now()}-${index + 1}`,
     pitch,
     yaw,
-    label: `Hotspot ${index + 1}`,
+    label: "Destino",
     targetSceneId: "",
     type: "nav",
   };

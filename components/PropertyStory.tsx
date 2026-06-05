@@ -15,7 +15,7 @@ export default function PropertyStory({ tagline, description }: Props) {
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
 
-  const visibleParagraphs = expanded ? paragraphs : paragraphs.slice(0, 1);
+  const mobileParagraphs = expanded ? paragraphs : paragraphs.slice(0, 1);
 
   return (
     <section className="grid gap-8 md:grid-cols-12 md:gap-10">
@@ -29,8 +29,8 @@ export default function PropertyStory({ tagline, description }: Props) {
       </div>
 
       <div className="md:col-span-8">
-        <div className="max-w-3xl space-y-5 text-sm leading-7 text-[#b8afa3] md:space-y-6 md:text-lg md:leading-8">
-          {visibleParagraphs.map((paragraph, index) => (
+        <div className="max-w-3xl space-y-5 text-sm leading-7 text-[#b8afa3] md:hidden">
+          {mobileParagraphs.map((paragraph, index) => (
             <p key={index}>{paragraph}</p>
           ))}
 
@@ -43,6 +43,12 @@ export default function PropertyStory({ tagline, description }: Props) {
               {expanded ? "Leer menos" : "Leer más"}
             </button>
           ) : null}
+        </div>
+
+        <div className="hidden max-w-3xl space-y-6 text-lg leading-8 text-[#b8afa3] md:block">
+          {paragraphs.map((paragraph, index) => (
+            <p key={index}>{paragraph}</p>
+          ))}
         </div>
       </div>
     </section>
