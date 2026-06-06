@@ -48,6 +48,7 @@ type Viewer360Props = {
   initialYaw?: number;
   initialPitch?: number;
   onViewChange?: (view: { yaw: number; pitch: number }) => void;
+  onReady?: () => void;
 };
 
 const VIEW_CHANGE_THRESHOLD_DEG = 0.05;
@@ -205,6 +206,7 @@ export default function Viewer360({
   initialYaw = 0,
   initialPitch = 0,
   onViewChange,
+  onReady,
 }: Viewer360Props) {
   const mountRef = useRef<HTMLDivElement>(null);
 
@@ -225,11 +227,13 @@ export default function Viewer360({
   const onViewChangeRef = useRef(onViewChange);
   const onHotspotClickRef = useRef(onHotspotClick);
   const onSceneClickRef = useRef(onSceneClick);
+  const onReadyRef = useRef(onReady);
   const isHotspotTravelingRef = useRef(false);
 
   onViewChangeRef.current = onViewChange;
   onHotspotClickRef.current = onHotspotClick;
   onSceneClickRef.current = onSceneClick;
+  onReadyRef.current = onReady;
 
   function emitCurrentView(force = false) {
     const controls = controlsRef.current;
@@ -589,11 +593,13 @@ export default function Viewer360({
 
         renderer.render(scene, camera);
         renderer.domElement.style.opacity = "1";
+        onReadyRef.current?.();
       },
       undefined,
       (err) => {
         console.error("Error loading 360 texture:", err);
         renderer.domElement.style.opacity = "1";
+        onReadyRef.current?.();
       }
     );
 

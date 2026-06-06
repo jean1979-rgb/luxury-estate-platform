@@ -128,6 +128,8 @@ export default function Viewer360Carousel({
   const [viewport, setViewport] = useState<ViewportState | null>(null);
 
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
+  const [fullscreenPendingIndex, setFullscreenPendingIndex] = useState<number | null>(null);
+  const [isFullscreenPendingReady, setIsFullscreenPendingReady] = useState(false);
   const [fullscreenSeed, setFullscreenSeed] = useState(0);
   const [fullscreenIntroEnabled, setFullscreenIntroEnabled] = useState(false);
   const [isFsTransitioning, setIsFsTransitioning] = useState(false);
@@ -238,6 +240,10 @@ export default function Viewer360Carousel({
 
   const current = safeScenes[index] ?? safeScenes[0];
   const fullscreenCurrent = safeScenes[fullscreenIndex] ?? safeScenes[0];
+  const fullscreenPending =
+    typeof fullscreenPendingIndex === "number"
+      ? safeScenes[fullscreenPendingIndex]
+      : null;
 
   const currentEntryPitch =
     typeof current?.initialPitch === "number" ? current.initialPitch : ENTRY_PITCH;
@@ -260,6 +266,14 @@ export default function Viewer360Carousel({
   );
 
   const visibleFullscreenHotspots = fullscreenHotspots.filter(
+    (hotspot) => hotspot?.targetSceneId
+  );
+
+  const pendingFullscreenHotspots = Array.isArray(fullscreenPending?.hotspots)
+    ? fullscreenPending.hotspots.filter(isHotspot)
+    : [];
+
+  const visiblePendingFullscreenHotspots = pendingFullscreenHotspots.filter(
     (hotspot) => hotspot?.targetSceneId
   );
 
@@ -303,15 +317,9 @@ export default function Viewer360Carousel({
     if (!nextScene?.image) return;
 
     setIsFsTransitioning(true);
-    await preloadSceneImage(nextScene.image);
-
-    setFullscreenIntroEnabled(false);
-    setFullscreenIndex(nextIndex);
-    setFullscreenSeed((prev) => prev + 1);
-
-    window.setTimeout(() => {
-      setIsFsTransitioning(false);
-    }, 420);
+    setIsFullscreenPendingReady(false);
+    setFullscreenPendingIndex(nextIndex);
+    void preloadSceneImage(nextScene.image);
   }
 
   function openFullscreen() {
@@ -557,7 +565,11 @@ export default function Viewer360Carousel({
             className="fixed overflow-hidden border border-white/10 bg-black shadow-[0_30px_120px_rgba(0,0,0,0.55)] transition-all duration-[1100ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
             style={panelStyle}
           >
-            <div className="absolute inset-0">
+            <div
+              className={`absolute inset-0 transition-opacity duration-500 ${
+                isFullscreenPendingReady ? "opacity-0" : "opacity-100"
+              }`}
+            >
               <Viewer360
                 image={fullscreenCurrent.image}
                 hotspots={visibleFullscreenHotspots}
@@ -569,15 +581,39 @@ export default function Viewer360Carousel({
               />
             </div>
 
-            {isFsTransitioning ? (
+            {fullscreenPending ? (
               <div
-                className="pointer-events-none absolute inset-0 z-20 scale-[1.03] bg-cover bg-center opacity-100 blur-sm transition-opacity duration-500"
-                style={{ backgroundImage: `url("${fullscreenCurrent.image}")` }}
-              />
-            ) : null}
+                className={`absolute inset-0 z-20 transition-opacity duration-500 ${
+                  isFullscreenPendingReady ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                <Viewer360
+                  image={fullscreenPending.image}
+                  hotspots={visiblePendingFullscreenHotspots}
+                  onHotspotClick={undefined}
+                  initialYaw={fullscreenPending.initialYaw || 0}
+                  initialPitch={
+                    typeof fullscreenPending.initialPitch === "number"
+                      ? fullscreenPending.initialPitch
+                      : FULLSCREEN_HANDOFF_PITCH
+                  }
+                  onReady={() => {
+                    setIsFullscreenPendingReady(true);
 
-            {isFsTransitioning ? (
-              <div className="pointer-events-none absolute inset-0 z-30 bg-black/10 transition-opacity duration-300" />
+                    window.setTimeout(() => {
+                      if (typeof fullscreenPendingIndex === "number") {
+                        setFullscreenIntroEnabled(false);
+                        setFullscreenIndex(fullscreenPendingIndex);
+                        setFullscreenSeed((prev) => prev + 1);
+                      }
+
+                      setFullscreenPendingIndex(null);
+                      setIsFullscreenPendingReady(false);
+                      setIsFsTransitioning(false);
+                    }, 520);
+                  }}
+                />
+              </div>
             ) : null}
 
             <div

@@ -51,6 +51,7 @@ type Viewer360Props = {
   interactive?: boolean;
   introEnabled?: boolean;
   transitionOnHotspot?: boolean;
+  onReady?: () => void;
 };
 
 export default function Viewer360({
@@ -63,6 +64,7 @@ export default function Viewer360({
   initialYaw = 0,
   initialPitch = 0,
   onViewChange,
+  onReady,
 }: Viewer360Props) {
   return (
     <div
@@ -80,6 +82,7 @@ export default function Viewer360({
         initialYaw={initialYaw}
         initialPitch={initialPitch}
         onViewChange={onViewChange}
+        onReady={onReady}
       />
     </div>
   );
