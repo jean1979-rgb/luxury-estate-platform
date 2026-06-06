@@ -39,7 +39,7 @@ type Hotspot360 = {
 type Viewer360Props = {
   image: string;
   hotspots?: Hotspot360[];
-  onHotspotClick?: (targetSceneId?: string) => void;
+  onHotspotClick?: (targetSceneId?: string, hotspot?: Hotspot360) => void;
   editable?: boolean;
   onSceneClick?: (coords: { yaw: number; pitch: number }) => void;
   initialYaw?: number;
@@ -50,6 +50,7 @@ type Viewer360Props = {
   onViewChange?: (view: { yaw: number; pitch: number }) => void;
   interactive?: boolean;
   introEnabled?: boolean;
+  transitionOnHotspot?: boolean;
 };
 
 export default function Viewer360({
@@ -58,6 +59,7 @@ export default function Viewer360({
   onHotspotClick,
   editable = false,
   onSceneClick,
+  transitionOnHotspot = false,
   initialYaw = 0,
   initialPitch = 0,
   onViewChange,
@@ -72,6 +74,7 @@ export default function Viewer360({
         image={image}
         hotspots={hotspots}
         onHotspotClick={onHotspotClick}
+        transitionOnHotspot={transitionOnHotspot}
         editable={editable}
         onSceneClick={onSceneClick}
         initialYaw={initialYaw}

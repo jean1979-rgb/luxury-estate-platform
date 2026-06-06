@@ -41,7 +41,8 @@ type Hotspot360 = {
 type Viewer360Props = {
   image: string;
   hotspots?: Hotspot360[];
-  onHotspotClick?: (targetSceneId?: string) => void;
+  onHotspotClick?: (targetSceneId?: string, hotspot?: Hotspot360) => void;
+  transitionOnHotspot?: boolean;
   editable?: boolean;
   onSceneClick?: (coords: { yaw: number; pitch: number }) => void;
   initialYaw?: number;
@@ -198,6 +199,7 @@ export default function Viewer360({
   image,
   hotspots = [],
   onHotspotClick,
+  transitionOnHotspot = false,
   editable = false,
   onSceneClick,
   initialYaw = 0,
@@ -223,6 +225,7 @@ export default function Viewer360({
   const onViewChangeRef = useRef(onViewChange);
   const onHotspotClickRef = useRef(onHotspotClick);
   const onSceneClickRef = useRef(onSceneClick);
+  const isHotspotTravelingRef = useRef(false);
 
   onViewChangeRef.current = onViewChange;
   onHotspotClickRef.current = onHotspotClick;
@@ -255,6 +258,57 @@ export default function Viewer360({
 
     lastEmittedViewRef.current = view;
     handleViewChange(view);
+  }
+
+  function easeInOutCubic(t: number) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function animateCameraTowardHotspot(hotspot: Hotspot360) {
+    const controls = controlsRef.current;
+    const camera = cameraRef.current;
+
+    if (!controls || !camera) return Promise.resolve();
+
+    const safeControls = controls;
+    const safeCamera = camera;
+
+    const startTarget = safeControls.target.clone();
+    const endTarget = targetFromYawPitch(Number(hotspot.yaw || 0), Number(hotspot.pitch || 0));
+    const startFov = fovRef.current;
+    const endFov = Math.max(MIN_FOV, Math.min(66, startFov - 22));
+    const duration = 620;
+    const startedAt = performance.now();
+
+    safeControls.enabled = false;
+
+    return new Promise<void>((resolve) => {
+      function step(now: number) {
+        const rawProgress = Math.min(1, (now - startedAt) / duration);
+        const progress = easeInOutCubic(rawProgress);
+
+        safeControls.target.lerpVectors(startTarget, endTarget, progress);
+
+        const nextFov = startFov + (endFov - startFov) * progress;
+        fovRef.current = nextFov;
+        safeCamera.fov = nextFov;
+        safeCamera.updateProjectionMatrix();
+
+        safeControls.update();
+
+        if (rawProgress < 1) {
+          window.requestAnimationFrame(step);
+          return;
+        }
+
+        window.setTimeout(() => {
+          safeControls.enabled = true;
+          resolve();
+        }, 80);
+      }
+
+      window.requestAnimationFrame(step);
+    });
   }
 
   useEffect(() => {
@@ -387,6 +441,8 @@ export default function Viewer360({
       if (!isPointerDown) return;
       isPointerDown = false;
 
+      emitCurrentView(true);
+
       if (pointerMoved) return;
 
       setPointerFromEvent(event);
@@ -404,7 +460,21 @@ export default function Viewer360({
           const targetSceneId = hit?.userData?.targetSceneId as
             | string
             | undefined;
-          onHotspotClickRef.current?.(targetSceneId);
+          const hotspot = hit?.userData?.hotspot as Hotspot360 | undefined;
+
+          if (transitionOnHotspot && hotspot && !editable) {
+            if (isHotspotTravelingRef.current) return;
+            isHotspotTravelingRef.current = true;
+
+            void animateCameraTowardHotspot(hotspot).finally(() => {
+              isHotspotTravelingRef.current = false;
+              onHotspotClickRef.current?.(targetSceneId, hotspot);
+            });
+
+            return;
+          }
+
+          onHotspotClickRef.current?.(targetSceneId, hotspot);
           return;
         }
       }
@@ -425,7 +495,12 @@ export default function Viewer360({
       emitCurrentView(false);
     };
 
+    const handleControlsEnd = () => {
+      emitCurrentView(true);
+    };
+
     controls.addEventListener("change", handleControlsChange);
+    controls.addEventListener("end", handleControlsEnd);
     renderer.domElement.addEventListener("pointerdown", onPointerDown);
     renderer.domElement.addEventListener("pointermove", onPointerMove);
     renderer.domElement.addEventListener("pointerup", onPointerUp);
@@ -443,6 +518,7 @@ export default function Viewer360({
     return () => {
       window.cancelAnimationFrame(animationId);
       controls.removeEventListener("change", handleControlsChange);
+      controls.removeEventListener("end", handleControlsEnd);
       window.removeEventListener("resize", onResize);
       renderer.domElement.removeEventListener("pointerdown", onPointerDown);
       renderer.domElement.removeEventListener("pointermove", onPointerMove);
@@ -507,6 +583,10 @@ export default function Viewer360({
           oldTexture.dispose();
         }
 
+        camera.fov = DEFAULT_FOV;
+        fovRef.current = DEFAULT_FOV;
+        camera.updateProjectionMatrix();
+
         renderer.render(scene, camera);
         renderer.domElement.style.opacity = "1";
       },
@@ -569,6 +649,7 @@ export default function Viewer360({
         hotspotId: hotspot.id,
         targetSceneId: hotspot.targetSceneId,
         label: hotspot.label,
+        hotspot,
       };
 
       hotspotGroup.add(sprite);

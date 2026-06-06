@@ -562,6 +562,7 @@ export default function Viewer360Carousel({
                 image={fullscreenCurrent.image}
                 hotspots={visibleFullscreenHotspots}
                 onHotspotClick={isFsTransitioning ? undefined : goToSceneFullscreen}
+                transitionOnHotspot
                 initialYaw={fullscreenCurrent.initialYaw || 0}
                 initialPitch={fullscreenViewerPitch}
                 introEnabled={fullscreenIntroEnabled}
