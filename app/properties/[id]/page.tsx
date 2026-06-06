@@ -53,9 +53,14 @@ function formatPropertyPrice(value: unknown) {
 
   if (!raw) return "Precio disponible bajo solicitud";
   if (/bajo solicitud/i.test(raw)) return raw;
-  if (/^\$/.test(raw)) return raw;
 
-  return `$${raw}`;
+  const clean = raw.replace(/[$,\s]/g, "");
+  const numericPrice = Number(clean);
+
+  if (!Number.isFinite(numericPrice)) return raw;
+  return `$${new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 0,
+  }).format(numericPrice)}`;
 }
 
 function formatPropertyArea(value: unknown) {

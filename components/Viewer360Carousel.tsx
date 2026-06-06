@@ -35,7 +35,6 @@ type Hotspot360 = {
   label?: string;
   targetSceneId?: string;
   type?: HotspotType;
-  size?: HotspotSize;
 };
 
 type Scene360 = {

@@ -466,24 +466,6 @@ export default function AdminScenes360Tab({
                               </select>
                             </label>
 
-                            <label className="space-y-2">
-                              <span className="text-[11px] uppercase tracking-[0.24em] text-white/35">
-                                Tamaño
-                              </span>
-                              <select
-                                value={hotspot.size || "md"}
-                                onChange={(e) =>
-                                  onUpdateHotspot(sceneIndex, hotspotIndex, {
-                                    size: e.target.value as "sm" | "md" | "lg",
-                                  })
-                                }
-                                className="w-full rounded-2xl border border-white/10 bg-[#111111] px-5 py-4 text-[15px] text-white outline-none transition focus:border-white/25"
-                              >
-                                <option value="sm">Pequeño</option>
-                                <option value="md">Mediano</option>
-                                <option value="lg">Grande</option>
-                              </select>
-                            </label>
                           </div>
 
                           <div className="mt-4 grid gap-4 sm:grid-cols-2">

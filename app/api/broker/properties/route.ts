@@ -90,7 +90,6 @@ export async function GET() {
           | "lobby"
           | "dining"
           | undefined) || "nav",
-        size: h.size || "md",
       })),
     })),
     source: item.source

@@ -84,7 +84,6 @@ function normalizeAdminForm(value: Partial<AdminPropertyInput> | null | undefine
                 label: hotspot?.label ?? "",
                 targetSceneId: hotspot?.targetSceneId ?? "",
                 type: hotspot?.type ?? "nav",
-                size: hotspot?.size ?? "md",
               }))
             : [],
         }))

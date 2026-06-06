@@ -48,7 +48,6 @@ export function buildPropertyPayload({
             label: hotspot.label || `Hotspot ${hotspotIndex + 1}`,
             targetSceneId: normalizeTargetSceneId(hotspot.targetSceneId, sceneIdAliases),
             type: hotspot.type || "nav",
-            size: hotspot.size || "md",
             pitch: asNumber(hotspot.pitch, 0),
             yaw: asNumber(hotspot.yaw, 0),
           }))
