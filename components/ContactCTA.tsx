@@ -11,7 +11,15 @@ export default function ContactCTA({
   price,
   propertyUrl,
 }: Props) {
-  const message = `Hola, me interesa esta propiedad: ${title}${propertyUrl ? ` - ${propertyUrl}` : ""}`;
+  const message = `Hola.
+
+Deseo conocer más detalles sobre la siguiente propiedad de Private Estates Mexico:
+
+${title}
+
+${propertyUrl ?? ""}
+
+Agradeceré que un asesor se ponga en contacto conmigo.`;
 
   const whatsappUrl = `https://api.whatsapp.com/send?phone=527442250891&text=${encodeURIComponent(
     message,
