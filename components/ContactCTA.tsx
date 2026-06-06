@@ -26,14 +26,14 @@ Agradeceré que un asesor se ponga en contacto conmigo.`;
   )}`;
 
   return (
-    <section className="rounded-[28px] border border-white/10 bg-[#121212] p-10">
+    <section className="rounded-[28px] border border-white/10 bg-[#121212] p-6 md:p-10">
       <p className="text-[10px] uppercase tracking-[0.35em] text-[#d6c3a1]">
         Private Access
       </p>
 
-      <div className="mt-5 flex flex-col gap-8">
+      <div className="mt-5 flex flex-col gap-5 md:gap-8">
         <div>
-          <h3 className="max-w-[14ch] text-3xl font-light leading-[0.98] md:text-3xl xl:text-[44px]">
+          <h3 className="max-w-[14ch] text-2xl font-light leading-[0.98] md:text-3xl xl:text-[44px]">
             Solicita acceso privado
           </h3>
 
