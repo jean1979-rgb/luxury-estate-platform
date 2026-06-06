@@ -80,6 +80,25 @@ type Viewer360CarouselProps = {
   initialTab?: "360" | "video";
 };
 
+const preloadedSceneImages = new Set<string>();
+
+function preloadSceneImage(src?: string) {
+  if (!src || preloadedSceneImages.has(src)) {
+    return Promise.resolve();
+  }
+
+  return new Promise<void>((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      preloadedSceneImages.add(src);
+      resolve();
+    };
+    img.onerror = () => resolve();
+    img.src = src;
+  });
+}
+
 export default function Viewer360Carousel({
   scenes,
   videoUrl,
@@ -123,6 +142,12 @@ export default function Viewer360Carousel({
 
   const sceneIndexById = useMemo(() => {
     return new Map(safeScenes.map((scene, i) => [scene.id, i]));
+  }, [safeScenes]);
+
+  useEffect(() => {
+    safeScenes.forEach((scene) => {
+      void preloadSceneImage(scene.image);
+    });
   }, [safeScenes]);
 
   useEffect(() => {
@@ -268,23 +293,25 @@ export default function Viewer360Carousel({
     }
   }
 
-  function goToSceneFullscreen(targetSceneId?: string) {
+  async function goToSceneFullscreen(targetSceneId?: string) {
     if (!targetSceneId || isFsTransitioning) return;
 
     const nextIndex = sceneIndexById.get(targetSceneId);
     if (typeof nextIndex !== "number") return;
 
-    setIsFsTransitioning(true);
+    const nextScene = safeScenes[nextIndex];
+    if (!nextScene?.image) return;
 
-    window.setTimeout(() => {
-      setFullscreenIntroEnabled(false);
-      setFullscreenIndex(nextIndex);
-      setFullscreenSeed((prev) => prev + 1);
-    }, 260);
+    setIsFsTransitioning(true);
+    await preloadSceneImage(nextScene.image);
+
+    setFullscreenIntroEnabled(false);
+    setFullscreenIndex(nextIndex);
+    setFullscreenSeed((prev) => prev + 1);
 
     window.setTimeout(() => {
       setIsFsTransitioning(false);
-    }, 680);
+    }, 420);
   }
 
   function openFullscreen() {
@@ -549,7 +576,7 @@ export default function Viewer360Carousel({
             ) : null}
 
             {isFsTransitioning ? (
-              <div className="pointer-events-none absolute inset-0 z-30 bg-black/28 transition-opacity duration-500" />
+              <div className="pointer-events-none absolute inset-0 z-30 bg-black/10 transition-opacity duration-300" />
             ) : null}
 
             <div
