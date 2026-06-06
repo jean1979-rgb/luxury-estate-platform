@@ -378,7 +378,12 @@ export default async function PropertyDetailPage({ params }: PageProps) {
           </div>
 
           <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6">
-            <ContactCTA title={property.title} />
+            <ContactCTA
+              title={property.title}
+              location={safeLocation}
+              price={safePrice}
+              propertyUrl={`https://privateestatesmexico.com/properties/${property.slug || property.id}`}
+            />
           </div>
         </aside>
       </section>
