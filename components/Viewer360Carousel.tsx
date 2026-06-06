@@ -280,11 +280,11 @@ export default function Viewer360Carousel({
       setFullscreenIntroEnabled(false);
       setFullscreenIndex(nextIndex);
       setFullscreenSeed((prev) => prev + 1);
-    }, 200);
+    }, 260);
 
     window.setTimeout(() => {
       setIsFsTransitioning(false);
-    }, 520);
+    }, 680);
   }
 
   function openFullscreen() {
@@ -541,6 +541,17 @@ export default function Viewer360Carousel({
                 introEnabled={fullscreenIntroEnabled}
               />
             </div>
+
+            {isFsTransitioning ? (
+              <div
+                className="pointer-events-none absolute inset-0 z-20 scale-[1.03] bg-cover bg-center opacity-100 blur-sm transition-opacity duration-500"
+                style={{ backgroundImage: `url("${fullscreenCurrent.image}")` }}
+              />
+            ) : null}
+
+            {isFsTransitioning ? (
+              <div className="pointer-events-none absolute inset-0 z-30 bg-black/28 transition-opacity duration-500" />
+            ) : null}
 
             <div
               className={`pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.08)_48%,rgba(0,0,0,0.34)_100%)] transition-opacity duration-[1100ms] ${
