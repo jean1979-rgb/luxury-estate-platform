@@ -11,20 +11,9 @@ export default function ContactCTA({
   price,
   propertyUrl,
 }: Props) {
-  const message = [
-    "Hola, me interesa esta propiedad:",
-    "",
-    title,
-    location ? `Ubicación: ${location}` : "",
-    price ? `Precio: ${price}` : "",
-    propertyUrl ? `Link: ${propertyUrl}` : "",
-    "",
-    "¿Podrían enviarme más información?",
-  ]
-    .filter(Boolean)
-    .join("\n");
+  const message = `Hola, me interesa esta propiedad: ${title}${propertyUrl ? ` - ${propertyUrl}` : ""}`;
 
-  const whatsappUrl = `https://wa.me/527442250891?text=${encodeURIComponent(
+  const whatsappUrl = `https://api.whatsapp.com/send?phone=527442250891&text=${encodeURIComponent(
     message,
   )}`;
 
