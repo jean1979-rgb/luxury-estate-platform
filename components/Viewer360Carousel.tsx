@@ -532,7 +532,6 @@ export default function Viewer360Carousel({
           >
             <div className="absolute inset-0">
               <Viewer360
-                key={`${fullscreenCurrent.id}-immersive-${fullscreenSeed}`}
                 image={fullscreenCurrent.image}
                 hotspots={visibleFullscreenHotspots}
                 onHotspotClick={isFsTransitioning ? undefined : goToSceneFullscreen}
