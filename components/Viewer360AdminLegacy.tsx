@@ -280,8 +280,8 @@ export default function Viewer360({
     const startTarget = safeControls.target.clone();
     const endTarget = targetFromYawPitch(Number(hotspot.yaw || 0), Number(hotspot.pitch || 0));
     const startFov = fovRef.current;
-    const endFov = Math.max(MIN_FOV, Math.min(66, startFov - 22));
-    const duration = 620;
+    const endFov = startFov;
+    const duration = 420;
     const startedAt = performance.now();
 
     safeControls.enabled = false;
@@ -308,7 +308,7 @@ export default function Viewer360({
         window.setTimeout(() => {
           safeControls.enabled = true;
           resolve();
-        }, 80);
+        }, 20);
       }
 
       window.requestAnimationFrame(step);
