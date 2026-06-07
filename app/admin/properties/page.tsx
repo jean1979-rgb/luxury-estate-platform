@@ -112,6 +112,13 @@ export default async function AdminPropertiesPage() {
                     >
                       Ver en destinos
                     </Link>
+
+                    <Link
+                      href={`/admin/share/${item.id}`}
+                      className="inline-flex min-h-10 items-center justify-center border border-[#d6c3a1]/50 px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-[#d6c3a1] transition hover:bg-[#d6c3a1] hover:text-black"
+                    >
+                      Compartir
+                    </Link>
                   </div>
                 </div>
 
