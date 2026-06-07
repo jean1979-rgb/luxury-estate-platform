@@ -583,7 +583,7 @@ export default function Viewer360Carousel({
 
             {fullscreenPending ? (
               <div
-                className={`absolute inset-0 z-20 transition-opacity duration-500 ${
+                className={`absolute inset-0 z-20 transition-opacity duration-320 ${
                   isFullscreenPendingReady ? "opacity-100" : "opacity-0"
                 }`}
               >
@@ -604,13 +604,12 @@ export default function Viewer360Carousel({
                       if (typeof fullscreenPendingIndex === "number") {
                         setFullscreenIntroEnabled(false);
                         setFullscreenIndex(fullscreenPendingIndex);
-                        setFullscreenSeed((prev) => prev + 1);
                       }
 
                       setFullscreenPendingIndex(null);
                       setIsFullscreenPendingReady(false);
                       setIsFsTransitioning(false);
-                    }, 520);
+                    }, 320);
                   }}
                 />
               </div>
