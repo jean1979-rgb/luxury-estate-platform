@@ -367,7 +367,7 @@ const { handleUpload } = useAdminUploads({
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       <div className={isLightStudio ? "mx-auto flex min-h-screen w-full max-w-[1600px]" : "mx-auto flex min-h-screen w-full max-w-[1600px] gap-6 px-6 py-6"}>
         {!isLightStudio && (
-        <aside className="sticky top-6 flex h-[calc(100vh-3rem)] w-[360px] shrink-0 flex-col overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl">
+        <aside className="sticky top-6 flex min-h-[calc(100vh-3rem)] w-[360px] shrink-0 flex-col overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl">
           <div className="border-b border-white/10 px-6 py-6">
             <div className="mb-2 text-[11px] uppercase tracking-[0.35em] text-white/45">
               Private Admin
@@ -411,7 +411,7 @@ const { handleUpload } = useAdminUploads({
             </button>
           </div>
 
-          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-visible p-4">
             <AdminTokkoPanel
               items={tokkoItems}
               hiddenIds={hiddenIds}
@@ -419,7 +419,7 @@ const { handleUpload } = useAdminUploads({
               onImport={importFromTokko}
             />
 
-            <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025]">
+            <section className="flex min-h-[520px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025]">
               <div className="border-b border-white/10 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="text-[11px] uppercase tracking-[0.3em] text-white/40">
