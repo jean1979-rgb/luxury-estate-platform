@@ -237,7 +237,7 @@ if (!pricing.price || pricing.price < 15000000) {
 
 async function fetchTokko() {
   const url = `https://www.tokkobroker.com/api/v1/property/?lang=es_ar&format=json&limit=200&key=${API_KEY}`;
-  const res = await fetch(url, { headers: { Accept: "application/json" } }).filter(Boolean);
+  const res = await fetch(url, { headers: { Accept: "application/json" } });
 
   if (!res.ok) {
     const txt = await res.text();
