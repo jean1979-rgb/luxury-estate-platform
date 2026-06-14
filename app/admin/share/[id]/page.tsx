@@ -42,7 +42,18 @@ export default async function AdminSharePropertyPage({ params }: PageProps) {
           </p>
         </div>
 
-        <div className="mt-8">
+        <div className="mt-8 flex flex-wrap gap-3">
+          <a
+            href={`/api/admin/properties/${property.id}/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#d6c3a1]/50 px-5 py-3 text-xs uppercase tracking-[0.22em] text-[#d6c3a1] transition hover:bg-[#d6c3a1] hover:text-black"
+          >
+            Descargar PDF
+          </a>
+        </div>
+
+        <div className="mt-6">
           <SharePropertyForm
             propertyId={property.id}
             propertyTitle={property.title}
