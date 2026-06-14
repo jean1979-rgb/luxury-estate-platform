@@ -411,19 +411,27 @@ const { handleUpload } = useAdminUploads({
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="mb-4">
-              <AdminTokkoPanel
-                items={tokkoItems}
-                hiddenIds={hiddenIds}
-                onToggleVisibility={toggleVisibility}
-                onImport={importFromTokko}
-              />
-            </div>
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
+            <AdminTokkoPanel
+              items={tokkoItems}
+              hiddenIds={hiddenIds}
+              onToggleVisibility={toggleVisibility}
+              onImport={importFromTokko}
+            />
 
-            <div className="mb-3 text-[11px] uppercase tracking-[0.3em] text-white/35">
-              Inventario local
-            </div>
+            <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/[0.025]">
+              <div className="border-b border-white/10 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-[11px] uppercase tracking-[0.3em] text-white/40">
+                    Inventario local
+                  </div>
+                  <div className="rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-xs text-white/70">
+                    {items.length}
+                  </div>
+                </div>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-y-auto p-4">
 
             {loading ? (
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/60">
@@ -512,6 +520,8 @@ const { handleUpload } = useAdminUploads({
                 })}
               </div>
             )}
+              </div>
+            </section>
           </div>
 
 </aside>
