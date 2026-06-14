@@ -101,48 +101,54 @@ export default function AdminTokkoPanel({
                 key={item.id}
                 className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]"
               >
-                {image ? (
-                  <div className="h-28 w-full overflow-hidden border-b border-white/10">
-                    <img src={image} alt={title} className="h-full w-full object-cover" />
-                  </div>
-                ) : null}
-
-                <div className="p-3">
-                  <div className="line-clamp-2 text-sm font-semibold leading-5 text-white">
-                    {title}
-                  </div>
-
-                  <div className="mt-1 text-sm font-medium text-white/80">
-                    {money(price, currency)}
-                  </div>
-
-                  {location ? (
-                    <div className="mt-1 line-clamp-2 text-xs leading-4 text-white/45">
-                      {location}
+                <div className="flex gap-3 p-3">
+                  {image ? (
+                    <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-white/10">
+                      <img src={image} alt={title} className="h-full w-full object-cover" />
                     </div>
-                  ) : null}
+                  ) : (
+                    <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-[10px] uppercase tracking-[0.2em] text-white/30">
+                      Sin foto
+                    </div>
+                  )}
 
-                  <div className="mt-3 grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => onToggleVisibility(item.id)}
-                      className={[
-                        "rounded-xl px-3 py-2 text-xs font-semibold uppercase transition",
-                        hidden
-                          ? "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25"
-                          : "bg-red-500/15 text-red-300 hover:bg-red-500/25",
-                      ].join(" ")}
-                    >
-                      {hidden ? "Mostrar" : "Ocultar"}
-                    </button>
+                  <div className="min-w-0 flex-1">
+                    <div className="line-clamp-2 text-sm font-semibold leading-5 text-white">
+                      {title}
+                    </div>
 
-                    <button
-                      type="button"
-                      onClick={() => onImport(item)}
-                      className="rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold uppercase text-white transition hover:bg-white/20"
-                    >
-                      Importar
-                    </button>
+                    <div className="mt-1 text-sm font-medium text-white/80">
+                      {money(price, currency)}
+                    </div>
+
+                    {location ? (
+                      <div className="mt-1 line-clamp-1 text-xs leading-4 text-white/45">
+                        {location}
+                      </div>
+                    ) : null}
+
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onToggleVisibility(item.id)}
+                        className={[
+                          "rounded-xl px-2 py-2 text-[11px] font-semibold uppercase transition",
+                          hidden
+                            ? "bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25"
+                            : "bg-red-500/15 text-red-300 hover:bg-red-500/25",
+                        ].join(" ")}
+                      >
+                        {hidden ? "Mostrar" : "Ocultar"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => onImport(item)}
+                        className="rounded-xl bg-white/10 px-2 py-2 text-[11px] font-semibold uppercase text-white transition hover:bg-white/20"
+                      >
+                        Importar
+                      </button>
+                    </div>
                   </div>
                 </div>
               </article>
