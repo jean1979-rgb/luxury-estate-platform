@@ -367,7 +367,7 @@ const { handleUpload } = useAdminUploads({
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       <div className={isLightStudio ? "mx-auto flex min-h-screen w-full max-w-[1600px]" : "mx-auto flex min-h-screen w-full max-w-[1600px] gap-6 px-6 py-6"}>
         {!isLightStudio && (
-        <aside className="sticky top-6 flex h-[calc(100vh-3rem)] w-[520px] min-w-[520px] shrink-0 flex-col overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl">
+        <aside className="sticky top-6 flex h-[calc(100vh-3rem)] w-[420px] shrink-0 flex-col overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-xl">
           <div className="border-b border-white/10 px-6 py-6">
             <div className="mb-2 text-[11px] uppercase tracking-[0.35em] text-white/45">
               Private Admin
