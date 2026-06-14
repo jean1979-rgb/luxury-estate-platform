@@ -175,6 +175,7 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
     setMessage,
     setSaving,
     setHiddenIds,
+    setTokkoItems,
   });
 
 const { handleSave } = useAdminSave({

@@ -12,6 +12,7 @@ type Params = {
   setMessage: (msg: string) => void;
   setSaving: (v: boolean) => void;
   setHiddenIds: (ids: string[]) => void;
+  setTokkoItems: (items: any[]) => void;
 };
 
 export function useAdminMutations({
@@ -25,6 +26,7 @@ export function useAdminMutations({
   setMessage,
   setSaving,
   setHiddenIds,
+  setTokkoItems,
 }: Params) {
 
   async function handleDelete() {
@@ -88,7 +90,8 @@ export function useAdminMutations({
       return;
     }
 
-    alert("Tokko actualizado");
+    setTokkoItems(data.items || []);
+    alert(`Tokko actualizado: ${data.items?.length || 0} propiedades en feed`);
 
     const refreshed = await fetch("/api/broker/properties", { cache: "no-store" });
     const json = await refreshed.json();
