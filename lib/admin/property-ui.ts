@@ -21,13 +21,7 @@ export function applyPropertyResult(params: {
     });
   });
 
-  
-console.log("SAVE RESULT", {
-  savedId: saved?.id,
-  savedTitle: saved?.title,
-});
-  
-if (saved?.id) {
+  if (saved?.id) {
 
     setSelectedId(saved.id);
 

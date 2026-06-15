@@ -203,13 +203,6 @@ const { handleUpload } = useAdminUploads({
 
   const selectedRecord = useMemo(() => {
     const found = items.find((item: any) => item.id === selectedId);
-
-    console.log("SELECTED", {
-      selectedId,
-      foundId: found?.id,
-      foundTitle: found?.title,
-    });
-
     return found || null;
   }, [items, selectedId]);
 
