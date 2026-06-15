@@ -45,10 +45,18 @@ export function useAdminSave({
       });
 
 
+      const selectedId = getSelectedId();
+      const propertyIdForSave =
+        forcedPropertyId ||
+        (selectedId && selectedId !== "new" ? selectedId : payload.id);
+
       const result = await saveProperty({
-        payload,
-        forcedPropertyId,
-        createNew: !forcedPropertyId && getSelectedId() === "new",
+        payload: {
+          ...payload,
+          id: propertyIdForSave,
+        },
+        forcedPropertyId: propertyIdForSave,
+        createNew: !forcedPropertyId && selectedId === "new",
       });
 
 
