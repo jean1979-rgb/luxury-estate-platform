@@ -222,10 +222,6 @@ const { handleUpload } = useAdminUploads({
   function handleNew() {
     const draftId = createDraftPropertyId();
 
-    if (typeof window !== "undefined") {
-      window.history.replaceState(null, "", "/admin");
-    }
-
     setSelectedId("new");
     setMessage("");
     setForm({
@@ -237,10 +233,6 @@ const { handleUpload } = useAdminUploads({
   }
 
   function handleSelect(item: AdminPropertyRecord) {
-    if (typeof window !== "undefined") {
-      window.history.replaceState(null, "", `/admin?propertyId=${encodeURIComponent(item.id)}`);
-    }
-
     setSelectedId(item.id);
     setMessage("");
     setForm({

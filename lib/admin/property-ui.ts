@@ -21,8 +21,10 @@ export function applyPropertyResult(params: {
     });
   });
 
-  if (saved?.id) {
+  const currentSelectedId = typeof getSelectedId === "function" ? getSelectedId() : saved.id;
+  const shouldHydrateEditor = currentSelectedId === saved.id;
 
+  if (shouldHydrateEditor && saved?.id) {
     setSelectedId(saved.id);
 
     setForm({
