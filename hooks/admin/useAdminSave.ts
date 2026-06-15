@@ -45,16 +45,10 @@ export function useAdminSave({
       });
 
 
-      const selectedId = getSelectedId();
-      const createNew =
-        !forcedPropertyId &&
-        selectedId === "new" &&
-        !String(form.id || "").trim().startsWith("c");
-
       const result = await saveProperty({
         payload,
         forcedPropertyId,
-        createNew,
+        createNew: !forcedPropertyId && getSelectedId() === "new",
       });
 
 
