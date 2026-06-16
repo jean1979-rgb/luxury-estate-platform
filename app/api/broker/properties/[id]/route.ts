@@ -80,6 +80,7 @@ export async function PATCH(req: Request, context: RouteContext) {
       currency: hydrated.currency || "MXN",
       bedrooms: hydrated.bedrooms ?? 0,
       bathrooms: hydrated.bathrooms ?? 0,
+      halfBathrooms: hydrated.halfBathrooms ?? 0,
       areaInterior: hydrated.areaInterior != null ? String(hydrated.areaInterior) : "",
       areaTotal: hydrated.areaTotal != null ? String(hydrated.areaTotal) : "",
       tagline: hydrated.tagline || "",

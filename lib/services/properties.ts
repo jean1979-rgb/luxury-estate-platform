@@ -102,6 +102,7 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
 
   const bedrooms = asOptionalInt(body.bedrooms);
   const bathrooms = asOptionalInt(body.bathrooms);
+  const halfBathrooms = asOptionalInt(body.halfBathrooms);
   const areaInterior = asOptionalFloat(body.areaInterior);
   const areaTotal = asOptionalFloat(body.areaTotal);
 
@@ -153,6 +154,7 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
       currency,
       bedrooms,
       bathrooms,
+      halfBathrooms,
       areaInterior,
       areaTotal,
       coverImage: coverImage || null,

@@ -63,6 +63,7 @@ export function useAdminBootstrap({
           currency: first.currency,
           bedrooms: first.bedrooms,
           bathrooms: first.bathrooms,
+          halfBathrooms: first.halfBathrooms ?? 0,
           areaInterior: first.areaInterior,
           areaTotal: first.areaTotal,
           tagline: first.tagline,

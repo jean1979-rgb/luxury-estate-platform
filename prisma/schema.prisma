@@ -74,6 +74,7 @@ model BrokerProperty {
   currency          String?            @default("MXN")
   bedrooms          Int?
   bathrooms         Int?
+  halfBathrooms     Int?
   areaInterior      Float?
   areaTotal         Float?
   coverImage        String?

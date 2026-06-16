@@ -60,6 +60,7 @@ function normalizeAdminForm(value: Partial<AdminPropertyInput> | null | undefine
     currency: raw.currency ?? "MXN",
     bedrooms: typeof raw.bedrooms === "number" ? raw.bedrooms : 0,
     bathrooms: typeof raw.bathrooms === "number" ? raw.bathrooms : 0,
+    halfBathrooms: typeof raw.halfBathrooms === "number" ? raw.halfBathrooms : 0,
     areaInterior: raw.areaInterior ?? "",
     areaTotal: raw.areaTotal ?? "",
     tagline: raw.tagline ?? "",
@@ -248,6 +249,7 @@ const { handleUpload } = useAdminUploads({
       currency: item.currency,
       bedrooms: item.bedrooms,
       bathrooms: item.bathrooms,
+      halfBathrooms: item.halfBathrooms ?? 0,
       areaInterior: item.areaInterior,
       areaTotal: item.areaTotal,
       tagline: item.tagline,
@@ -635,10 +637,10 @@ const { handleUpload } = useAdminUploads({
                       >
                         <option value="villa">Villa</option>
                         <option value="penthouse">Penthouse</option>
-                        <option value="residence">Residence</option>
-                        <option value="estate">Estate</option>
-                        <option value="condo">Condo</option>
-                        <option value="land">Land</option>
+                        <option value="residence">Residencia</option>
+                        <option value="estate">Casa</option>
+                        <option value="condo">Departamento</option>
+                        <option value="land">Terreno</option>
                       </select>
                     </label>
 
@@ -739,6 +741,16 @@ const { handleUpload } = useAdminUploads({
                         type="number"
                         value={form.bathrooms}
                         onChange={(e) => handleChange("bathrooms", Number(e.target.value))}
+                        className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-sm text-white/65">Medios baños</span>
+                      <input
+                        type="number"
+                        value={form.halfBathrooms}
+                        onChange={(e) => handleChange("halfBathrooms", Number(e.target.value))}
                         className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none transition focus:border-white/25"
                       />
                     </label>

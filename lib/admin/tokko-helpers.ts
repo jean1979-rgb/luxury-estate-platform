@@ -42,6 +42,7 @@ export function mapTokkoToAdminProperty(item: TokkoAdminItem): AdminPropertyInpu
     currency: item.base?.currency || "MXN",
     bedrooms: 0,
     bathrooms: 0,
+    halfBathrooms: 0,
     areaInterior: "",
     areaTotal: "",
     tagline: item.editorial?.tagline || item.editorial?.descriptionLuxury || "",

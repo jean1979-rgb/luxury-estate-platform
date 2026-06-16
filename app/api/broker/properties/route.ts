@@ -47,6 +47,7 @@ export async function GET() {
     currency: item.currency || "MXN",
     bedrooms: item.bedrooms ?? 0,
     bathrooms: item.bathrooms ?? 0,
+    halfBathrooms: item.halfBathrooms ?? 0,
     areaInterior: item.areaInterior != null ? String(item.areaInterior) : "",
     areaTotal: item.areaTotal != null ? String(item.areaTotal) : "",
     tagline: item.tagline || "",
@@ -198,6 +199,10 @@ export async function POST(req: Request) {
             typeof body.bathrooms === "number"
               ? body.bathrooms
               : Number.parseInt(String(body.bathrooms || ""), 10) || 0,
+          halfBathrooms:
+            typeof body.halfBathrooms === "number"
+              ? body.halfBathrooms
+              : Number.parseInt(String(body.halfBathrooms || ""), 10) || 0,
           areaInterior:
             body.areaInterior === "" || body.areaInterior === undefined || body.areaInterior === null
               ? null
@@ -247,6 +252,7 @@ export async function POST(req: Request) {
       currency: updated.currency || "MXN",
       bedrooms: updated.bedrooms ?? 0,
       bathrooms: updated.bathrooms ?? 0,
+      halfBathrooms: updated.halfBathrooms ?? 0,
       areaInterior: updated.areaInterior != null ? String(updated.areaInterior) : "",
       areaTotal: updated.areaTotal != null ? String(updated.areaTotal) : "",
       tagline: updated.tagline || "",

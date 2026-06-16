@@ -40,6 +40,7 @@ export function applyPropertyResult(params: {
       currency: saved.currency,
       bedrooms: saved.bedrooms,
       bathrooms: saved.bathrooms,
+      halfBathrooms: saved.halfBathrooms ?? 0,
       areaInterior: saved.areaInterior,
       areaTotal: saved.areaTotal,
       tagline: saved.tagline,

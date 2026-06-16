@@ -70,6 +70,7 @@ export type AdminPropertyRecord = {
   currency: string;
   bedrooms: number;
   bathrooms: number;
+  halfBathrooms: number;
   areaInterior: string;
   areaTotal: string;
   tagline: string;
@@ -103,6 +104,7 @@ export const EMPTY_ADMIN_PROPERTY: AdminPropertyInput = {
   currency: "MXN",
   bedrooms: 0,
   bathrooms: 0,
+  halfBathrooms: 0,
   areaInterior: "",
   areaTotal: "",
   tagline: "",
