@@ -74,9 +74,9 @@ export default function LuxuryScore({
       </div>
 
       {open ? (
-        <div className="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm" onClick={() => setOpen(false)}>
+        <div className="fixed inset-0 z-[9999] bg-black/90" onClick={() => setOpen(false)}>
           <aside
-            className="ml-auto flex h-full w-full max-w-[720px] flex-col overflow-y-auto border-l border-white/10 bg-[#090909] shadow-2xl"
+            className="ml-auto flex h-full w-full max-w-[720px] flex-col overflow-y-auto border-l border-white/10 bg-[#090909] shadow-2xl relative z-[10000]"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
