@@ -72,6 +72,23 @@ function formatPropertyArea(value: unknown) {
   return `${raw} m²`;
 }
 
+function formatPublicLocation(value: unknown) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "Ubicación premium";
+
+  const parts = raw
+    .split("|")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  const last = parts[parts.length - 1] || raw;
+
+  return last
+    .replace(/^Fraccionamiento\s+/i, "")
+    .replace(/^Condominio\s+/i, "")
+    .trim();
+}
+
 
 
 async function getPrismaScenes(propertyId: string) {
@@ -167,7 +184,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
     redirect(`/properties/${property.slug}`);
   }
 
-  const safeLocation = property.location ?? "Ubicación premium";
+  const safeLocation = formatPublicLocation(property.location);
   const safePrice = formatPropertyPrice(property.price);
   const safeBedrooms = property.bedrooms ?? 0;
   const safeBathrooms = property.bathrooms ?? 0;
@@ -357,14 +374,13 @@ export default async function PropertyDetailPage({ params }: PageProps) {
 
         <aside className="min-w-0 h-fit space-y-5 md:sticky md:top-24 md:space-y-8">
           <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6">
-            <div className="rounded-[24px] border border-white/10 bg-[#121212] p-6">
-              <p className="text-[10px] uppercase tracking-[0.35em] text-white/45">
-                Luxury Score
-              </p>
-              <div className="mt-3 text-4xl font-light text-white">
-                {property.luxuryScore ?? 0}
-              </div>
-            </div>
+            <LuxuryScore
+              value={property.luxuryScore ?? 0}
+              title={property.title}
+              coverImage={safeCoverImage}
+              location={safeLocation}
+              area={areaLabel}
+            />
           </div>
 
           <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-6">
