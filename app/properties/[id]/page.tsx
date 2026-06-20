@@ -83,10 +83,7 @@ function formatPublicLocation(value: unknown) {
 
   const last = parts[parts.length - 1] || raw;
 
-  return last
-    .replace(/^Fraccionamiento\s+/i, "")
-    .replace(/^Condominio\s+/i, "")
-    .trim();
+  return last.trim();
 }
 
 
