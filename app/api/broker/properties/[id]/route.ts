@@ -121,6 +121,7 @@ export async function PATCH(req: Request, context: RouteContext) {
       featured: hydrated.featured,
       published: hydrated.published,
       luxuryScore: hydrated.luxuryScore ?? 85,
+      pemFactors: hydrated.pemFactors || {},
       description: hydrated.description || "",
       createdAt: hydrated.createdAt.toISOString(),
       updatedAt: hydrated.updatedAt.toISOString(),

@@ -224,6 +224,10 @@ export async function POST(req: Request) {
             typeof body.luxuryScore === "number"
               ? body.luxuryScore
               : Number.parseInt(String(body.luxuryScore || ""), 10) || 85,
+          pemFactors:
+            body.pemFactors && typeof body.pemFactors === "object" && !Array.isArray(body.pemFactors)
+              ? body.pemFactors
+              : {},
           sourceProvider:
             String(body.source?.provider || "").toLowerCase() === "tokko" || String(id).startsWith("admin-")
               ? "TOKKO"
@@ -278,6 +282,7 @@ export async function POST(req: Request) {
       featured: updated.featured,
       published: updated.published,
       luxuryScore: updated.luxuryScore ?? 85,
+      pemFactors: updated.pemFactors || {},
       description: updated.description || "",
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
