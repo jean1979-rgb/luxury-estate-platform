@@ -328,6 +328,79 @@ export async function GET(_req: Request, { params }: PageProps) {
         ? "Seleccionada por Private Estates Mexico por su equilibrio entre ubicación, diseño, amenidades y valor residencial."
         : "Seleccionada por Private Estates Mexico como parte de una curaduría editorial de residencias con alto valor residencial.";
 
+  const pemFactorLabels: Record<string, string> = {
+    partial: "Vista parcial",
+    open: "Vista abierta",
+    panoramic: "Vista panorámica",
+    iconic: "Vista icónica",
+    medium: "Privacidad media",
+    high: "Privacidad alta",
+    very_high: "Privacidad muy alta",
+    estate: "Privacidad estate-level",
+    none: "Sin relación directa con el mar",
+    near_ocean: "Cercano al mar",
+    ocean_view: "Vista al mar",
+    oceanfront: "Frente al mar",
+    beach_access: "Acceso directo a playa",
+    selection: "Selección PEM",
+    signature: "Residencia Signature",
+    resort: "Lifestyle resort",
+    family: "Family retreat",
+    wellness: "Wellness",
+    entertainment: "Entretenimiento",
+    investment: "Inversión patrimonial",
+    second_home: "Segunda residencia",
+    primary_home: "Residencia permanente",
+    beach_club: "Club de playa",
+    spa: "Spa",
+    gym: "Gimnasio",
+    padel: "Pádel",
+    tennis: "Tenis",
+    marina: "Marina",
+    private_pool: "Alberca privada",
+    roof_garden: "Roof garden",
+    dock: "Muelle",
+    helipad: "Helipuerto",
+    contemporary: "Arquitectura contemporánea",
+    author_design: "Arquitectura de autor",
+    curated_interiors: "Diseño interior curado",
+    double_height: "Doble altura",
+    natural_stone: "Piedra / mármol natural",
+    luxury_millwork: "Carpintería de lujo",
+    floor_to_ceiling: "Ventanales piso-techo",
+    premium_materials: "Materiales premium",
+  };
+
+  function labelPemFactor(value: unknown) {
+    const key = String(value || "").trim();
+    return pemFactorLabels[key] || key;
+  }
+
+  function getPemFactorItems(value: unknown) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+    const factors = value as Record<string, unknown>;
+    const items: string[] = [];
+
+    for (const key of ["viewQuality", "privacy", "oceanRelation", "pemClassification"]) {
+      if (typeof factors[key] === "string" && factors[key]) {
+        items.push(labelPemFactor(factors[key]));
+      }
+    }
+
+    for (const key of ["experience", "amenities", "architecture"]) {
+      const list = factors[key];
+      if (Array.isArray(list)) {
+        for (const item of list) {
+          if (typeof item === "string" && item) items.push(labelPemFactor(item));
+        }
+      }
+    }
+
+    return items.filter(Boolean).slice(0, 12);
+  }
+
+  const pemFactorItems = getPemFactorItems(property.pemFactors);
+
   const page2 = pdfDoc.addPage([595.28, 841.89]);
   page2.drawRectangle({
     x: 0,
@@ -430,6 +503,62 @@ export async function GET(_req: Request, { params }: PageProps) {
     });
 
     scoreFactY -= 28;
+  }
+
+  if (pemFactorItems.length > 0) {
+    scoreFactY -= 18;
+
+    page2.drawLine({
+      start: { x: 44, y: scoreFactY },
+      end: { x: width - 44, y: scoreFactY },
+      thickness: 1,
+      color: line,
+    });
+
+    scoreFactY -= 34;
+
+    page2.drawText("FACTORES DESTACADOS PEM", {
+      x: 44,
+      y: scoreFactY,
+      size: 9,
+      font: boldFont,
+      color: gold,
+    });
+
+    scoreFactY -= 28;
+
+    const leftX = 44;
+    const rightX = 300;
+    let leftY = scoreFactY;
+    let rightY = scoreFactY;
+
+    pemFactorItems.forEach((item, index) => {
+      const isRight = index % 2 === 1;
+      const x = isRight ? rightX : leftX;
+      const y = isRight ? rightY : leftY;
+
+      page2.drawText("•", {
+        x,
+        y,
+        size: 11,
+        font: regularFont,
+        color: gold,
+      });
+
+      page2.drawText(cleanText(item), {
+        x: x + 16,
+        y,
+        size: 10,
+        font: regularFont,
+        color: white,
+      });
+
+      if (isRight) {
+        rightY -= 22;
+      } else {
+        leftY -= 22;
+      }
+    });
   }
 
   page2.drawText("Propiedad seleccionada para la colección editorial de Private Estates Mexico.", {
