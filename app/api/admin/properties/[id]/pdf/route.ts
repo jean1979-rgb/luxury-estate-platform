@@ -155,22 +155,29 @@ function drawLuxuryLaurel(params: {
 }) {
   const { page, centerX, centerY, score, gold, white, regularFont, boldFont } = params;
 
-  const leafW = 6;
-  const leafH = 17;
+  const leafW = 3.7;
+  const leafH = 10.5;
 
-  for (let i = 0; i < 9; i++) {
-    const t = i / 8;
-    const y = centerY - 58 + t * 116;
+  for (let i = 0; i < 11; i++) {
+    const t = i / 10;
+    const y = centerY - 52 + t * 104;
+
+    // Laurel cóncavo: más abierto abajo/arriba, más cercano al score al centro.
     const curve = Math.sin(t * Math.PI);
-    const leftX = centerX - 76 + curve * 23;
-    const rightX = centerX + 76 - curve * 23;
+    const distance = 54 - curve * 16;
+
+    const leftX = centerX - distance;
+    const rightX = centerX + distance;
+
+    const leftAngle = 26 - t * 42;
+    const rightAngle = -26 + t * 42;
 
     page.drawEllipse({
       x: leftX,
       y,
-      xScale: leafW * (0.75 + curve * 0.25),
-      yScale: leafH * (0.75 + curve * 0.15),
-      rotate: { type: "degrees", angle: -34 + t * 42 },
+      xScale: leafW,
+      yScale: leafH,
+      rotate: { type: "degrees", angle: leftAngle },
       color: gold,
       opacity: 0.9,
     });
@@ -178,17 +185,32 @@ function drawLuxuryLaurel(params: {
     page.drawEllipse({
       x: rightX,
       y,
-      xScale: leafW * (0.75 + curve * 0.25),
-      yScale: leafH * (0.75 + curve * 0.15),
-      rotate: { type: "degrees", angle: 34 - t * 42 },
+      xScale: leafW,
+      yScale: leafH,
+      rotate: { type: "degrees", angle: rightAngle },
       color: gold,
       opacity: 0.9,
     });
   }
 
+  // base discreta del laurel
+  page.drawLine({
+    start: { x: centerX - 34, y: centerY - 64 },
+    end: { x: centerX - 6, y: centerY - 58 },
+    thickness: 0.8,
+    color: gold,
+  });
+
+  page.drawLine({
+    start: { x: centerX + 34, y: centerY - 64 },
+    end: { x: centerX + 6, y: centerY - 58 },
+    thickness: 0.8,
+    color: gold,
+  });
+
   page.drawText("LUXURY SCORE", {
     x: centerX - boldFont.widthOfTextAtSize("LUXURY SCORE", 8) / 2,
-    y: centerY + 54,
+    y: centerY + 50,
     size: 8,
     font: boldFont,
     color: gold,
@@ -211,7 +233,6 @@ function drawLuxuryLaurel(params: {
     color: white,
   });
 }
-
 
 export async function GET(_req: Request, { params }: PageProps) {
   const { id } = await params;
