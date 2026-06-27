@@ -143,6 +143,76 @@ function drawImageCover(
   });
 }
 
+function drawLuxuryLaurel(params: {
+  page: any;
+  centerX: number;
+  centerY: number;
+  score: number;
+  gold: any;
+  white: any;
+  regularFont: any;
+  boldFont: any;
+}) {
+  const { page, centerX, centerY, score, gold, white, regularFont, boldFont } = params;
+
+  const leafW = 6;
+  const leafH = 17;
+
+  for (let i = 0; i < 9; i++) {
+    const t = i / 8;
+    const y = centerY - 58 + t * 116;
+    const curve = Math.sin(t * Math.PI);
+    const leftX = centerX - 76 + curve * 23;
+    const rightX = centerX + 76 - curve * 23;
+
+    page.drawEllipse({
+      x: leftX,
+      y,
+      xScale: leafW * (0.75 + curve * 0.25),
+      yScale: leafH * (0.75 + curve * 0.15),
+      rotate: { type: "degrees", angle: -34 + t * 42 },
+      color: gold,
+      opacity: 0.9,
+    });
+
+    page.drawEllipse({
+      x: rightX,
+      y,
+      xScale: leafW * (0.75 + curve * 0.25),
+      yScale: leafH * (0.75 + curve * 0.15),
+      rotate: { type: "degrees", angle: 34 - t * 42 },
+      color: gold,
+      opacity: 0.9,
+    });
+  }
+
+  page.drawText("LUXURY SCORE", {
+    x: centerX - boldFont.widthOfTextAtSize("LUXURY SCORE", 8) / 2,
+    y: centerY + 54,
+    size: 8,
+    font: boldFont,
+    color: gold,
+  });
+
+  const scoreText = String(score);
+  page.drawText(scoreText, {
+    x: centerX - regularFont.widthOfTextAtSize(scoreText, 58) / 2,
+    y: centerY - 12,
+    size: 58,
+    font: regularFont,
+    color: gold,
+  });
+
+  page.drawText("/ 100", {
+    x: centerX - regularFont.widthOfTextAtSize("/ 100", 14) / 2,
+    y: centerY - 36,
+    size: 14,
+    font: regularFont,
+    color: white,
+  });
+}
+
+
 export async function GET(_req: Request, { params }: PageProps) {
   const { id } = await params;
 
@@ -236,11 +306,7 @@ export async function GET(_req: Request, { params }: PageProps) {
       height: drawHeight,
     });
 
-    page.drawRectangle({
-      ...imageBox,
-      borderColor: gold,
-      borderWidth: 0.65,
-    });
+    // Sin marco sobre la imagen hero para evitar cortes visuales.
   } else {
     page.drawRectangle({
       x: 34,
@@ -309,28 +375,15 @@ export async function GET(_req: Request, { params }: PageProps) {
     color: gold,
   });
 
-  page.drawText("LUXURY SCORE", {
-    x: 420,
-    y: 250,
-    size: 8,
-    font: boldFont,
-    color: gold,
-  });
-
-  page.drawText(String(coverScore), {
-    x: 426,
-    y: 188,
-    size: 58,
-    font: regularFont,
-    color: gold,
-  });
-
-  page.drawText("/ 100", {
-    x: 449,
-    y: 166,
-    size: 13,
-    font: regularFont,
-    color: white,
+  drawLuxuryLaurel({
+    page,
+    centerX: 463,
+    centerY: 196,
+    score: coverScore,
+    gold,
+    white,
+    regularFont,
+    boldFont,
   });
 
   const publicUrl = `https://privateestatesmexico.com/properties/${property.slug || property.id}`;
