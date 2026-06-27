@@ -76,6 +76,7 @@ export function useAdminBootstrap({
           featured: first.featured,
           published: first.published,
           luxuryScore: first.luxuryScore,
+          pemFactors: first.pemFactors || {},
           description: first.description,
         });
       }

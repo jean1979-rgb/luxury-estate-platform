@@ -53,6 +53,7 @@ export function applyPropertyResult(params: {
       featured: saved.featured,
       published: saved.published,
       luxuryScore: saved.luxuryScore,
+      pemFactors: saved.pemFactors || {},
       description: saved.description,
     });
   }

@@ -263,6 +263,39 @@ const { handleUpload } = useAdminUploads({
       featured: item.featured,
       published: item.published,
       luxuryScore: item.luxuryScore,
+      pemFactors: item.pemFactors || {},
+    });
+  }
+
+  function setPemFactor(key: string, value: string) {
+    setForm((prev) => {
+      const current = (prev.pemFactors || {}) as Record<string, unknown>;
+
+      return {
+        ...prev,
+        pemFactors: {
+          ...current,
+          [key]: value,
+        },
+      };
+    });
+  }
+
+  function togglePemFactor(group: string, value: string) {
+    setForm((prev) => {
+      const current = (prev.pemFactors || {}) as Record<string, unknown>;
+      const currentList = Array.isArray(current[group]) ? (current[group] as string[]) : [];
+      const nextList = currentList.includes(value)
+        ? currentList.filter((item) => item !== value)
+        : [...currentList, value];
+
+      return {
+        ...prev,
+        pemFactors: {
+          ...current,
+          [group]: nextList,
+        },
+      };
     });
   }
 
@@ -774,6 +807,145 @@ const { handleUpload } = useAdminUploads({
                         placeholder="1200 m²"
                       />
                     </label>
+                  </div>
+                </div>
+
+                <div className="rounded-[28px] border border-white/10 bg-black/20 p-6">
+                  <div className="mb-5 flex items-start justify-between gap-4">
+                    <div>
+                      <div className="text-[11px] uppercase tracking-[0.3em] text-white/35">
+                        Factores destacados PEM
+                      </div>
+                      <p className="mt-2 max-w-2xl text-sm leading-6 text-white/45">
+                        Atributos editoriales que alimentan la evaluación, el PDF y la lectura premium de la propiedad.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="max-h-[520px] overflow-y-auto pr-2">
+                    <div className="grid gap-5 md:grid-cols-3">
+                      <label className="block">
+                        <span className="mb-2 block text-sm text-white/65">Vista</span>
+                        <select
+                          value={form.pemFactors?.viewQuality || ""}
+                          onChange={(e) => setPemFactor("viewQuality", e.target.value)}
+                          className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none"
+                        >
+                          <option value="">Sin definir</option>
+                          <option value="partial">Vista parcial</option>
+                          <option value="open">Vista abierta</option>
+                          <option value="panoramic">Vista panorámica</option>
+                          <option value="iconic">Vista icónica</option>
+                        </select>
+                      </label>
+
+                      <label className="block">
+                        <span className="mb-2 block text-sm text-white/65">Privacidad</span>
+                        <select
+                          value={form.pemFactors?.privacy || ""}
+                          onChange={(e) => setPemFactor("privacy", e.target.value)}
+                          className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none"
+                        >
+                          <option value="">Sin definir</option>
+                          <option value="medium">Media</option>
+                          <option value="high">Alta</option>
+                          <option value="very_high">Muy alta</option>
+                          <option value="estate">Estate-level</option>
+                        </select>
+                      </label>
+
+                      <label className="block">
+                        <span className="mb-2 block text-sm text-white/65">Relación con el mar</span>
+                        <select
+                          value={form.pemFactors?.oceanRelation || ""}
+                          onChange={(e) => setPemFactor("oceanRelation", e.target.value)}
+                          className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none"
+                        >
+                          <option value="">Sin definir</option>
+                          <option value="none">Sin relación directa</option>
+                          <option value="near_ocean">Cercano al mar</option>
+                          <option value="ocean_view">Vista al mar</option>
+                          <option value="oceanfront">Frente al mar</option>
+                          <option value="beach_access">Acceso directo a playa</option>
+                        </select>
+                      </label>
+
+                      <label className="block">
+                        <span className="mb-2 block text-sm text-white/65">Clasificación PEM</span>
+                        <select
+                          value={form.pemFactors?.pemClassification || ""}
+                          onChange={(e) => setPemFactor("pemClassification", e.target.value)}
+                          className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none"
+                        >
+                          <option value="">Sin definir</option>
+                          <option value="selection">Selección PEM</option>
+                          <option value="signature">Signature</option>
+                          <option value="iconic">Iconic</option>
+                        </select>
+                      </label>
+                    </div>
+
+                    <div className="mt-6 grid gap-5 md:grid-cols-3">
+                      {[
+                        ["experience", "Experiencia", [
+                          ["resort", "Lifestyle resort"],
+                          ["family", "Family retreat"],
+                          ["wellness", "Wellness"],
+                          ["entertainment", "Entretenimiento"],
+                          ["investment", "Inversión patrimonial"],
+                          ["second_home", "Segunda residencia"],
+                          ["primary_home", "Residencia permanente"],
+                        ]],
+                        ["amenities", "Amenidades premium", [
+                          ["beach_club", "Club de playa"],
+                          ["spa", "Spa"],
+                          ["gym", "Gimnasio"],
+                          ["padel", "Pádel"],
+                          ["tennis", "Tenis"],
+                          ["marina", "Marina"],
+                          ["private_pool", "Alberca privada"],
+                          ["roof_garden", "Roof garden"],
+                          ["dock", "Muelle"],
+                          ["helipad", "Helipuerto"],
+                        ]],
+                        ["architecture", "Arquitectura", [
+                          ["contemporary", "Arquitectura contemporánea"],
+                          ["author_design", "Arquitectura de autor"],
+                          ["curated_interiors", "Diseño interior curado"],
+                          ["double_height", "Doble altura"],
+                          ["natural_stone", "Piedra / mármol natural"],
+                          ["luxury_millwork", "Carpintería de lujo"],
+                          ["floor_to_ceiling", "Ventanales piso-techo"],
+                          ["premium_materials", "Materiales premium"],
+                        ]],
+                      ].map(([group, label, options]: any) => (
+                        <div key={group} className="rounded-[22px] border border-white/10 bg-white/[0.025] p-4">
+                          <div className="mb-4 text-[11px] uppercase tracking-[0.22em] text-[#d6b464]">
+                            {label}
+                          </div>
+
+                          <div className="space-y-3">
+                            {options.map(([value, text]: any) => {
+                              const selected = Array.isArray((form.pemFactors as any)?.[group])
+                                ? ((form.pemFactors as any)[group] as string[]).includes(value)
+                                : false;
+
+                              return (
+                                <label key={value} className="flex cursor-pointer items-center gap-3 text-sm text-white/70">
+                                  <input
+                                    type="checkbox"
+                                    checked={selected}
+                                    onChange={() => togglePemFactor(group, value)}
+                                    className="h-4 w-4 accent-[#d6b464]"
+                                  />
+                                  <span>{text}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 

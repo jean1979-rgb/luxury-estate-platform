@@ -52,6 +52,16 @@ export type AdminScene360 = {
   hotspots: AdminHotspot[];
 };
 
+export type AdminPemFactors = {
+  viewQuality?: "partial" | "open" | "panoramic" | "iconic";
+  privacy?: "medium" | "high" | "very_high" | "estate";
+  oceanRelation?: "none" | "near_ocean" | "ocean_view" | "oceanfront" | "beach_access";
+  experience?: string[];
+  amenities?: string[];
+  architecture?: string[];
+  pemClassification?: "selection" | "signature" | "iconic";
+};
+
 export type AdminPropertySource = {
   provider: "manual" | "tokko" | "csv" | "xml";
   externalId?: string;
@@ -84,6 +94,7 @@ export type AdminPropertyRecord = {
   featured: boolean;
   published: boolean;
   luxuryScore: number;
+  pemFactors: AdminPemFactors;
   description: string;
   createdAt: string;
   updatedAt: string;
@@ -118,5 +129,6 @@ export const EMPTY_ADMIN_PROPERTY: AdminPropertyInput = {
   featured: false,
   published: false,
   luxuryScore: 85,
+  pemFactors: {},
   description: "",
 };

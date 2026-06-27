@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slugify";
 
@@ -26,6 +27,11 @@ function asOptionalFloat(value: unknown): number | null {
   if (value === "" || value === undefined || value === null) return null;
   const parsed = Number.parseFloat(String(value));
   return Number.isNaN(parsed) ? null : parsed;
+}
+
+function asJsonObject(value: unknown): Prisma.InputJsonObject | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value as Prisma.InputJsonObject;
 }
 
 async function getBrokerContext(userId: string) {
@@ -109,6 +115,8 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
   const featured = asBoolean(body.featured);
   const published = asBoolean(body.published);
   const luxuryScore = asOptionalInt(body.luxuryScore) ?? existing.luxuryScore ?? 85;
+  const pemFactors: Prisma.InputJsonObject =
+    asJsonObject(body.pemFactors) ?? asJsonObject(existing.pemFactors) ?? {};
   const status = published ? "published" : "draft";
   const publicationStatus = published ? "PUBLISHED" : "DRAFT";
 
@@ -168,6 +176,7 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
       featured,
       published,
       luxuryScore,
+      pemFactors,
     },
     include: { sceneItems: true },
   });

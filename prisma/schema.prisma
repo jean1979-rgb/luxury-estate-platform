@@ -84,6 +84,7 @@ model BrokerProperty {
   videoType         String?
   tagline           String?
   description       String?
+  pemFactors        Json?
   luxuryScore       Int?
   featured          Boolean            @default(false)
   published         Boolean            @default(false)
