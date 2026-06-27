@@ -179,18 +179,52 @@ export async function GET(_req: Request, { params }: PageProps) {
     color: black,
   });
 
-  page.drawText("PRIVATE ESTATES MEXICO", {
-    x: 165,
-    y: height - 48,
-    size: 9,
-    font: boldFont,
+  function drawCoverCentered(text: string, yPos: number, size: number, font: any, color: any) {
+    const textWidth = font.widthOfTextAtSize(text, size);
+    page.drawText(text, {
+      x: (width - textWidth) / 2,
+      y: yPos,
+      size,
+      font,
+      color,
+    });
+  }
+
+  const coverScore = property.luxuryScore ?? 0;
+  const coverLabel =
+    coverScore >= 95
+      ? "ICONIC RESIDENCE"
+      : coverScore >= 90
+        ? "SIGNATURE RESIDENCE"
+        : coverScore >= 85
+          ? "EXCEPTIONAL RESIDENCE"
+          : "PRIVATE ESTATES SELECTION";
+
+  // Editorial brand header
+  drawCoverCentered("PE", height - 78, 34, regularFont, gold);
+  drawCoverCentered("PRIVATE  ESTATES", height - 114, 18, regularFont, white);
+  drawCoverCentered("M E X I C O", height - 140, 10, regularFont, gold);
+
+  page.drawLine({
+    start: { x: 205, y: height - 128 },
+    end: { x: 255, y: height - 128 },
+    thickness: 0.7,
     color: gold,
   });
+
+  page.drawLine({
+    start: { x: 340, y: height - 128 },
+    end: { x: 390, y: height - 128 },
+    thickness: 0.7,
+    color: gold,
+  });
+
+  drawCoverCentered("E D I T O R I A L   C O L L E C T I O N", height - 166, 7.5, boldFont, gold);
 
   const image = await embedImage(pdfDoc, property.coverImage);
 
   if (image) {
-    const imageBox = { x: 44, y: height - 394, width: width - 88, height: 305 };
+    const imageBox = { x: 34, y: height - 515, width: width - 68, height: 320 };
     const scale = Math.max(imageBox.width / image.width, imageBox.height / image.height);
     const drawWidth = image.width * scale;
     const drawHeight = image.height * scale;
@@ -204,117 +238,144 @@ export async function GET(_req: Request, { params }: PageProps) {
 
     page.drawRectangle({
       ...imageBox,
-      borderColor: line,
-      borderWidth: 1,
+      borderColor: gold,
+      borderWidth: 0.65,
     });
   } else {
     page.drawRectangle({
-      x: 44,
-      y: height - 394,
-      width: width - 88,
-      height: 305,
+      x: 34,
+      y: height - 515,
+      width: width - 68,
+      height: 320,
       color: rgb(0.08, 0.08, 0.08),
-      borderColor: line,
-      borderWidth: 1,
+      borderColor: gold,
+      borderWidth: 0.65,
     });
 
     page.drawText("Imagen no disponible", {
       x: 232,
-      y: height - 250,
+      y: height - 360,
       size: 12,
       font: regularFont,
       color: muted,
     });
   }
 
-  const titleLines = wrapText(property.title, 34).slice(0, 3);
-  let y = height - 430;
+  // Dark editorial panel
+  page.drawRectangle({
+    x: 34,
+    y: 76,
+    width: width - 68,
+    height: 245,
+    color: rgb(0.035, 0.035, 0.035),
+    borderColor: line,
+    borderWidth: 0.8,
+  });
+
+  page.drawText(coverLabel, {
+    x: 58,
+    y: 290,
+    size: 8,
+    font: boldFont,
+    color: gold,
+  });
+
+  page.drawLine({
+    start: { x: 58, y: 276 },
+    end: { x: 245, y: 276 },
+    thickness: 0.7,
+    color: gold,
+  });
+
+  const titleLines = wrapText(property.title, 30).slice(0, 3);
+  let titleY = 240;
 
   for (const titleLine of titleLines) {
     page.drawText(titleLine, {
-      x: 44,
-      y,
-      size: 25,
+      x: 58,
+      y: titleY,
+      size: 24,
       font: regularFont,
       color: white,
     });
-    y -= 30;
+    titleY -= 30;
   }
 
-  if (property.tagline) {
-    y -= 8;
-    for (const taglineLine of wrapText(property.tagline, 72).slice(0, 3)) {
-      page.drawText(taglineLine, {
-        x: 44,
-        y,
-        size: 12,
-        font: regularFont,
-        color: muted,
-      });
-      y -= 18;
-    }
-  }
-
-  y -= 18;
+  // Luxury score seal
   page.drawLine({
-    start: { x: 44, y },
-    end: { x: width - 44, y },
-    thickness: 1,
-    color: line,
+    start: { x: 375, y: 288 },
+    end: { x: 375, y: 110 },
+    thickness: 0.7,
+    color: gold,
   });
 
-  y -= 30;
+  page.drawText("LUXURY SCORE", {
+    x: 420,
+    y: 250,
+    size: 8,
+    font: boldFont,
+    color: gold,
+  });
 
-  const facts = [
-    ["Precio", formatPrice(property.price, property.currency)],
-    ["Ubicación", property.location || property.city || "Ubicación premium"],
-    ["Recámaras", formatCount(property.bedrooms)],
-    ["Baños", formatCount(property.bathrooms)],
-    ["Superficie", formatArea(property.areaTotal ?? property.areaInterior)],
-  ];
+  page.drawText(String(coverScore), {
+    x: 426,
+    y: 188,
+    size: 58,
+    font: regularFont,
+    color: gold,
+  });
 
-  for (const [label, value] of facts) {
-    if (!cleanText(value)) continue;
-    page.drawText(String(label).toUpperCase(), {
-      x: 44,
-      y,
-      size: 8,
+  page.drawText("/ 100", {
+    x: 449,
+    y: 166,
+    size: 13,
+    font: regularFont,
+    color: white,
+  });
+
+  const publicUrl = `https://privateestatesmexico.com/properties/${property.slug || property.id}`;
+
+  const coverFacts = [
+    ["PRECIO", formatPrice(property.price, property.currency)],
+    ["UBICACIÓN", property.location || property.city || "Ubicación premium"],
+    ["RECÁMARAS", formatCount(property.bedrooms)],
+    ["BAÑOS", formatCount(property.bathrooms)],
+    ["SUPERFICIE", formatArea(property.areaTotal ?? property.areaInterior)],
+  ].filter(([, value]) => cleanText(value));
+
+  let factY = 150;
+  for (const [label, value] of coverFacts.slice(0, 5)) {
+    page.drawText(label, {
+      x: 58,
+      y: factY,
+      size: 7.5,
       font: boldFont,
       color: gold,
     });
 
     page.drawText(cleanText(value), {
-      x: 170,
-      y,
-      size: 11,
+      x: 150,
+      y: factY,
+      size: 9.5,
       font: regularFont,
       color: white,
     });
 
-    y -= 27;
+    factY -= 22;
   }
 
-  const publicUrl = `https://privateestatesmexico.com/properties/${property.slug || property.id}`;
-
-  page.drawLine({
-    start: { x: 44, y: 82 },
-    end: { x: width - 44, y: 82 },
-    thickness: 1,
-    color: line,
+  page.drawText("PRIVATE ESTATES MEXICO", {
+    x: 58,
+    y: 44,
+    size: 7,
+    font: regularFont,
+    color: rgb(0.45, 0.45, 0.45),
   });
 
   page.drawText(publicUrl, {
-    x: 44,
-    y: 55,
-    size: 9,
-    font: regularFont,
-    color: muted,
-  });
-
-  page.drawText("Ficha generada por Private Estates Mexico", {
-    x: 44,
-    y: 35,
-    size: 8,
+    x: 230,
+    y: 44,
+    size: 7,
     font: regularFont,
     color: rgb(0.45, 0.45, 0.45),
   });
