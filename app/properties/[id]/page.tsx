@@ -40,6 +40,7 @@ type AdminProperty = {
   tagline?: string;
   description?: string;
   luxuryScore?: number;
+  pemFactors?: unknown;
   area?: string;
   areaInterior?: string;
   areaTotal?: string;
@@ -377,6 +378,7 @@ export default async function PropertyDetailPage({ params }: PageProps) {
               coverImage={safeCoverImage}
               location={safeLocation}
               area={areaLabel}
+              pemFactors={property.pemFactors}
             />
           </div>
 

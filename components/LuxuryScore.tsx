@@ -1,9 +1,20 @@
+type PemFactors = {
+  viewQuality?: string;
+  privacy?: string;
+  oceanRelation?: string;
+  experience?: string[];
+  amenities?: string[];
+  architecture?: string[];
+  pemClassification?: string;
+};
+
 type Props = {
   value: number;
   title?: string;
   coverImage?: string;
   location?: string;
   area?: string;
+  pemFactors?: unknown;
 };
 
 function getCategory(value: number) {
@@ -112,27 +123,105 @@ function dots(value: number) {
   return "●".repeat(value) + "○".repeat(5 - value);
 }
 
+function asPemFactors(value: unknown): PemFactors {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return value as PemFactors;
+}
+
+const factorLabels: Record<string, string> = {
+  partial: "Vista parcial",
+  open: "Vista abierta",
+  panoramic: "Vista panorámica",
+  iconic: "Vista icónica",
+  medium: "Privacidad media",
+  high: "Privacidad alta",
+  very_high: "Privacidad muy alta",
+  estate: "Privacidad estate-level",
+  none: "Sin relación directa con el mar",
+  near_ocean: "Cercano al mar",
+  ocean_view: "Vista al mar",
+  oceanfront: "Frente al mar",
+  beach_access: "Acceso directo a playa",
+  selection: "Selección PEM",
+  signature: "Residencia Signature",
+  resort: "Lifestyle resort",
+  family: "Family retreat",
+  wellness: "Wellness",
+  entertainment: "Entretenimiento",
+  investment: "Inversión patrimonial",
+  second_home: "Segunda residencia",
+  primary_home: "Residencia permanente",
+  beach_club: "Club de playa",
+  spa: "Spa",
+  gym: "Gimnasio",
+  padel: "Pádel",
+  tennis: "Tenis",
+  marina: "Marina",
+  private_pool: "Alberca privada",
+  roof_garden: "Roof garden",
+  dock: "Muelle",
+  helipad: "Helipuerto",
+  contemporary: "Arquitectura contemporánea",
+  author_design: "Arquitectura de autor",
+  curated_interiors: "Diseño interior curado",
+  double_height: "Doble altura",
+  natural_stone: "Piedra / mármol natural",
+  luxury_millwork: "Carpintería de lujo",
+  floor_to_ceiling: "Ventanales piso-techo",
+  premium_materials: "Materiales premium",
+};
+
+function labelFor(value?: string) {
+  if (!value) return "";
+  return factorLabels[value] || value;
+}
+
+function getSelectedFactorHighlights(factors: PemFactors) {
+  const items: string[] = [];
+
+  if (factors.viewQuality) items.push(labelFor(factors.viewQuality));
+  if (factors.privacy) items.push(labelFor(factors.privacy));
+  if (factors.oceanRelation) items.push(labelFor(factors.oceanRelation));
+  if (factors.pemClassification) items.push(labelFor(factors.pemClassification));
+
+  for (const group of [factors.experience, factors.amenities, factors.architecture]) {
+    if (Array.isArray(group)) {
+      for (const item of group) items.push(labelFor(item));
+    }
+  }
+
+  return items.filter(Boolean).slice(0, 10);
+}
+
+
 export default function LuxuryScore({
   value,
   title = "",
   coverImage = "",
   location = "",
   area = "",
+  pemFactors,
 }: Props) {
   const category = getCategory(value || 0);
-  const positioning = getPositioning(value || 0);
+  const factors = asPemFactors(pemFactors);
+  const selectedHighlights = getSelectedFactorHighlights(factors);
+  const positioning = factors.pemClassification
+    ? labelFor(factors.pemClassification)
+    : getPositioning(value || 0);
   const collection = getCollection(location, title);
 
   const ratings = getRatingProfile(value || 0, location, title, area);
   const editorialNote = getEditorialNote(value || 0, collection);
 
-  const highlights = [
-    location ? `Ubicación premium en ${location}` : "Ubicación premium",
-    area && area !== "N/D" ? `${area} de superficie evaluada` : "Superficie destacada",
-    "Amenidades y experiencia residencial de nivel resort",
-    "Curaduría editorial dentro del portafolio Private Estates México",
-    positioning,
-  ];
+  const highlights = selectedHighlights.length > 0
+    ? selectedHighlights
+    : [
+        location ? `Ubicación premium en ${location}` : "Ubicación premium",
+        area && area !== "N/D" ? `${area} de superficie evaluada` : "Superficie destacada",
+        "Amenidades y experiencia residencial de nivel resort",
+        "Curaduría editorial dentro del portafolio Private Estates México",
+        positioning,
+      ];
 
   return (
     <>
