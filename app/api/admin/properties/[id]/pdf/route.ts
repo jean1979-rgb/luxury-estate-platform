@@ -30,8 +30,13 @@ function formatPrice(price?: string | null, currency?: string | null) {
 }
 
 function formatArea(value?: number | null) {
-  if (value == null) return "N/D";
+  if (value == null || value <= 0) return "";
   return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value)} m²`;
+}
+
+function formatCount(value?: number | null) {
+  if (value == null || value <= 0) return "";
+  return String(value);
 }
 
 function safeFileName(value: string) {
@@ -263,12 +268,13 @@ export async function GET(_req: Request, { params }: PageProps) {
   const facts = [
     ["Precio", formatPrice(property.price, property.currency)],
     ["Ubicación", property.location || property.city || "Ubicación premium"],
-    ["Recámaras", property.bedrooms ?? "N/D"],
-    ["Baños", property.bathrooms ?? "N/D"],
+    ["Recámaras", formatCount(property.bedrooms)],
+    ["Baños", formatCount(property.bathrooms)],
     ["Superficie", formatArea(property.areaTotal ?? property.areaInterior)],
   ];
 
   for (const [label, value] of facts) {
+    if (!cleanText(value)) continue;
     page.drawText(String(label).toUpperCase(), {
       x: 44,
       y,
@@ -315,11 +321,13 @@ export async function GET(_req: Request, { params }: PageProps) {
 
   const score = property.luxuryScore ?? 0;
   const selectionLabel =
-    score >= 98
-      ? "SIGNATURE COLLECTION"
-      : score >= 94
-        ? "RESERVE COLLECTION"
-        : "CURATED COLLECTION";
+    score >= 95
+      ? "ICONIC RESIDENCE"
+      : score >= 90
+        ? "SIGNATURE RESIDENCE"
+        : score >= 85
+          ? "EXCEPTIONAL RESIDENCE"
+          : "PRIVATE ESTATES SELECTION";
 
   const selectionReason =
     score >= 98
@@ -480,12 +488,13 @@ export async function GET(_req: Request, { params }: PageProps) {
   const selectionFacts = [
     ["Precio", formatPrice(property.price, property.currency)],
     ["Ubicación", property.location || property.city || "Ubicación premium"],
-    ["Recámaras", property.bedrooms ?? "N/D"],
-    ["Baños", property.bathrooms ?? "N/D"],
+    ["Recámaras", formatCount(property.bedrooms)],
+    ["Baños", formatCount(property.bathrooms)],
     ["Superficie", formatArea(property.areaTotal ?? property.areaInterior)],
   ];
 
   for (const [label, value] of selectionFacts) {
+    if (!cleanText(value)) continue;
     page2.drawText(String(label).toUpperCase(), {
       x: 44,
       y: scoreFactY,
@@ -527,37 +536,39 @@ export async function GET(_req: Request, { params }: PageProps) {
 
     scoreFactY -= 28;
 
-    const leftX = 44;
-    const rightX = 300;
-    let leftY = scoreFactY;
-    let rightY = scoreFactY;
+    let chipX = 44;
+    let chipY = scoreFactY;
+    const chipGap = 8;
+    const chipHeight = 24;
 
-    pemFactorItems.forEach((item, index) => {
-      const isRight = index % 2 === 1;
-      const x = isRight ? rightX : leftX;
-      const y = isRight ? rightY : leftY;
+    pemFactorItems.forEach((item) => {
+      const label = cleanText(item);
+      const chipWidth = Math.min(220, Math.max(82, label.length * 5.8 + 24));
 
-      page2.drawText("•", {
-        x,
-        y,
-        size: 11,
-        font: regularFont,
-        color: gold,
+      if (chipX + chipWidth > width - 44) {
+        chipX = 44;
+        chipY -= chipHeight + 10;
+      }
+
+      page2.drawRectangle({
+        x: chipX,
+        y: chipY - 7,
+        width: chipWidth,
+        height: chipHeight,
+        borderColor: gold,
+        borderWidth: 0.6,
+        color: rgb(0.08, 0.075, 0.06),
       });
 
-      page2.drawText(cleanText(item), {
-        x: x + 16,
-        y,
-        size: 10,
+      page2.drawText(label, {
+        x: chipX + 12,
+        y: chipY,
+        size: 9,
         font: regularFont,
         color: white,
       });
 
-      if (isRight) {
-        rightY -= 22;
-      } else {
-        leftY -= 22;
-      }
+      chipX += chipWidth + chipGap;
     });
   }
 
