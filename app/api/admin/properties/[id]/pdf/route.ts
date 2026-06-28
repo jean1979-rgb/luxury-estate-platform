@@ -7,6 +7,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { drawEditorialCover } from "@/lib/pdf/editorial-cover";
 import { drawEditorialAssessment } from "@/lib/pdf/editorial-assessment";
+import { drawEditorialStory } from "@/lib/pdf/editorial-story";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -445,41 +446,30 @@ export async function GET(_req: Request, { params }: PageProps) {
 
   if (property.description) {
     const page3 = pdfDoc.addPage([595.28, 841.89]);
-    page3.drawRectangle({
-      x: 0,
-      y: 0,
+
+    drawEditorialStory({
+      page: page3,
       width,
       height,
-      color: black,
+      property,
+      fonts: {
+        regular: regularFont,
+        bold: boldFont,
+        serif: serifFont,
+        serifBold: serifBoldFont,
+      },
+      colors: {
+        black,
+        white,
+        gold,
+        muted,
+        line,
+      },
+      description: property.description,
+      pemFactorItems,
+      cleanText,
+      wrapText,
     });
-
-    page3.drawText("CONCEPTO", {
-      x: 44,
-      y: height - 72,
-      size: 9,
-      font: boldFont,
-      color: gold,
-    });
-
-    page3.drawText("Arquitectura & Experiencia", {
-      x: 44,
-      y: height - 108,
-      size: 24,
-      font: regularFont,
-      color: white,
-    });
-
-    let bodyY = height - 155;
-    for (const bodyLine of wrapText(property.description, 86).slice(0, 30)) {
-      page3.drawText(bodyLine, {
-        x: 44,
-        y: bodyY,
-        size: 11,
-        font: regularFont,
-        color: muted,
-      });
-      bodyY -= 18;
-    }
   }
 
   const galleryUrls = getGalleryUrls(property.gallery, property.coverImage);
