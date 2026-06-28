@@ -6,6 +6,7 @@ import {
 } from "pdf-lib";
 import { prisma } from "@/lib/prisma";
 import { drawEditorialCover } from "@/lib/pdf/editorial-cover";
+import { drawEditorialAssessment } from "@/lib/pdf/editorial-assessment";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -412,174 +413,34 @@ export async function GET(_req: Request, { params }: PageProps) {
   const pemFactorItems = getPemFactorItems(property.pemFactors);
 
   const page2 = pdfDoc.addPage([595.28, 841.89]);
-  page2.drawRectangle({
-    x: 0,
-    y: 0,
+
+  drawEditorialAssessment({
+    page: page2,
     width,
     height,
-    color: black,
-  });
-
-  page2.drawText("PRIVATE ESTATES SELECTION", {
-    x: 44,
-    y: height - 76,
-    size: 9,
-    font: boldFont,
-    color: gold,
-  });
-
-  page2.drawLine({
-    start: { x: 44, y: height - 104 },
-    end: { x: width - 44, y: height - 104 },
-    thickness: 1,
-    color: line,
-  });
-
-  page2.drawText(selectionLabel, {
-    x: 44,
-    y: height - 142,
-    size: 33,
-    font: regularFont,
-    color: white,
-  });
-
-  page2.drawText("LUXURY SCORE", {
-    x: 44,
-    y: height - 198,
-    size: 9,
-    font: boldFont,
-    color: gold,
-  });
-
-  page2.drawText(`${score} / 100`, {
-    x: 44,
-    y: height - 248,
-    size: 54,
-    font: regularFont,
-    color: white,
-  });
-
-  page2.drawText(property.title, {
-    x: 44,
-    y: height - 306,
-    size: 20,
-    font: regularFont,
-    color: gold,
-  });
-
-  let reasonY = height - 342;
-  for (const reasonLine of wrapText(selectionReason, 66).slice(0, 4)) {
-    page2.drawText(reasonLine, {
-      x: 44,
-      y: reasonY,
-      size: 12,
-      font: regularFont,
-      color: muted,
-    });
-    reasonY -= 19;
-  }
-
-  page2.drawLine({
-    start: { x: 44, y: height - 430 },
-    end: { x: width - 44, y: height - 430 },
-    thickness: 1,
-    color: line,
-  });
-
-  let scoreFactY = height - 470;
-  const selectionFacts = [
-    ["Precio", formatPrice(property.price, property.currency)],
-    ["Ubicación", property.location || property.city || "Ubicación premium"],
-    ["Recámaras", formatCount(property.bedrooms)],
-    ["Baños", formatCount(property.bathrooms)],
-    ["Superficie", formatArea(property.areaTotal ?? property.areaInterior)],
-  ];
-
-  for (const [label, value] of selectionFacts) {
-    if (!cleanText(value)) continue;
-    page2.drawText(String(label).toUpperCase(), {
-      x: 44,
-      y: scoreFactY,
-      size: 8,
-      font: boldFont,
-      color: gold,
-    });
-
-    page2.drawText(cleanText(value), {
-      x: 170,
-      y: scoreFactY,
-      size: 11,
-      font: regularFont,
-      color: white,
-    });
-
-    scoreFactY -= 28;
-  }
-
-  if (pemFactorItems.length > 0) {
-    scoreFactY -= 18;
-
-    page2.drawLine({
-      start: { x: 44, y: scoreFactY },
-      end: { x: width - 44, y: scoreFactY },
-      thickness: 1,
-      color: line,
-    });
-
-    scoreFactY -= 34;
-
-    page2.drawText("FACTORES DESTACADOS PEM", {
-      x: 44,
-      y: scoreFactY,
-      size: 9,
-      font: boldFont,
-      color: gold,
-    });
-
-    scoreFactY -= 28;
-
-    let chipX = 44;
-    let chipY = scoreFactY;
-    const chipGap = 8;
-    const chipHeight = 24;
-
-    pemFactorItems.forEach((item) => {
-      const label = cleanText(item);
-      const chipWidth = Math.min(220, Math.max(82, label.length * 5.8 + 24));
-
-      if (chipX + chipWidth > width - 44) {
-        chipX = 44;
-        chipY -= chipHeight + 10;
-      }
-
-      page2.drawRectangle({
-        x: chipX,
-        y: chipY - 7,
-        width: chipWidth,
-        height: chipHeight,
-        borderColor: gold,
-        borderWidth: 0.6,
-        color: rgb(0.08, 0.075, 0.06),
-      });
-
-      page2.drawText(label, {
-        x: chipX + 12,
-        y: chipY,
-        size: 9,
-        font: regularFont,
-        color: white,
-      });
-
-      chipX += chipWidth + chipGap;
-    });
-  }
-
-  page2.drawText("Propiedad seleccionada para la colección editorial de Private Estates Mexico.", {
-    x: 44,
-    y: 54,
-    size: 9,
-    font: regularFont,
-    color: rgb(0.45, 0.45, 0.45),
+    property,
+    fonts: {
+      regular: regularFont,
+      bold: boldFont,
+      serif: serifFont,
+      serifBold: serifBoldFont,
+    },
+    colors: {
+      black,
+      white,
+      gold,
+      muted,
+      line,
+    },
+    score,
+    selectionLabel,
+    selectionReason,
+    pemFactorItems,
+    formatPrice,
+    formatCount,
+    formatArea,
+    cleanText,
+    wrapText,
   });
 
   if (property.description) {
