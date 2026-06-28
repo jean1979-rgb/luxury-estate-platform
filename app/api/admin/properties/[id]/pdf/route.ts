@@ -274,18 +274,15 @@ export async function GET(_req: Request, { params }: PageProps) {
 
   const coverScore = property.luxuryScore ?? 0;
   const coverLabel =
-    coverScore >= 95
-      ? "ICONIC RESIDENCE"
-      : coverScore >= 90
-        ? "SIGNATURE RESIDENCE"
-        : coverScore >= 85
-          ? "EXCEPTIONAL RESIDENCE"
-          : "PRIVATE ESTATES SELECTION";
+    coverScore >= 95 ? "ICONIC RESIDENCE" :
+    coverScore >= 90 ? "SIGNATURE RESIDENCE" :
+    coverScore >= 85 ? "EXCEPTIONAL RESIDENCE" :
+    "PRIVATE ESTATES SELECTION";
 
   const publicUrl = `https://privateestatesmexico.com/properties/${property.slug || property.id}`;
   const image = await embedImage(pdfDoc, property.coverImage);
 
-  // Portada editorial full-bleed
+  // PORTADA V3 - full bleed editorial
   if (image) {
     const scale = Math.max(width / image.width, height / image.height);
     const drawWidth = image.width * scale;
@@ -297,84 +294,47 @@ export async function GET(_req: Request, { params }: PageProps) {
       width: drawWidth,
       height: drawHeight,
     });
-  } else {
-    page.drawRectangle({ x: 0, y: 0, width, height, color: black });
   }
 
-  // Overlay oscuro para lectura editorial
-  page.drawRectangle({
-    x: 0,
-    y: 0,
-    width,
-    height,
-    color: black,
-    opacity: 0.28,
-  });
+  // overlays
+  page.drawRectangle({ x: 0, y: 0, width, height, color: black, opacity: 0.20 });
+  page.drawRectangle({ x: 0, y: 0, width, height: 335, color: black, opacity: 0.82 });
+  page.drawRectangle({ x: 0, y: height - 215, width, height: 215, color: black, opacity: 0.54 });
 
+  // marco exterior fino
   page.drawRectangle({
-    x: 0,
-    y: 0,
-    width,
-    height: 330,
-    color: black,
-    opacity: 0.78,
-  });
-
-  page.drawRectangle({
-    x: 0,
-    y: height - 210,
-    width,
-    height: 210,
-    color: black,
-    opacity: 0.52,
-  });
-
-  // borde exterior muy fino
-  page.drawRectangle({
-    x: 14,
-    y: 14,
-    width: width - 28,
-    height: height - 28,
+    x: 18,
+    y: 18,
+    width: width - 36,
+    height: height - 36,
     borderColor: gold,
-    borderWidth: 0.45,
+    borderWidth: 0.55,
   });
 
   function centerText(text: string, yPos: number, size: number, font: any, color: any, tracking = 0) {
     const textWidth = font.widthOfTextAtSize(text, size) + Math.max(0, text.length - 1) * tracking;
     let x = (width - textWidth) / 2;
-
     for (const char of text) {
       page.drawText(char, { x, y: yPos, size, font, color });
       x += font.widthOfTextAtSize(char, size) + tracking;
     }
   }
 
-  centerText("PE", height - 78, 42, serifFont, gold, -2);
-  centerText("PRIVATE ESTATES", height - 118, 18, serifFont, white, 7);
-  centerText("MEXICO", height - 150, 13, serifFont, gold, 6);
-  centerText("EDITORIAL COLLECTION", height - 176, 7, boldFont, gold, 4);
+  // Branding
+  centerText("PE", height - 78, 43, serifFont, gold, -2);
+  centerText("PRIVATE ESTATES", height - 122, 18, serifFont, white, 7);
+  centerText("MEXICO", height - 155, 13, serifFont, gold, 7);
+  centerText("EXCLUSIVE PROPERTIES. EXTRAORDINARY LIFESTYLES.", height - 184, 7, boldFont, gold, 3);
 
-  page.drawLine({ start: { x: 154, y: height - 139 }, end: { x: 244, y: height - 139 }, thickness: 0.6, color: gold });
-  page.drawLine({ start: { x: 352, y: height - 139 }, end: { x: 442, y: height - 139 }, thickness: 0.6, color: gold });
+  page.drawLine({ start: { x: 152, y: height - 143 }, end: { x: 245, y: height - 143 }, thickness: 0.6, color: gold });
+  page.drawLine({ start: { x: 350, y: height - 143 }, end: { x: 443, y: height - 143 }, thickness: 0.6, color: gold });
 
-  // Título y score sobre panel inferior
-  page.drawText(coverLabel, {
-    x: 44,
-    y: 286,
-    size: 8,
-    font: boldFont,
-    color: gold,
-  });
-
-  page.drawLine({
-    start: { x: 44, y: 274 },
-    end: { x: 225, y: 274 },
-    thickness: 0.7,
-    color: gold,
-  });
+  // Panel inferior editorial
+  page.drawText(coverLabel, { x: 44, y: 284, size: 8, font: boldFont, color: gold });
+  page.drawLine({ start: { x: 44, y: 271 }, end: { x: 220, y: 271 }, thickness: 0.7, color: gold });
 
   const titleLines = wrapText(property.title, 30).slice(0, 3);
-  let titleY = 238;
+  let titleY = 235;
   for (const titleLine of titleLines) {
     page.drawText(titleLine, {
       x: 44,
@@ -386,46 +346,23 @@ export async function GET(_req: Request, { params }: PageProps) {
     titleY -= 30;
   }
 
-  page.drawLine({
-    start: { x: 350, y: 286 },
-    end: { x: 350, y: 110 },
-    thickness: 0.55,
-    color: gold,
-  });
+  page.drawLine({ start: { x: 340, y: 284 }, end: { x: 340, y: 105 }, thickness: 0.6, color: gold });
 
-  page.drawText("LUXURY SCORE", {
-    x: 420,
-    y: 250,
-    size: 8,
-    font: boldFont,
-    color: gold,
-  });
+  // Luxury score sin laurel por ahora: limpio
+  page.drawText("LUXURY SCORE", { x: 414, y: 252, size: 8, font: boldFont, color: gold });
 
   const scoreText = String(coverScore);
   page.drawText(scoreText, {
-    x: 440 - serifFont.widthOfTextAtSize(scoreText, 62) / 2,
+    x: 444 - serifFont.widthOfTextAtSize(scoreText, 64) / 2,
     y: 188,
-    size: 62,
+    size: 64,
     font: serifFont,
     color: gold,
   });
 
-  page.drawText("/ 100", {
-    x: 422,
-    y: 166,
-    size: 14,
-    font: serifFont,
-    color: white,
-  });
+  page.drawText("/ 100", { x: 424, y: 164, size: 14, font: serifFont, color: white });
+  page.drawLine({ start: { x: 394, y: 139 }, end: { x: 494, y: 139 }, thickness: 0.6, color: gold });
 
-  page.drawLine({
-    start: { x: 395, y: 143 },
-    end: { x: 490, y: 143 },
-    thickness: 0.65,
-    color: gold,
-  });
-
-  // Facts inferiores limpios
   const coverFacts = [
     ["PRECIO", formatPrice(property.price, property.currency)],
     ["UBICACIÓN", property.location || property.city || "Ubicación premium"],
@@ -434,42 +371,29 @@ export async function GET(_req: Request, { params }: PageProps) {
     ["SUPERFICIE", formatArea(property.areaTotal ?? property.areaInterior)],
   ].filter(([, value]) => cleanText(value));
 
-  let factY = 148;
+  let factY = 145;
   for (const [label, value] of coverFacts.slice(0, 5)) {
-    page.drawText(label, {
-      x: 44,
-      y: factY,
-      size: 7.5,
-      font: boldFont,
-      color: gold,
-    });
-
-    page.drawText(cleanText(value), {
-      x: 128,
-      y: factY,
-      size: 9,
-      font: regularFont,
-      color: white,
-    });
-
+    page.drawText(label, { x: 44, y: factY, size: 7.5, font: boldFont, color: gold });
+    page.drawText(cleanText(value), { x: 132, y: factY, size: 9, font: regularFont, color: white });
     factY -= 22;
   }
 
-  page.drawLine({
-    start: { x: 44, y: 57 },
-    end: { x: 236, y: 57 },
-    thickness: 0.45,
-    color: gold,
-  });
+  // solecito simple abajo
+  const sunX = width / 2;
+  const sunY = 49;
+  for (let i = 0; i < 9; i++) {
+    const dx = (i - 4) * 4;
+    page.drawLine({
+      start: { x: sunX + dx, y: sunY },
+      end: { x: sunX + dx * 1.35, y: sunY + 9 - Math.abs(i - 4) },
+      thickness: 0.55,
+      color: gold,
+    });
+  }
 
-  page.drawLine({
-    start: { x: 360, y: 57 },
-    end: { x: width - 44, y: 57 },
-    thickness: 0.45,
-    color: gold,
-  });
-
-  centerText("PRIVATE ESTATES MEXICO", 43, 7, regularFont, gold, 4);
+  page.drawLine({ start: { x: 44, y: 45 }, end: { x: 236, y: 45 }, thickness: 0.45, color: gold });
+  page.drawLine({ start: { x: 360, y: 45 }, end: { x: width - 44, y: 45 }, thickness: 0.45, color: gold });
+  centerText("PRIVATE ESTATES MEXICO", 31, 7, regularFont, gold, 4);
 
   const score = property.luxuryScore ?? 0;
   const selectionLabel =
