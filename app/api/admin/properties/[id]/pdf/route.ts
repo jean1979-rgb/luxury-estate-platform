@@ -252,6 +252,8 @@ export async function GET(_req: Request, { params }: PageProps) {
 
   const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const serifFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+  const serifBoldFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
 
   const page = pdfDoc.addPage([595.28, 841.89]);
   const { width, height } = page.getSize();
@@ -270,17 +272,6 @@ export async function GET(_req: Request, { params }: PageProps) {
     color: black,
   });
 
-  function drawCoverCentered(text: string, yPos: number, size: number, font: any, color: any) {
-    const textWidth = font.widthOfTextAtSize(text, size);
-    page.drawText(text, {
-      x: (width - textWidth) / 2,
-      y: yPos,
-      size,
-      font,
-      color,
-    });
-  }
-
   const coverScore = property.luxuryScore ?? 0;
   const coverLabel =
     coverScore >= 95
@@ -291,124 +282,150 @@ export async function GET(_req: Request, { params }: PageProps) {
           ? "EXCEPTIONAL RESIDENCE"
           : "PRIVATE ESTATES SELECTION";
 
-  // Editorial brand header
-  drawCoverCentered("PE", height - 78, 34, regularFont, gold);
-  drawCoverCentered("PRIVATE  ESTATES", height - 114, 18, regularFont, white);
-  drawCoverCentered("M E X I C O", height - 140, 10, regularFont, gold);
-
-  page.drawLine({
-    start: { x: 205, y: height - 128 },
-    end: { x: 255, y: height - 128 },
-    thickness: 0.7,
-    color: gold,
-  });
-
-  page.drawLine({
-    start: { x: 340, y: height - 128 },
-    end: { x: 390, y: height - 128 },
-    thickness: 0.7,
-    color: gold,
-  });
-
-  drawCoverCentered("E D I T O R I A L   C O L L E C T I O N", height - 166, 7.5, boldFont, gold);
-
+  const publicUrl = `https://privateestatesmexico.com/properties/${property.slug || property.id}`;
   const image = await embedImage(pdfDoc, property.coverImage);
 
+  // Portada editorial full-bleed
   if (image) {
-    const imageBox = { x: 34, y: height - 515, width: width - 68, height: 320 };
-    const scale = Math.max(imageBox.width / image.width, imageBox.height / image.height);
+    const scale = Math.max(width / image.width, height / image.height);
     const drawWidth = image.width * scale;
     const drawHeight = image.height * scale;
 
     page.drawImage(image, {
-      x: imageBox.x + (imageBox.width - drawWidth) / 2,
-      y: imageBox.y + (imageBox.height - drawHeight) / 2,
+      x: (width - drawWidth) / 2,
+      y: (height - drawHeight) / 2,
       width: drawWidth,
       height: drawHeight,
     });
-
-    // Sin marco sobre la imagen hero para evitar cortes visuales.
   } else {
-    page.drawRectangle({
-      x: 34,
-      y: height - 515,
-      width: width - 68,
-      height: 320,
-      color: rgb(0.08, 0.08, 0.08),
-      borderColor: gold,
-      borderWidth: 0.65,
-    });
-
-    page.drawText("Imagen no disponible", {
-      x: 232,
-      y: height - 360,
-      size: 12,
-      font: regularFont,
-      color: muted,
-    });
+    page.drawRectangle({ x: 0, y: 0, width, height, color: black });
   }
 
-  // Dark editorial panel
+  // Overlay oscuro para lectura editorial
   page.drawRectangle({
-    x: 34,
-    y: 76,
-    width: width - 68,
-    height: 245,
-    color: rgb(0.035, 0.035, 0.035),
-    borderColor: line,
-    borderWidth: 0.8,
+    x: 0,
+    y: 0,
+    width,
+    height,
+    color: black,
+    opacity: 0.28,
   });
 
+  page.drawRectangle({
+    x: 0,
+    y: 0,
+    width,
+    height: 330,
+    color: black,
+    opacity: 0.78,
+  });
+
+  page.drawRectangle({
+    x: 0,
+    y: height - 210,
+    width,
+    height: 210,
+    color: black,
+    opacity: 0.52,
+  });
+
+  // borde exterior muy fino
+  page.drawRectangle({
+    x: 14,
+    y: 14,
+    width: width - 28,
+    height: height - 28,
+    borderColor: gold,
+    borderWidth: 0.45,
+  });
+
+  function centerText(text: string, yPos: number, size: number, font: any, color: any, tracking = 0) {
+    const textWidth = font.widthOfTextAtSize(text, size) + Math.max(0, text.length - 1) * tracking;
+    let x = (width - textWidth) / 2;
+
+    for (const char of text) {
+      page.drawText(char, { x, y: yPos, size, font, color });
+      x += font.widthOfTextAtSize(char, size) + tracking;
+    }
+  }
+
+  centerText("PE", height - 78, 42, serifFont, gold, -2);
+  centerText("PRIVATE ESTATES", height - 118, 18, serifFont, white, 7);
+  centerText("MEXICO", height - 150, 13, serifFont, gold, 6);
+  centerText("EDITORIAL COLLECTION", height - 176, 7, boldFont, gold, 4);
+
+  page.drawLine({ start: { x: 154, y: height - 139 }, end: { x: 244, y: height - 139 }, thickness: 0.6, color: gold });
+  page.drawLine({ start: { x: 352, y: height - 139 }, end: { x: 442, y: height - 139 }, thickness: 0.6, color: gold });
+
+  // Título y score sobre panel inferior
   page.drawText(coverLabel, {
-    x: 58,
-    y: 290,
+    x: 44,
+    y: 286,
     size: 8,
     font: boldFont,
     color: gold,
   });
 
   page.drawLine({
-    start: { x: 58, y: 276 },
-    end: { x: 245, y: 276 },
+    start: { x: 44, y: 274 },
+    end: { x: 225, y: 274 },
     thickness: 0.7,
     color: gold,
   });
 
   const titleLines = wrapText(property.title, 30).slice(0, 3);
-  let titleY = 240;
-
+  let titleY = 238;
   for (const titleLine of titleLines) {
     page.drawText(titleLine, {
-      x: 58,
+      x: 44,
       y: titleY,
-      size: 24,
-      font: regularFont,
+      size: 25,
+      font: serifFont,
       color: white,
     });
     titleY -= 30;
   }
 
-  // Luxury score seal
   page.drawLine({
-    start: { x: 375, y: 288 },
-    end: { x: 375, y: 110 },
-    thickness: 0.7,
+    start: { x: 350, y: 286 },
+    end: { x: 350, y: 110 },
+    thickness: 0.55,
     color: gold,
   });
 
-  drawLuxuryLaurel({
-    page,
-    centerX: 463,
-    centerY: 196,
-    score: coverScore,
-    gold,
-    white,
-    regularFont,
-    boldFont,
+  page.drawText("LUXURY SCORE", {
+    x: 420,
+    y: 250,
+    size: 8,
+    font: boldFont,
+    color: gold,
   });
 
-  const publicUrl = `https://privateestatesmexico.com/properties/${property.slug || property.id}`;
+  const scoreText = String(coverScore);
+  page.drawText(scoreText, {
+    x: 440 - serifFont.widthOfTextAtSize(scoreText, 62) / 2,
+    y: 188,
+    size: 62,
+    font: serifFont,
+    color: gold,
+  });
 
+  page.drawText("/ 100", {
+    x: 422,
+    y: 166,
+    size: 14,
+    font: serifFont,
+    color: white,
+  });
+
+  page.drawLine({
+    start: { x: 395, y: 143 },
+    end: { x: 490, y: 143 },
+    thickness: 0.65,
+    color: gold,
+  });
+
+  // Facts inferiores limpios
   const coverFacts = [
     ["PRECIO", formatPrice(property.price, property.currency)],
     ["UBICACIÓN", property.location || property.city || "Ubicación premium"],
@@ -417,10 +434,10 @@ export async function GET(_req: Request, { params }: PageProps) {
     ["SUPERFICIE", formatArea(property.areaTotal ?? property.areaInterior)],
   ].filter(([, value]) => cleanText(value));
 
-  let factY = 150;
+  let factY = 148;
   for (const [label, value] of coverFacts.slice(0, 5)) {
     page.drawText(label, {
-      x: 58,
+      x: 44,
       y: factY,
       size: 7.5,
       font: boldFont,
@@ -428,9 +445,9 @@ export async function GET(_req: Request, { params }: PageProps) {
     });
 
     page.drawText(cleanText(value), {
-      x: 150,
+      x: 128,
       y: factY,
-      size: 9.5,
+      size: 9,
       font: regularFont,
       color: white,
     });
@@ -438,21 +455,21 @@ export async function GET(_req: Request, { params }: PageProps) {
     factY -= 22;
   }
 
-  page.drawText("PRIVATE ESTATES MEXICO", {
-    x: 58,
-    y: 44,
-    size: 7,
-    font: regularFont,
-    color: rgb(0.45, 0.45, 0.45),
+  page.drawLine({
+    start: { x: 44, y: 57 },
+    end: { x: 236, y: 57 },
+    thickness: 0.45,
+    color: gold,
   });
 
-  page.drawText(publicUrl, {
-    x: 230,
-    y: 44,
-    size: 7,
-    font: regularFont,
-    color: rgb(0.45, 0.45, 0.45),
+  page.drawLine({
+    start: { x: 360, y: 57 },
+    end: { x: width - 44, y: 57 },
+    thickness: 0.45,
+    color: gold,
   });
+
+  centerText("PRIVATE ESTATES MEXICO", 43, 7, regularFont, gold, 4);
 
   const score = property.luxuryScore ?? 0;
   const selectionLabel =
