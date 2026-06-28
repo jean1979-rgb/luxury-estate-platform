@@ -284,13 +284,13 @@ export async function GET(_req: Request, { params }: PageProps) {
 
   // PORTADA V3 - imagen editorial, sin zoom agresivo
   if (image) {
-    const imgBox = { x: 0, y: 260, width, height: 430 };
+    const imgBox = { x: 0, y: 250, width, height: 500 };
     const scale = Math.max(imgBox.width / image.width, imgBox.height / image.height);
     const drawWidth = image.width * scale;
     const drawHeight = image.height * scale;
 
     page.drawImage(image, {
-      x: imgBox.x + (imgBox.width - drawWidth) / 2,
+      x: imgBox.x + (imgBox.width - drawWidth) / 2 - 55,
       y: imgBox.y + (imgBox.height - drawHeight) / 2,
       width: drawWidth,
       height: drawHeight,
@@ -298,10 +298,10 @@ export async function GET(_req: Request, { params }: PageProps) {
   }
 
   // negros reales y gradiente editorial por bloques
-  page.drawRectangle({ x: 0, y: 0, width, height, color: black, opacity: 0.14 });
-  page.drawRectangle({ x: 0, y: height - 245, width, height: 245, color: black, opacity: 0.94 });
-  page.drawRectangle({ x: 0, y: 0, width, height: 285, color: black, opacity: 0.99 });
-  page.drawRectangle({ x: 0, y: 260, width, height: 105, color: black, opacity: 0.68 });
+  page.drawRectangle({ x: 0, y: 0, width, height, color: black, opacity: 0.08 });
+  page.drawRectangle({ x: 0, y: height - 245, width, height: 245, color: black, opacity: 0.98 });
+  page.drawRectangle({ x: 0, y: 0, width, height: 310, color: black, opacity: 0.995 });
+  page.drawRectangle({ x: 0, y: 250, width, height: 130, color: black, opacity: 0.70 });
 
   // marco exterior fino
   page.drawRectangle({
@@ -323,20 +323,20 @@ export async function GET(_req: Request, { params }: PageProps) {
   }
 
   // Branding
-  centerText("PE", height - 72, 44, serifFont, gold, -2);
-  centerText("PRIVATE ESTATES", height - 120, 18, serifFont, white, 8);
-  centerText("MEXICO", height - 153, 13, serifFont, gold, 8);
-  centerText("EXCLUSIVE PROPERTIES. EXTRAORDINARY LIFESTYLES.", height - 183, 7.2, boldFont, gold, 3.2);
+  centerText("PE", height - 74, 52, serifFont, gold, -2);
+  centerText("PRIVATE ESTATES", height - 126, 22, serifFont, white, 8);
+  centerText("MEXICO", height - 162, 15, serifFont, gold, 8);
+  centerText("EXCLUSIVE PROPERTIES. EXTRAORDINARY LIFESTYLES.", height - 194, 7.4, boldFont, gold, 3.2);
 
-  page.drawLine({ start: { x: 148, y: height - 142 }, end: { x: 244, y: height - 142 }, thickness: 0.65, color: gold });
-  page.drawLine({ start: { x: 352, y: height - 142 }, end: { x: 448, y: height - 142 }, thickness: 0.65, color: gold });
+  page.drawLine({ start: { x: 135, y: height - 151 }, end: { x: 242, y: height - 151 }, thickness: 0.7, color: gold });
+  page.drawLine({ start: { x: 354, y: height - 151 }, end: { x: 461, y: height - 151 }, thickness: 0.7, color: gold });
 
   // Panel inferior editorial
-  page.drawText(coverLabel, { x: 44, y: 238, size: 8, font: boldFont, color: gold });
-  page.drawLine({ start: { x: 44, y: 225 }, end: { x: 220, y: 225 }, thickness: 0.7, color: gold });
+  page.drawText(coverLabel, { x: 44, y: 265, size: 8, font: boldFont, color: gold });
+  page.drawLine({ start: { x: 44, y: 252 }, end: { x: 220, y: 252 }, thickness: 0.7, color: gold });
 
   const titleLines = wrapText(property.title, 25).slice(0, 3);
-  let titleY = 191;
+  let titleY = 218;
   for (const titleLine of titleLines) {
     page.drawText(titleLine, {
       x: 44,
@@ -348,22 +348,22 @@ export async function GET(_req: Request, { params }: PageProps) {
     titleY -= 30;
   }
 
-  page.drawLine({ start: { x: 372, y: 235 }, end: { x: 372, y: 92 }, thickness: 0.6, color: gold });
+  page.drawLine({ start: { x: 372, y: 255 }, end: { x: 372, y: 105 }, thickness: 0.6, color: gold });
 
   // Luxury score limpio
-  page.drawText("LUXURY SCORE", { x: 425, y: 208, size: 8, font: boldFont, color: gold });
+  page.drawText("LUXURY SCORE", { x: 425, y: 230, size: 8, font: boldFont, color: gold });
 
   const scoreText = String(coverScore);
   page.drawText(scoreText, {
     x: 456 - serifFont.widthOfTextAtSize(scoreText, 64) / 2,
-    y: 144,
+    y: 166,
     size: 64,
     font: serifFont,
     color: gold,
   });
 
-  page.drawText("/ 100", { x: 436, y: 120, size: 14, font: serifFont, color: white });
-  page.drawLine({ start: { x: 405, y: 95 }, end: { x: 505, y: 95 }, thickness: 0.6, color: gold });
+  page.drawText("/ 100", { x: 436, y: 142, size: 14, font: serifFont, color: white });
+  page.drawLine({ start: { x: 405, y: 117 }, end: { x: 505, y: 117 }, thickness: 0.6, color: gold });
 
   const coverFacts = [
     ["PRECIO", formatPrice(property.price, property.currency)],
@@ -373,7 +373,7 @@ export async function GET(_req: Request, { params }: PageProps) {
     ["SUPERFICIE", formatArea(property.areaTotal ?? property.areaInterior)],
   ].filter(([, value]) => cleanText(value));
 
-  let factY = 105;
+  let factY = 126;
   for (const [label, value] of coverFacts.slice(0, 5)) {
     page.drawText(label, { x: 44, y: factY, size: 7.5, font: boldFont, color: gold });
 
