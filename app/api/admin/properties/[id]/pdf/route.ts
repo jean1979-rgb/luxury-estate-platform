@@ -154,56 +154,54 @@ function drawLuxuryLaurel(params: {
   boldFont: any;
   serifFont: any;
 }) {
-  const { page, centerX, centerY, score, gold, white, regularFont, boldFont, serifFont } = params;
+  const { page, centerX, centerY, score, gold, white, boldFont, serifFont } = params;
 
-  // Laurel más cerrado, estilo sello, sin abrirse hacia afuera.
-  for (let i = 0; i < 10; i++) {
-    const t = i / 9;
-    const y = centerY - 48 + t * 92;
-    const curve = Math.sin(t * Math.PI);
-    const dist = 49 - curve * 13;
+  // Laurel simétrico hecho con líneas, no elipses torcidas.
+  const left = [
+    [-42, -45, -57, -38],
+    [-47, -31, -61, -24],
+    [-50, -17, -64, -10],
+    [-51, -3, -65, 4],
+    [-49, 11, -62, 19],
+    [-44, 25, -56, 35],
+  ];
 
-    const leafW = 3.3;
-    const leafH = 10.5;
+  const right = left.map(([x1, y1, x2, y2]) => [-x1, y1, -x2, y2]);
 
-    page.drawEllipse({
-      x: centerX - dist,
-      y,
-      xScale: leafW,
-      yScale: leafH,
-      rotate: { type: "degrees", angle: 42 - t * 54 },
+  for (const [x1, y1, x2, y2] of [...left, ...right]) {
+    page.drawLine({
+      start: { x: centerX + x1, y: centerY + y1 },
+      end: { x: centerX + x2, y: centerY + y2 },
+      thickness: 2.1,
       color: gold,
-      opacity: 0.92,
     });
 
-    page.drawEllipse({
-      x: centerX + dist,
-      y,
-      xScale: leafW,
-      yScale: leafH,
-      rotate: { type: "degrees", angle: -42 + t * 54 },
+    page.drawLine({
+      start: { x: centerX + x1, y: centerY + y1 + 2.5 },
+      end: { x: centerX + x2, y: centerY + y2 + 2.5 },
+      thickness: 1.35,
       color: gold,
-      opacity: 0.92,
     });
   }
 
+  // ramas base
   page.drawLine({
-    start: { x: centerX - 30, y: centerY - 58 },
-    end: { x: centerX - 7, y: centerY - 53 },
+    start: { x: centerX - 45, y: centerY - 54 },
+    end: { x: centerX - 10, y: centerY - 45 },
     thickness: 0.75,
     color: gold,
   });
 
   page.drawLine({
-    start: { x: centerX + 30, y: centerY - 58 },
-    end: { x: centerX + 7, y: centerY - 53 },
+    start: { x: centerX + 45, y: centerY - 54 },
+    end: { x: centerX + 10, y: centerY - 45 },
     thickness: 0.75,
     color: gold,
   });
 
   page.drawText("LUXURY SCORE", {
     x: centerX - boldFont.widthOfTextAtSize("LUXURY SCORE", 8) / 2,
-    y: centerY + 47,
+    y: centerY + 45,
     size: 8,
     font: boldFont,
     color: gold,
