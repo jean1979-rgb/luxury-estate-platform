@@ -39,6 +39,23 @@ function formatCount(value?: number | null) {
   return String(value);
 }
 
+function formatShortLocation(value?: string | null, fallback?: string | null) {
+  const raw = cleanText(value || fallback || "");
+  if (!raw) return "Ubicación premium";
+
+  const parts = raw
+    .split("|")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  const last = parts[parts.length - 1] || raw;
+
+  return last
+    .replace(/^Fraccionamiento\s+/i, "")
+    .replace(/^Condominio\s+/i, "")
+    .trim();
+}
+
 function safeFileName(value: string) {
   return value
     .normalize("NFD")
@@ -156,52 +173,63 @@ function drawLuxuryLaurel(params: {
 }) {
   const { page, centerX, centerY, score, gold, white, boldFont, serifFont } = params;
 
-  // Laurel simétrico hecho con líneas, no elipses torcidas.
-  const left = [
-    [-42, -45, -57, -38],
-    [-47, -31, -61, -24],
-    [-50, -17, -64, -10],
-    [-51, -3, -65, 4],
-    [-49, 11, -62, 19],
-    [-44, 25, -56, 35],
-  ];
+  // Laurel con hojas elípticas pequeñas, simétrico y cerrado hacia el score.
+  const leafCount = 11;
+  const bottomY = centerY - 48;
+  const topY = centerY + 38;
 
-  const right = left.map(([x1, y1, x2, y2]) => [-x1, y1, -x2, y2]);
+  for (let i = 0; i < leafCount; i++) {
+    const t = i / (leafCount - 1);
+    const y = bottomY + t * (topY - bottomY);
+    const curve = Math.sin(t * Math.PI);
 
-  for (const [x1, y1, x2, y2] of [...left, ...right]) {
-    page.drawLine({
-      start: { x: centerX + x1, y: centerY + y1 },
-      end: { x: centerX + x2, y: centerY + y2 },
-      thickness: 2.1,
+    // Distancia menor en el centro para abrazar el número.
+    const dist = 50 - curve * 15;
+    const leafW = 3.5 + curve * 0.7;
+    const leafH = 10.2 + curve * 1.2;
+
+    const leftAngle = -34 + t * 58;
+    const rightAngle = 34 - t * 58;
+
+    page.drawEllipse({
+      x: centerX - dist,
+      y,
+      xScale: leafW,
+      yScale: leafH,
+      rotate: { type: "degrees", angle: leftAngle },
       color: gold,
+      opacity: 0.95,
     });
 
-    page.drawLine({
-      start: { x: centerX + x1, y: centerY + y1 + 2.5 },
-      end: { x: centerX + x2, y: centerY + y2 + 2.5 },
-      thickness: 1.35,
+    page.drawEllipse({
+      x: centerX + dist,
+      y,
+      xScale: leafW,
+      yScale: leafH,
+      rotate: { type: "degrees", angle: rightAngle },
       color: gold,
+      opacity: 0.95,
     });
   }
 
-  // ramas base
+  // Unión inferior
   page.drawLine({
-    start: { x: centerX - 45, y: centerY - 54 },
-    end: { x: centerX - 10, y: centerY - 45 },
-    thickness: 0.75,
+    start: { x: centerX - 34, y: centerY - 58 },
+    end: { x: centerX - 5, y: centerY - 52 },
+    thickness: 0.8,
     color: gold,
   });
 
   page.drawLine({
-    start: { x: centerX + 45, y: centerY - 54 },
-    end: { x: centerX + 10, y: centerY - 45 },
-    thickness: 0.75,
+    start: { x: centerX + 34, y: centerY - 58 },
+    end: { x: centerX + 5, y: centerY - 52 },
+    thickness: 0.8,
     color: gold,
   });
 
   page.drawText("LUXURY SCORE", {
     x: centerX - boldFont.widthOfTextAtSize("LUXURY SCORE", 8) / 2,
-    y: centerY + 45,
+    y: centerY + 48,
     size: 8,
     font: boldFont,
     color: gold,
@@ -344,8 +372,8 @@ export async function GET(_req: Request, { params }: PageProps) {
   centerText("MEXICO", height - 168, 15, serifFont, gold, 9);
   centerText("EXCLUSIVE PROPERTIES. EXTRAORDINARY LIFESTYLES.", height - 200, 7.2, boldFont, gold, 3.4);
 
-  page.drawLine({ start: { x: 132, y: height - 155 }, end: { x: 246, y: height - 155 }, thickness: 0.75, color: gold });
-  page.drawLine({ start: { x: 350, y: height - 155 }, end: { x: 464, y: height - 155 }, thickness: 0.75, color: gold });
+  page.drawLine({ start: { x: 132, y: height - 156 }, end: { x: 244, y: height - 156 }, thickness: 0.75, color: gold });
+  page.drawLine({ start: { x: 352, y: height - 156 }, end: { x: 464, y: height - 156 }, thickness: 0.75, color: gold });
 
   // Panel inferior editorial
   page.drawText(coverLabel, { x: 44, y: 265, size: 8, font: boldFont, color: gold });
@@ -390,7 +418,7 @@ export async function GET(_req: Request, { params }: PageProps) {
 
   const coverFacts = [
     ["PRECIO", formatPrice(property.price, property.currency)],
-    ["UBICACIÓN", property.location || property.city || "Ubicación premium"],
+    ["UBICACIÓN", formatShortLocation(property.location, property.city)],
     ["RECÁMARAS", formatCount(property.bedrooms)],
     ["BAÑOS", formatCount(property.bathrooms)],
     ["SUPERFICIE", formatArea(property.areaTotal ?? property.areaInterior)],
@@ -414,11 +442,19 @@ export async function GET(_req: Request, { params }: PageProps) {
   // solecito simple abajo
   const sunX = width / 2;
   const sunY = 43;
-  for (let i = 0; i < 9; i++) {
-    const dx = (i - 4) * 4;
+  for (let i = 0; i < 11; i++) {
+    const angle = Math.PI * (i / 10);
+    const inner = 4;
+    const outer = 13;
     page.drawLine({
-      start: { x: sunX + dx, y: sunY },
-      end: { x: sunX + dx * 1.35, y: sunY + 9 - Math.abs(i - 4) },
+      start: {
+        x: sunX + Math.cos(angle) * inner,
+        y: sunY + Math.sin(angle) * inner,
+      },
+      end: {
+        x: sunX + Math.cos(angle) * outer,
+        y: sunY + Math.sin(angle) * outer,
+      },
       thickness: 0.55,
       color: gold,
     });
