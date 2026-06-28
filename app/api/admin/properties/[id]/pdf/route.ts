@@ -9,6 +9,10 @@ import { drawEditorialCover } from "@/lib/pdf/editorial-cover";
 import { drawEditorialAssessment } from "@/lib/pdf/editorial-assessment";
 import { drawEditorialStory } from "@/lib/pdf/editorial-story";
 import { drawEditorialGallery } from "@/lib/pdf/editorial-gallery";
+import { drawEditorialLifestyle } from "@/lib/pdf/editorial-lifestyle";
+import { drawEditorialSpatial } from "@/lib/pdf/editorial-spatial";
+import { drawEditorialContact } from "@/lib/pdf/editorial-contact";
+import QRCode from "qrcode";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -473,7 +477,78 @@ export async function GET(_req: Request, { params }: PageProps) {
     });
   }
 
+  const publicUrl = `https://www.privateestatesmexico.com/properties/${property.slug || property.id}`;
+  const qrDataUrl = await QRCode.toDataURL(publicUrl, {
+    margin: 1,
+    width: 512,
+    color: {
+      dark: "#000000",
+      light: "#FFFFFF",
+    },
+  });
+  const qrBase64 = qrDataUrl.split(",")[1] || "";
+  const qrImage = await pdfDoc.embedPng(Buffer.from(qrBase64, "base64"));
+  const propertyWithScenes = property as typeof property & { scenes360?: unknown[] };
+  const has360 = Array.isArray(propertyWithScenes.scenes360) && propertyWithScenes.scenes360.length > 0;
+
+  const spatialPage = pdfDoc.addPage([595.28, 841.89]);
+
+  drawEditorialSpatial({
+    page: spatialPage,
+    width,
+    height,
+    property,
+    qrImage,
+    publicUrl,
+    has360,
+    fonts: {
+      regular: regularFont,
+      bold: boldFont,
+      serif: serifFont,
+      serifBold: serifBoldFont,
+    },
+    colors: {
+      black,
+      white,
+      gold,
+      muted,
+      line,
+    },
+    cleanText,
+    wrapText,
+  });
+
   const galleryUrls = getGalleryUrls(property.gallery, property.coverImage);
+
+  if (galleryUrls.length > 1) {
+    const lifestyleImage = await embedImage(pdfDoc, galleryUrls[1] || property.coverImage);
+
+    const lifestylePage = pdfDoc.addPage([595.28, 841.89]);
+
+    drawEditorialLifestyle({
+      page: lifestylePage,
+      width,
+      height,
+      property,
+      image: lifestyleImage,
+      lifestyleItems: pemFactorItems,
+      fonts: {
+        regular: regularFont,
+        bold: boldFont,
+        serif: serifFont,
+        serifBold: serifBoldFont,
+      },
+      colors: {
+        black,
+        white,
+        gold,
+        muted,
+        line,
+      },
+      cleanText,
+      wrapText,
+    });
+  }
 
   if (galleryUrls.length > 1) {
     const galleryImages = [];
@@ -512,6 +587,32 @@ export async function GET(_req: Request, { params }: PageProps) {
       });
     }
   }
+
+  const contactPage = pdfDoc.addPage([595.28,841.89]);
+
+  drawEditorialContact({
+
+    page:contactPage,
+
+    width,
+    height,
+
+    fonts:{
+      regular:regularFont,
+      bold:boldFont,
+      serif:serifFont,
+      serifBold:serifBoldFont
+    },
+
+    colors:{
+      black,
+      white,
+      gold,
+      muted,
+      line
+    }
+
+  });
 
   const pdfBytes = await pdfDoc.save();
   const fileName = `${safeFileName(property.title || "propiedad")}.pdf`;
