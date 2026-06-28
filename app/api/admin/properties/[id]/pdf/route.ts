@@ -152,65 +152,58 @@ function drawLuxuryLaurel(params: {
   white: any;
   regularFont: any;
   boldFont: any;
+  serifFont: any;
 }) {
-  const { page, centerX, centerY, score, gold, white, regularFont, boldFont } = params;
+  const { page, centerX, centerY, score, gold, white, regularFont, boldFont, serifFont } = params;
 
-  const leafW = 3.7;
-  const leafH = 10.5;
-
-  for (let i = 0; i < 11; i++) {
-    const t = i / 10;
-    const y = centerY - 52 + t * 104;
-
-    // Laurel cóncavo: más abierto abajo/arriba, más cercano al score al centro.
+  // Laurel más cerrado, estilo sello, sin abrirse hacia afuera.
+  for (let i = 0; i < 10; i++) {
+    const t = i / 9;
+    const y = centerY - 48 + t * 92;
     const curve = Math.sin(t * Math.PI);
-    const distance = 54 - curve * 16;
+    const dist = 49 - curve * 13;
 
-    const leftX = centerX - distance;
-    const rightX = centerX + distance;
-
-    const leftAngle = 26 - t * 42;
-    const rightAngle = -26 + t * 42;
+    const leafW = 3.3;
+    const leafH = 10.5;
 
     page.drawEllipse({
-      x: leftX,
+      x: centerX - dist,
       y,
       xScale: leafW,
       yScale: leafH,
-      rotate: { type: "degrees", angle: leftAngle },
+      rotate: { type: "degrees", angle: 42 - t * 54 },
       color: gold,
-      opacity: 0.9,
+      opacity: 0.92,
     });
 
     page.drawEllipse({
-      x: rightX,
+      x: centerX + dist,
       y,
       xScale: leafW,
       yScale: leafH,
-      rotate: { type: "degrees", angle: rightAngle },
+      rotate: { type: "degrees", angle: -42 + t * 54 },
       color: gold,
-      opacity: 0.9,
+      opacity: 0.92,
     });
   }
 
-  // base discreta del laurel
   page.drawLine({
-    start: { x: centerX - 34, y: centerY - 64 },
-    end: { x: centerX - 6, y: centerY - 58 },
-    thickness: 0.8,
+    start: { x: centerX - 30, y: centerY - 58 },
+    end: { x: centerX - 7, y: centerY - 53 },
+    thickness: 0.75,
     color: gold,
   });
 
   page.drawLine({
-    start: { x: centerX + 34, y: centerY - 64 },
-    end: { x: centerX + 6, y: centerY - 58 },
-    thickness: 0.8,
+    start: { x: centerX + 30, y: centerY - 58 },
+    end: { x: centerX + 7, y: centerY - 53 },
+    thickness: 0.75,
     color: gold,
   });
 
   page.drawText("LUXURY SCORE", {
     x: centerX - boldFont.widthOfTextAtSize("LUXURY SCORE", 8) / 2,
-    y: centerY + 50,
+    y: centerY + 47,
     size: 8,
     font: boldFont,
     color: gold,
@@ -218,18 +211,18 @@ function drawLuxuryLaurel(params: {
 
   const scoreText = String(score);
   page.drawText(scoreText, {
-    x: centerX - regularFont.widthOfTextAtSize(scoreText, 58) / 2,
-    y: centerY - 12,
-    size: 58,
-    font: regularFont,
+    x: centerX - serifFont.widthOfTextAtSize(scoreText, 62) / 2,
+    y: centerY - 16,
+    size: 62,
+    font: serifFont,
     color: gold,
   });
 
   page.drawText("/ 100", {
-    x: centerX - regularFont.widthOfTextAtSize("/ 100", 14) / 2,
-    y: centerY - 36,
+    x: centerX - serifFont.widthOfTextAtSize("/ 100", 14) / 2,
+    y: centerY - 39,
     size: 14,
-    font: regularFont,
+    font: serifFont,
     color: white,
   });
 }
@@ -375,20 +368,27 @@ export async function GET(_req: Request, { params }: PageProps) {
 
   page.drawLine({ start: { x: 372, y: 255 }, end: { x: 372, y: 105 }, thickness: 0.6, color: gold });
 
-  // Luxury score limpio
-  page.drawText("LUXURY SCORE", { x: 425, y: 230, size: 8, font: boldFont, color: gold });
+  drawLuxuryLaurel({
+    page,
+    centerX: 456,
+    centerY: 177,
+    score: coverScore,
+    gold,
+    white,
+    regularFont,
+    boldFont,
+    serifFont,
+  });
 
-  const scoreText = String(coverScore);
-  page.drawText(scoreText, {
-    x: 456 - serifFont.widthOfTextAtSize(scoreText, 64) / 2,
-    y: 166,
-    size: 64,
+  page.drawLine({ start: { x: 405, y: 105 }, end: { x: 505, y: 105 }, thickness: 0.6, color: gold });
+
+  page.drawText("CURATED COLLECTION", {
+    x: 456 - serifFont.widthOfTextAtSize("CURATED COLLECTION", 11) / 2,
+    y: 78,
+    size: 11,
     font: serifFont,
     color: gold,
   });
-
-  page.drawText("/ 100", { x: 436, y: 142, size: 14, font: serifFont, color: white });
-  page.drawLine({ start: { x: 405, y: 117 }, end: { x: 505, y: 117 }, thickness: 0.6, color: gold });
 
   const coverFacts = [
     ["PRECIO", formatPrice(property.price, property.currency)],
