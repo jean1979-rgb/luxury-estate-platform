@@ -299,8 +299,8 @@ export async function GET(_req: Request, { params }: PageProps) {
 
   // negros reales y gradiente editorial por bloques
   page.drawRectangle({ x: 0, y: 0, width, height, color: black, opacity: 0.18 });
-  page.drawRectangle({ x: 0, y: height - 235, width, height: 235, color: black, opacity: 0.985 });
-  page.drawRectangle({ x: 0, y: height - 300, width, height: 80, color: black, opacity: 0.62 });
+  page.drawRectangle({ x: 0, y: height - 230, width, height: 230, color: black, opacity: 0.992 });
+  page.drawRectangle({ x: 0, y: height - 305, width, height: 95, color: black, opacity: 0.50 });
   page.drawRectangle({ x: 0, y: 0, width, height: 315, color: black, opacity: 0.995 });
   page.drawRectangle({ x: 0, y: 245, width, height: 120, color: black, opacity: 0.56 });
 
@@ -314,23 +314,47 @@ export async function GET(_req: Request, { params }: PageProps) {
     borderWidth: 0.45,
   });
 
-  function centerText(text: string, yPos: number, size: number, font: any, color: any, tracking = 0) {
-    const textWidth = font.widthOfTextAtSize(text, size) + Math.max(0, text.length - 1) * tracking;
-    let x = (width - textWidth) / 2;
+  function drawTrackedText(text: string, x: number, yPos: number, size: number, font: any, color: any, tracking = 0) {
+    let cursorX = x;
     for (const char of text) {
-      page.drawText(char, { x, y: yPos, size, font, color });
-      x += font.widthOfTextAtSize(char, size) + tracking;
+      page.drawText(char, { x: cursorX, y: yPos, size, font, color });
+      cursorX += font.widthOfTextAtSize(char, size) + tracking;
     }
   }
 
-  // Branding
-  centerText("PE", height - 73, 58, serifFont, gold, -3);
-  centerText("PRIVATE ESTATES", height - 128, 22, serifFont, white, 8.5);
-  centerText("MEXICO", height - 164, 15, serifFont, gold, 8.5);
-  centerText("EXCLUSIVE PROPERTIES. EXTRAORDINARY LIFESTYLES.", height - 196, 7.2, boldFont, gold, 3.4);
+  function trackedWidth(text: string, size: number, font: any, tracking = 0) {
+    return font.widthOfTextAtSize(text, size) + Math.max(0, text.length - 1) * tracking;
+  }
 
-  page.drawLine({ start: { x: 130, y: height - 151 }, end: { x: 245, y: height - 151 }, thickness: 0.8, color: gold });
-  page.drawLine({ start: { x: 350, y: height - 151 }, end: { x: 465, y: height - 151 }, thickness: 0.8, color: gold });
+  function centerText(text: string, yPos: number, size: number, font: any, color: any, tracking = 0) {
+    const textWidth = trackedWidth(text, size, font, tracking);
+    drawTrackedText(text, (width - textWidth) / 2, yPos, size, font, color, tracking);
+  }
+
+  // Branding editorial PEM
+  // Monograma dibujado por separado para acercarlo más al render.
+  const peY = height - 77;
+  page.drawText("P", {
+    x: width / 2 - 25,
+    y: peY,
+    size: 62,
+    font: serifFont,
+    color: gold,
+  });
+  page.drawText("E", {
+    x: width / 2 - 1,
+    y: peY - 9,
+    size: 48,
+    font: serifFont,
+    color: gold,
+  });
+
+  centerText("PRIVATE ESTATES", height - 132, 23, serifFont, white, 9.5);
+  centerText("MEXICO", height - 168, 15, serifFont, gold, 9);
+  centerText("EXCLUSIVE PROPERTIES. EXTRAORDINARY LIFESTYLES.", height - 200, 7.2, boldFont, gold, 3.4);
+
+  page.drawLine({ start: { x: 132, y: height - 155 }, end: { x: 246, y: height - 155 }, thickness: 0.75, color: gold });
+  page.drawLine({ start: { x: 350, y: height - 155 }, end: { x: 464, y: height - 155 }, thickness: 0.75, color: gold });
 
   // Panel inferior editorial
   page.drawText(coverLabel, { x: 44, y: 265, size: 8, font: boldFont, color: gold });
