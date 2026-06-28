@@ -259,10 +259,10 @@ export async function GET(_req: Request, { params }: PageProps) {
   const { width, height } = page.getSize();
 
   const black = rgb(0.04, 0.04, 0.04);
-  const white = rgb(0.96, 0.94, 0.91);
-  const gold = rgb(0.84, 0.76, 0.63);
-  const muted = rgb(0.72, 0.68, 0.62);
-  const line = rgb(0.25, 0.22, 0.18);
+  const white = rgb(0.97, 0.96, 0.93);
+  const gold = rgb(0.70, 0.43, 0.13);
+  const muted = rgb(0.70, 0.66, 0.58);
+  const line = rgb(0.42, 0.28, 0.13);
 
   page.drawRectangle({
     x: 0,
@@ -298,10 +298,11 @@ export async function GET(_req: Request, { params }: PageProps) {
   }
 
   // negros reales y gradiente editorial por bloques
-  page.drawRectangle({ x: 0, y: 0, width, height, color: black, opacity: 0.08 });
-  page.drawRectangle({ x: 0, y: height - 245, width, height: 245, color: black, opacity: 0.98 });
-  page.drawRectangle({ x: 0, y: 0, width, height: 310, color: black, opacity: 0.995 });
-  page.drawRectangle({ x: 0, y: 250, width, height: 130, color: black, opacity: 0.70 });
+  page.drawRectangle({ x: 0, y: 0, width, height, color: black, opacity: 0.18 });
+  page.drawRectangle({ x: 0, y: height - 235, width, height: 235, color: black, opacity: 0.985 });
+  page.drawRectangle({ x: 0, y: height - 300, width, height: 80, color: black, opacity: 0.62 });
+  page.drawRectangle({ x: 0, y: 0, width, height: 315, color: black, opacity: 0.995 });
+  page.drawRectangle({ x: 0, y: 245, width, height: 120, color: black, opacity: 0.56 });
 
   // marco exterior fino
   page.drawRectangle({
@@ -309,8 +310,8 @@ export async function GET(_req: Request, { params }: PageProps) {
     y: 18,
     width: width - 36,
     height: height - 36,
-    borderColor: gold,
-    borderWidth: 0.55,
+    borderColor: line,
+    borderWidth: 0.45,
   });
 
   function centerText(text: string, yPos: number, size: number, font: any, color: any, tracking = 0) {
@@ -323,13 +324,13 @@ export async function GET(_req: Request, { params }: PageProps) {
   }
 
   // Branding
-  centerText("PE", height - 74, 52, serifFont, gold, -2);
-  centerText("PRIVATE ESTATES", height - 126, 22, serifFont, white, 8);
-  centerText("MEXICO", height - 162, 15, serifFont, gold, 8);
-  centerText("EXCLUSIVE PROPERTIES. EXTRAORDINARY LIFESTYLES.", height - 194, 7.4, boldFont, gold, 3.2);
+  centerText("PE", height - 73, 58, serifFont, gold, -3);
+  centerText("PRIVATE ESTATES", height - 128, 22, serifFont, white, 8.5);
+  centerText("MEXICO", height - 164, 15, serifFont, gold, 8.5);
+  centerText("EXCLUSIVE PROPERTIES. EXTRAORDINARY LIFESTYLES.", height - 196, 7.2, boldFont, gold, 3.4);
 
-  page.drawLine({ start: { x: 135, y: height - 151 }, end: { x: 242, y: height - 151 }, thickness: 0.7, color: gold });
-  page.drawLine({ start: { x: 354, y: height - 151 }, end: { x: 461, y: height - 151 }, thickness: 0.7, color: gold });
+  page.drawLine({ start: { x: 130, y: height - 151 }, end: { x: 245, y: height - 151 }, thickness: 0.8, color: gold });
+  page.drawLine({ start: { x: 350, y: height - 151 }, end: { x: 465, y: height - 151 }, thickness: 0.8, color: gold });
 
   // Panel inferior editorial
   page.drawText(coverLabel, { x: 44, y: 265, size: 8, font: boldFont, color: gold });
