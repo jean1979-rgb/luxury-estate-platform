@@ -47,23 +47,6 @@ function formatCount(value?: number | null) {
   return String(value);
 }
 
-function formatShortLocation(value?: string | null, fallback?: string | null) {
-  const raw = cleanText(value || fallback || "");
-  if (!raw) return "Ubicación premium";
-
-  const parts = raw
-    .split("|")
-    .map((part) => part.trim())
-    .filter(Boolean);
-
-  const last = parts[parts.length - 1] || raw;
-
-  return last
-    .replace(/^Fraccionamiento\s+/i, "")
-    .replace(/^Condominio\s+/i, "")
-    .trim();
-}
-
 function safeFileName(value: string) {
   return value
     .normalize("NFD")
@@ -144,122 +127,8 @@ function getGalleryUrls(value: unknown, coverImage?: string | null) {
   return Array.from(new Set(urls)).slice(0, 16);
 }
 
-function drawImageCover(
-  page: any,
-  image: any,
-  box: { x: number; y: number; width: number; height: number },
-  borderColor: any,
-) {
-  const scale = Math.max(box.width / image.width, box.height / image.height);
-  const drawWidth = image.width * scale;
-  const drawHeight = image.height * scale;
 
-  page.drawImage(image, {
-    x: box.x + (box.width - drawWidth) / 2,
-    y: box.y + (box.height - drawHeight) / 2,
-    width: drawWidth,
-    height: drawHeight,
-  });
 
-  page.drawRectangle({
-    ...box,
-    borderColor,
-    borderWidth: 1,
-  });
-}
-
-function drawLuxuryLaurel(params: {
-  page: any;
-  centerX: number;
-  centerY: number;
-  score: number;
-  gold: any;
-  white: any;
-  regularFont: any;
-  boldFont: any;
-  serifFont: any;
-}) {
-  const { page, centerX, centerY, score, gold, white, boldFont, serifFont } = params;
-
-  // Laurel con hojas elípticas pequeñas, simétrico y cerrado hacia el score.
-  const leafCount = 11;
-  const bottomY = centerY - 48;
-  const topY = centerY + 38;
-
-  for (let i = 0; i < leafCount; i++) {
-    const t = i / (leafCount - 1);
-    const y = bottomY + t * (topY - bottomY);
-    const curve = Math.sin(t * Math.PI);
-
-    // Distancia menor en el centro para abrazar el número.
-    const dist = 50 - curve * 15;
-    const leafW = 3.5 + curve * 0.7;
-    const leafH = 10.2 + curve * 1.2;
-
-    const leftAngle = -34 + t * 58;
-    const rightAngle = 34 - t * 58;
-
-    page.drawEllipse({
-      x: centerX - dist,
-      y,
-      xScale: leafW,
-      yScale: leafH,
-      rotate: { type: "degrees", angle: leftAngle },
-      color: gold,
-      opacity: 0.95,
-    });
-
-    page.drawEllipse({
-      x: centerX + dist,
-      y,
-      xScale: leafW,
-      yScale: leafH,
-      rotate: { type: "degrees", angle: rightAngle },
-      color: gold,
-      opacity: 0.95,
-    });
-  }
-
-  // Unión inferior
-  page.drawLine({
-    start: { x: centerX - 34, y: centerY - 58 },
-    end: { x: centerX - 5, y: centerY - 52 },
-    thickness: 0.8,
-    color: gold,
-  });
-
-  page.drawLine({
-    start: { x: centerX + 34, y: centerY - 58 },
-    end: { x: centerX + 5, y: centerY - 52 },
-    thickness: 0.8,
-    color: gold,
-  });
-
-  page.drawText("LUXURY SCORE", {
-    x: centerX - boldFont.widthOfTextAtSize("LUXURY SCORE", 8) / 2,
-    y: centerY + 48,
-    size: 8,
-    font: boldFont,
-    color: gold,
-  });
-
-  const scoreText = String(score);
-  page.drawText(scoreText, {
-    x: centerX - serifFont.widthOfTextAtSize(scoreText, 62) / 2,
-    y: centerY - 16,
-    size: 62,
-    font: serifFont,
-    color: gold,
-  });
-
-  page.drawText("/ 100", {
-    x: centerX - serifFont.widthOfTextAtSize("/ 100", 14) / 2,
-    y: centerY - 39,
-    size: 14,
-    font: serifFont,
-    color: white,
-  });
-}
 
 export async function GET(_req: Request, { params }: PageProps) {
   const { id } = await params;
