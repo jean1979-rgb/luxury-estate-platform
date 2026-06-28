@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { drawEditorialCover } from "@/lib/pdf/editorial-cover";
 import { drawEditorialAssessment } from "@/lib/pdf/editorial-assessment";
 import { drawEditorialStory } from "@/lib/pdf/editorial-story";
+import { drawEditorialGallery } from "@/lib/pdf/editorial-gallery";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -480,54 +481,34 @@ export async function GET(_req: Request, { params }: PageProps) {
     for (const url of galleryUrls.slice(1)) {
       const img = await embedImage(pdfDoc, url);
       if (img) galleryImages.push(img);
-      if (galleryImages.length >= 18) break;
+      if (galleryImages.length >= 12) break;
     }
 
-    for (let index = 0; index < galleryImages.length; index += 6) {
+    for (let index = 0; index < galleryImages.length; index += 3) {
       const galleryPage = pdfDoc.addPage([595.28, 841.89]);
-      galleryPage.drawRectangle({
-        x: 0,
-        y: 0,
+
+      drawEditorialGallery({
+        page: galleryPage,
         width,
         height,
-        color: black,
-      });
-
-      galleryPage.drawText("GALERÍA", {
-        x: 44,
-        y: height - 56,
-        size: 9,
-        font: boldFont,
-        color: gold,
-      });
-
-      galleryPage.drawText(property.title, {
-        x: 44,
-        y: height - 84,
-        size: 18,
-        font: regularFont,
-        color: white,
-      });
-
-      const boxes = [
-        { x: 44, y: height - 275, width: 240, height: 150 },
-        { x: 311, y: height - 275, width: 240, height: 150 },
-        { x: 44, y: height - 445, width: 240, height: 150 },
-        { x: 311, y: height - 445, width: 240, height: 150 },
-        { x: 44, y: height - 615, width: 240, height: 150 },
-        { x: 311, y: height - 615, width: 240, height: 150 },
-      ];
-
-      galleryImages.slice(index, index + 6).forEach((img, boxIndex) => {
-        drawImageCover(galleryPage, img, boxes[boxIndex], line);
-      });
-
-      galleryPage.drawText("Private Estates Mexico", {
-        x: 44,
-        y: 42,
-        size: 8,
-        font: regularFont,
-        color: rgb(0.45, 0.45, 0.45),
+        property,
+        images: galleryImages.slice(index, index + 3),
+        pageIndex: index / 3,
+        fonts: {
+          regular: regularFont,
+          bold: boldFont,
+          serif: serifFont,
+          serifBold: serifBoldFont,
+        },
+        colors: {
+          black,
+          white,
+          gold,
+          muted,
+          line,
+        },
+        cleanText,
+        wrapText,
       });
     }
   }
