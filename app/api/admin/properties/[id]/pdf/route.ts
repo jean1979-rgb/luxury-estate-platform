@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import {
   PDFDocument,
   StandardFonts,
@@ -99,6 +101,16 @@ async function fetchImageBuffer(url?: string | null) {
   }
 }
 
+
+async function embedLocalJpg(pdfDoc: PDFDocument, relativePath: string) {
+  try {
+    const bytes = await readFile(path.join(process.cwd(), relativePath));
+    return await pdfDoc.embedJpg(new Uint8Array(bytes));
+  } catch {
+    return null;
+  }
+}
+
 async function embedImage(pdfDoc: PDFDocument, url?: string | null) {
   const image = await fetchImageBuffer(url);
   if (!image) return null;
@@ -170,6 +182,19 @@ export async function GET(_req: Request, { params }: PageProps) {
 
   const image = await embedImage(pdfDoc, property.coverImage);
 
+  const pemAssets = {
+    headerLogo: await embedLocalJpg(pdfDoc, "public/pem-assets/Logo.jpg"),
+    laurel: await embedLocalJpg(pdfDoc, "public/pem-assets/Laurel.jpg"),
+    footer: await embedLocalJpg(pdfDoc, "public/pem-assets/logo footer.jpg"),
+    icons: {
+      price: await embedLocalJpg(pdfDoc, "public/pem-assets/Precio icono.jpg"),
+      location: await embedLocalJpg(pdfDoc, "public/pem-assets/Ubicacion icono.jpg"),
+      bedrooms: await embedLocalJpg(pdfDoc, "public/pem-assets/Recamara.jpg"),
+      bathrooms: await embedLocalJpg(pdfDoc, "public/pem-assets/Baño icono.jpg"),
+      area: await embedLocalJpg(pdfDoc, "public/pem-assets/Superficie icono.jpg"),
+    },
+  };
+
   drawEditorialCover({
     pdfDoc,
     page,
@@ -190,6 +215,7 @@ export async function GET(_req: Request, { params }: PageProps) {
       line,
     },
     image,
+    assets: pemAssets,
     formatPrice,
     formatCount,
     formatArea,
