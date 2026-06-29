@@ -124,7 +124,7 @@ export function drawEditorialCover(params: DrawCoverParams) {
 
   page.drawRectangle({ x: 0, y: 0, width, height, color: black, opacity: 0.10 });
   page.drawRectangle({ x: 0, y: height - 244, width, height: 244, color: black, opacity: 0.995 });
-  page.drawRectangle({ x: 0, y: 0, width, height: 315, color: black, opacity: 0.995 });
+  page.drawRectangle({ x: 0, y: 0, width, height: 328, color: black, opacity: 0.998 });
   page.drawRectangle({ x: 0, y: 245, width, height: 125, color: black, opacity: 0.52 });
 
   page.drawRectangle({
@@ -138,10 +138,10 @@ export function drawEditorialCover(params: DrawCoverParams) {
 
   if (assets?.headerLogo) {
     drawAssetContain(page, assets.headerLogo, {
-      x: 105,
-      y: height - 213,
-      width: 385,
-      height: 175,
+      x: 82,
+      y: height - 220,
+      width: 430,
+      height: 188,
     });
   }
 
@@ -159,18 +159,18 @@ export function drawEditorialCover(params: DrawCoverParams) {
 
   if (assets?.laurel) {
     drawAssetContain(page, assets.laurel, {
-      x: 382,
-      y: 93,
-      width: 142,
-      height: 166,
+      x: 378,
+      y: 86,
+      width: 154,
+      height: 182,
     });
   }
 
   const scoreText = String(score);
   page.drawText(scoreText, {
-    x: 453 - serif.widthOfTextAtSize(scoreText, 58) / 2,
-    y: 159,
-    size: 58,
+    x: 455 - serif.widthOfTextAtSize(scoreText, 56) / 2,
+    y: 156,
+    size: 56,
     font: serif,
     color: gold,
   });
