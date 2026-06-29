@@ -102,10 +102,16 @@ async function fetchImageBuffer(url?: string | null) {
 }
 
 
-async function embedLocalJpg(pdfDoc: PDFDocument, relativePath: string) {
+async function embedLocalImage(pdfDoc: PDFDocument, relativePath: string) {
   try {
     const bytes = await readFile(path.join(process.cwd(), relativePath));
-    return await pdfDoc.embedJpg(new Uint8Array(bytes));
+    const data = new Uint8Array(bytes);
+
+    if (/\.png$/i.test(relativePath)) {
+      return await pdfDoc.embedPng(data);
+    }
+
+    return await pdfDoc.embedJpg(data);
   } catch {
     return null;
   }
@@ -183,15 +189,15 @@ export async function GET(_req: Request, { params }: PageProps) {
   const image = await embedImage(pdfDoc, property.coverImage);
 
   const pemAssets = {
-    headerLogo: await embedLocalJpg(pdfDoc, "public/pem-assets/Logo.jpg"),
-    laurel: await embedLocalJpg(pdfDoc, "public/pem-assets/Laurel.jpg"),
-    footer: await embedLocalJpg(pdfDoc, "public/pem-assets/logo footer.jpg"),
+    headerLogo: await embedLocalImage(pdfDoc, "public/pem-assets/Logo.jpg"),
+    laurel: await embedLocalImage(pdfDoc, "public/pem-assets/Laurel.png"),
+    footer: await embedLocalImage(pdfDoc, "public/pem-assets/logo-footer.png"),
     icons: {
-      price: await embedLocalJpg(pdfDoc, "public/pem-assets/Precio icono.jpg"),
-      location: await embedLocalJpg(pdfDoc, "public/pem-assets/Ubicacion icono.jpg"),
-      bedrooms: await embedLocalJpg(pdfDoc, "public/pem-assets/Recamara.jpg"),
-      bathrooms: await embedLocalJpg(pdfDoc, "public/pem-assets/Baño icono.jpg"),
-      area: await embedLocalJpg(pdfDoc, "public/pem-assets/Superficie icono.jpg"),
+      price: await embedLocalImage(pdfDoc, "public/pem-assets/Precio icono.jpg"),
+      location: await embedLocalImage(pdfDoc, "public/pem-assets/Ubicacion icono.jpg"),
+      bedrooms: await embedLocalImage(pdfDoc, "public/pem-assets/Recamara.jpg"),
+      bathrooms: await embedLocalImage(pdfDoc, "public/pem-assets/Baño icono.jpg"),
+      area: await embedLocalImage(pdfDoc, "public/pem-assets/Superficie icono.jpg"),
     },
   };
 
