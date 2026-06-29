@@ -25,6 +25,19 @@ type Params = {
   wrapText: (text: string, maxChars: number) => string[];
 };
 
+const TITLES = [
+  "The Residence",
+  "Outdoor Living",
+  "Architecture",
+  "The View",
+  "Private Setting",
+  "Lifestyle",
+  "Interior Sequence",
+  "Arrival",
+  "Terrace Living",
+  "Residential Character",
+];
+
 export function drawEditorialGallery(params: Params) {
   const { page, width, height, property, images, pageIndex, fonts, colors, cleanText, wrapText } = params;
   const { regular, bold, serif } = fonts;
@@ -41,73 +54,50 @@ export function drawEditorialGallery(params: Params) {
     borderWidth: 0.45,
   });
 
-  page.drawText("PRIVATE ESTATES EDITORIAL", {
+  page.drawText("PRIVATE ESTATES MEXICO", {
     x: 44,
-    y: height - 72,
-    size: 8,
+    y: height - 78,
+    size: 7.5,
     font: bold,
     color: gold,
   });
 
-  page.drawText(pageIndex === 0 ? "Property Gallery" : "Gallery Continued", {
+  const title = TITLES[pageIndex] || "Private Collection";
+
+  page.drawText(title, {
     x: 44,
-    y: height - 122,
-    size: 32,
+    y: height - 132,
+    size: 34,
     font: serif,
     color: white,
   });
 
   page.drawLine({
-    start: { x: 44, y: height - 145 },
-    end: { x: width - 44, y: height - 145 },
-    thickness: 0.7,
+    start: { x: 44, y: height - 158 },
+    end: { x: width - 44, y: height - 158 },
+    thickness: 0.65,
     color: gold,
   });
 
-  const titleLines = wrapText(cleanText(property.title), 52).slice(0, 2);
-  let titleY = height - 174;
+  const image = images[0];
+
+  if (image) {
+    drawImageCover(page, image, { x: 44, y: 205, width: width - 88, height: 430 }, line, 0.35);
+  }
+
+  const titleLines = wrapText(cleanText(property.title), 58).slice(0, 2);
+  let ty = 165;
+
   for (const lineText of titleLines) {
     page.drawText(lineText, {
       x: 44,
-      y: titleY,
-      size: 10.5,
+      y: ty,
+      size: 10,
       font: regular,
       color: muted,
     });
-    titleY -= 15;
+    ty -= 14;
   }
-
-  const hero = images[0];
-  const second = images[1];
-  const third = images[2];
-
-  if (hero) {
-    drawImageCover(page, hero, { x: 44, y: 420, width: width - 88, height: 245 }, line, 0.45);
-  }
-
-  if (second) {
-    drawImageCover(page, second, { x: 44, y: 178, width: 244, height: 190 }, line, 0.45);
-  }
-
-  if (third) {
-    drawImageCover(page, third, { x: 307, y: 178, width: 244, height: 190 }, line, 0.45);
-  }
-
-  page.drawText("CURATED VISUAL SELECTION", {
-    x: 44,
-    y: 145,
-    size: 8,
-    font: bold,
-    color: gold,
-  });
-
-  page.drawText("A visual sequence selected to communicate scale, atmosphere and residential character.", {
-    x: 44,
-    y: 124,
-    size: 9,
-    font: regular,
-    color: muted,
-  });
 
   drawPemFooter({ page, width, regular, gold, line });
 }

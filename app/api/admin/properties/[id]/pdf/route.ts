@@ -454,7 +454,7 @@ export async function GET(_req: Request, { params }: PageProps) {
       if (galleryImages.length >= 12) break;
     }
 
-    for (let index = 0; index < galleryImages.length; index += 3) {
+    for (let index = 0; index < galleryImages.length; index += 1) {
       const galleryPage = pdfDoc.addPage([595.28, 841.89]);
 
       drawEditorialGallery({
@@ -462,7 +462,7 @@ export async function GET(_req: Request, { params }: PageProps) {
         width,
         height,
         property,
-        images: galleryImages.slice(index, index + 3),
+        images: galleryImages.slice(index, index + 1),
         pageIndex: index / 3,
         fonts: {
           regular: regularFont,

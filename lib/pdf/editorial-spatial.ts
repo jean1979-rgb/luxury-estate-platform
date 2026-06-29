@@ -44,124 +44,90 @@ export function drawEditorialSpatial(params: Params) {
 
   page.drawText("PRIVATE ESTATES DIGITAL EXPERIENCE", {
     x: 44,
-    y: height - 72,
-    size: 8,
+    y: height - 78,
+    size: 7.5,
     font: bold,
     color: gold,
   });
 
   page.drawText("Spatial Experience", {
     x: 44,
-    y: height - 122,
-    size: 32,
+    y: height - 132,
+    size: 34,
     font: serif,
     color: white,
   });
 
   page.drawLine({
-    start: { x: 44, y: height - 145 },
-    end: { x: width - 44, y: height - 145 },
-    thickness: 0.7,
+    start: { x: 44, y: height - 158 },
+    end: { x: width - 44, y: height - 158 },
+    thickness: 0.65,
     color: gold,
   });
 
-  const titleLines = wrapText(cleanText(property.title), 52).slice(0, 2);
-  let titleY = height - 174;
-  for (const lineText of titleLines) {
-    page.drawText(lineText, {
-      x: 44,
-      y: titleY,
-      size: 10.5,
-      font: regular,
-      color: muted,
-    });
-    titleY -= 15;
-  }
+  const subtitle = has360 ? "IMMERSIVE TOUR AVAILABLE" : "DIGITAL PROPERTY PROFILE";
 
-  page.drawText(has360 ? "IMMERSIVE TOUR AVAILABLE" : "DIGITAL PROPERTY PROFILE", {
+  page.drawText(subtitle, {
     x: 44,
-    y: 565,
-    size: 9,
-    font: bold,
-    color: gold,
-  });
-
-  const body = has360
-    ? "Scan the code to access the digital property profile, full gallery and immersive 360 experience curated by Private Estates Mexico."
-    : "Scan the code to access the digital property profile, extended gallery and private inquiry options curated by Private Estates Mexico.";
-
-  let bodyY = 530;
-  for (const lineText of wrapText(body, 58).slice(0, 4)) {
-    page.drawText(lineText, {
-      x: 44,
-      y: bodyY,
-      size: 12,
-      font: regular,
-      color: muted,
-    });
-    bodyY -= 19;
-  }
-
-  page.drawRectangle({
-    x: 335,
-    y: 365,
-    width: 170,
-    height: 170,
-    color: white,
-  });
-
-  if (qrImage) {
-    page.drawImage(qrImage, {
-      x: 347,
-      y: 377,
-      width: 146,
-      height: 146,
-    });
-  }
-
-  page.drawText("SCAN TO EXPLORE", {
-    x: 350,
-    y: 333,
+    y: 610,
     size: 8,
     font: bold,
     color: gold,
   });
 
-  const urlLines = wrapText(publicUrl.replace(/^https?:\/\//, ""), 36).slice(0, 2);
-  let urlY = 305;
+  const body = has360
+    ? "Scan to access the property profile, full gallery, private inquiry and immersive 360 experience."
+    : "Scan to access the property profile, full gallery and private inquiry.";
+
+  let bodyY = 580;
+  for (const lineText of wrapText(body, 52).slice(0, 3)) {
+    page.drawText(lineText, {
+      x: 44,
+      y: bodyY,
+      size: 11,
+      font: regular,
+      color: muted,
+    });
+    bodyY -= 18;
+  }
+
+  page.drawRectangle({
+    x: width / 2 - 112,
+    y: 305,
+    width: 224,
+    height: 224,
+    color: white,
+  });
+
+  if (qrImage) {
+    page.drawImage(qrImage, {
+      x: width / 2 - 98,
+      y: 319,
+      width: 196,
+      height: 196,
+    });
+  }
+
+  page.drawText("SCAN TO EXPLORE", {
+    x: width / 2 - bold.widthOfTextAtSize("SCAN TO EXPLORE", 8) / 2,
+    y: 270,
+    size: 8,
+    font: bold,
+    color: gold,
+  });
+
+  const cleanUrl = publicUrl.replace(/^https?:\/\//, "");
+  const urlLines = wrapText(cleanUrl, 54).slice(0, 2);
+  let urlY = 242;
   for (const lineText of urlLines) {
     page.drawText(lineText, {
-      x: 305,
+      x: width / 2 - regular.widthOfTextAtSize(lineText, 8) / 2,
       y: urlY,
-      size: 8.5,
+      size: 8,
       font: regular,
       color: muted,
     });
     urlY -= 13;
-  }
-
-  const features = has360
-    ? ["360 Experience", "Extended Gallery", "Private Showing", "WhatsApp Inquiry"]
-    : ["Extended Gallery", "Property Profile", "Private Showing", "WhatsApp Inquiry"];
-
-  let fy = 365;
-  for (const item of features) {
-    page.drawLine({
-      start: { x: 44, y: fy + 4 },
-      end: { x: 62, y: fy + 4 },
-      thickness: 0.6,
-      color: gold,
-    });
-
-    page.drawText(item, {
-      x: 76,
-      y: fy,
-      size: 11,
-      font: regular,
-      color: white,
-    });
-
-    fy -= 32;
   }
 
   drawPemFooter({ page, width, regular, gold, line });
