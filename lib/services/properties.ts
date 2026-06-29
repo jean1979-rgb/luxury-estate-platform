@@ -34,6 +34,14 @@ function asJsonObject(value: unknown): Prisma.InputJsonObject | null {
   return value as Prisma.InputJsonObject;
 }
 
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 async function getBrokerContext(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -103,6 +111,7 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
   const price = asTrimmedString(body.price);
   const currency = asTrimmedString(body.currency ?? existing.currency ?? "MXN") || "MXN";
   const coverImage = asTrimmedString(body.coverImage);
+  const gallery = body.gallery !== undefined ? asStringArray(body.gallery) : Array.isArray(existing.gallery) ? existing.gallery.filter((item): item is string => typeof item === "string") : [];
   const zoneSlug = asTrimmedString(body.zoneSlug);
   const zoneLabel = asTrimmedString(body.zoneLabel);
 
@@ -166,6 +175,7 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
       areaInterior,
       areaTotal,
       coverImage: coverImage || null,
+      gallery,
       tagline: tagline || null,
       description: description || null,
 
