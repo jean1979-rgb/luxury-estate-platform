@@ -127,22 +127,18 @@ export function drawEditorialCover(params: DrawCoverParams) {
   page.drawLine({ start: { x: 34, y: 185 }, end: { x: 342, y: 185 }, thickness: 0.7, color: gold });
   page.drawLine({ start: { x: 385, y: 252 }, end: { x: 385, y: 95 }, thickness: 0.7, color: gold });
 
-  if (assets?.laurel) {
-    drawAssetContain(page, assets.laurel, { x: 410, y: 116, width: 115, height: 125 });
-  }
-
-  page.drawText("LUXURY SCORE", { x: 438, y: 247, size: 10, font: bold, color: gold });
+  page.drawText("LUXURY SCORE", { x: 432, y: 247, size: 9.5, font: bold, color: gold });
   const scoreText = String(score);
   page.drawText(scoreText, {
-    x: 467 - serif.widthOfTextAtSize(scoreText, 58) / 2,
-    y: 161,
-    size: 58,
+    x: 470 - serif.widthOfTextAtSize(scoreText, 70) / 2,
+    y: 154,
+    size: 70,
     font: serif,
     color: gold,
   });
-  page.drawText("/ 100", { x: 462, y: 141, size: 18, font: serif, color: white });
-  page.drawLine({ start: { x: 421, y: 82 }, end: { x: 543, y: 82 }, thickness: 0.7, color: gold });
-  page.drawText("CURATED COLLECTION", { x: 428, y: 60, size: 11, font: serif, color: gold });
+  page.drawText("/ 100", { x: 445, y: 132, size: 20, font: serif, color: white });
+  page.drawLine({ start: { x: 420, y: 92 }, end: { x: 540, y: 92 }, thickness: 0.7, color: gold });
+  page.drawText("CURATED COLLECTION", { x: 423, y: 67, size: 11, font: serif, color: gold });
 
   const facts = [
     ["PRECIO", formatPrice(property.price, property.currency), assets?.icons?.price],
@@ -177,7 +173,7 @@ export function drawEditorialCover(params: DrawCoverParams) {
   page.drawLine({ start: { x: 380, y: 32 }, end: { x: width - 34, y: 32 }, thickness: 0.55, color: line });
 
   if (assets?.footer) {
-    drawAssetContain(page, assets.footer, { x: 225, y: 15, width: 145, height: 34 });
+    drawAssetContain(page, assets.footer, { x: width / 2 - 90, y: 30, width: 180, height: 28 });
   } else {
     page.drawText("PRIVATE ESTATES MEXICO", {
       x: width / 2 - regular.widthOfTextAtSize("PRIVATE ESTATES MEXICO", 7) / 2,
