@@ -127,6 +127,10 @@ export function drawEditorialCover(params: DrawCoverParams) {
   page.drawLine({ start: { x: 34, y: 185 }, end: { x: 342, y: 185 }, thickness: 0.7, color: gold });
   page.drawLine({ start: { x: 385, y: 252 }, end: { x: 385, y: 95 }, thickness: 0.7, color: gold });
 
+  if (assets?.laurel) {
+    drawAssetContain(page, assets.laurel, { x: 415, y: 130, width: 105, height: 95 });
+  }
+
   page.drawText("LUXURY SCORE", { x: 432, y: 247, size: 9.5, font: bold, color: gold });
   const scoreText = String(score);
   page.drawText(scoreText, {
@@ -154,15 +158,15 @@ export function drawEditorialCover(params: DrawCoverParams) {
     const finalValue = cleanText(value) || "-";
 
     if (icon) {
-      drawAssetContain(page, icon, { x: 34, y: factY - 8, width: 28, height: 28 });
+      drawAssetContain(page, icon, { x: 34, y: factY - 8, width: 84, height: 28 });
+    } else {
+      page.drawText(String(label), { x: 66, y: factY, size: 9, font: bold, color: gold });
     }
-
-    page.drawText(String(label), { x: 66, y: factY, size: 9, font: bold, color: gold });
 
     const valueLines = wrapText(finalValue, label === "UBICACIÓN" ? 35 : 25).slice(0, 2);
     let valueY = factY;
     for (const valueLine of valueLines) {
-      page.drawText(valueLine, { x: 158, y: valueY, size: 9.5, font: regular, color: white });
+      page.drawText(valueLine, { x: 145, y: valueY, size: 9.5, font: regular, color: white });
       valueY -= 12;
     }
 
