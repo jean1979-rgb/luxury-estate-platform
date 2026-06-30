@@ -193,11 +193,11 @@ export async function GET(_req: Request, { params }: PageProps) {
     laurel: await embedLocalImage(pdfDoc, "public/pem-assets/Laurel.png"),
     footer: await embedLocalImage(pdfDoc, "public/pem-assets/logo-footer.png"),
     icons: {
-      price: await embedLocalImage(pdfDoc, "public/pem-assets/Precio icono.jpg"),
-      location: await embedLocalImage(pdfDoc, "public/pem-assets/Ubicacion icono.jpg"),
-      bedrooms: await embedLocalImage(pdfDoc, "public/pem-assets/Recamara.jpg"),
-      bathrooms: await embedLocalImage(pdfDoc, "public/pem-assets/Baño icono.jpg"),
-      area: await embedLocalImage(pdfDoc, "public/pem-assets/Superficie icono.jpg"),
+      price: await embedLocalImage(pdfDoc, "public/pem-assets/Precio.png"),
+      location: await embedLocalImage(pdfDoc, "public/pem-assets/Ubicacion.png"),
+      bedrooms: await embedLocalImage(pdfDoc, "public/pem-assets/Recamara.png"),
+      bathrooms: await embedLocalImage(pdfDoc, "public/pem-assets/Baños.png"),
+      area: await embedLocalImage(pdfDoc, "public/pem-assets/Superficie.png"),
     },
   };
 
