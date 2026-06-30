@@ -128,7 +128,7 @@ export function drawEditorialCover(params: DrawCoverParams) {
   page.drawLine({ start: { x: 385, y: 252 }, end: { x: 385, y: 95 }, thickness: 0.7, color: gold });
 
   if (assets?.laurel) {
-    drawAssetContain(page, assets.laurel, { x: 388, y: 112, width: 175, height: 118 });
+    drawAssetContain(page, assets.laurel, { x: 388, y: 105, width: 185, height: 135 });
   }
 
   page.drawText("LUXURY SCORE", { x: 432, y: 247, size: 9.5, font: bold, color: gold });
@@ -177,7 +177,7 @@ export function drawEditorialCover(params: DrawCoverParams) {
   page.drawLine({ start: { x: 380, y: 32 }, end: { x: width - 34, y: 32 }, thickness: 0.55, color: line });
 
   if (assets?.footer) {
-    drawAssetContain(page, assets.footer, { x: width / 2 - 115, y: 18, width: 230, height: 42 });
+    drawAssetContain(page, assets.footer, { x: width / 2 - 155, y: 18, width: 310, height: 44 });
   } else {
     page.drawText("PRIVATE ESTATES MEXICO", {
       x: width / 2 - regular.widthOfTextAtSize("PRIVATE ESTATES MEXICO", 7) / 2,
