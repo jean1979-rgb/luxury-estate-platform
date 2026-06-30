@@ -191,7 +191,7 @@ export async function GET(_req: Request, { params }: PageProps) {
   const pemAssets = {
     headerLogo: await embedLocalImage(pdfDoc, "public/pem-assets/Logo.jpg"),
     laurel: await embedLocalImage(pdfDoc, "public/pem-assets/Laurel.png"),
-    footer: await embedLocalImage(pdfDoc, "public/pem-assets/logo-footer.png"),
+    footer: await embedLocalImage(pdfDoc, "public/pem-assets/logo footer.png"),
     icons: {
       price: await embedLocalImage(pdfDoc, "public/pem-assets/Precio.png"),
       location: await embedLocalImage(pdfDoc, "public/pem-assets/Ubicacion.png"),
