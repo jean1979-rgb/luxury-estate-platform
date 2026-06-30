@@ -128,19 +128,19 @@ export function drawEditorialCover(params: DrawCoverParams) {
   page.drawLine({ start: { x: 385, y: 252 }, end: { x: 385, y: 95 }, thickness: 0.7, color: gold });
 
   if (assets?.laurel) {
-    drawAssetContain(page, assets.laurel, { x: 410, y: 112, width: 120, height: 92 });
+    drawAssetContain(page, assets.laurel, { x: 405, y: 104, width: 138, height: 112 });
   }
 
   page.drawText("LUXURY SCORE", { x: 432, y: 247, size: 9.5, font: bold, color: gold });
   const scoreText = String(score);
   page.drawText(scoreText, {
-    x: 470 - serif.widthOfTextAtSize(scoreText, 60) / 2,
-    y: 160,
-    size: 60,
+    x: 470 - serif.widthOfTextAtSize(scoreText, 52) / 2,
+    y: 168,
+    size: 52,
     font: serif,
     color: gold,
   });
-  page.drawText("/ 100", { x: 448, y: 138, size: 17, font: serif, color: white });
+  page.drawText("/ 100", { x: 448, y: 132, size: 17, font: serif, color: white });
   page.drawLine({ start: { x: 420, y: 92 }, end: { x: 540, y: 92 }, thickness: 0.7, color: gold });
   page.drawText("CURATED COLLECTION", { x: 423, y: 67, size: 11, font: serif, color: gold });
 

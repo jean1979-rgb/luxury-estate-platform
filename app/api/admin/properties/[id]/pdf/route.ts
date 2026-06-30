@@ -196,7 +196,7 @@ export async function GET(_req: Request, { params }: PageProps) {
       price: await embedLocalImage(pdfDoc, "public/pem-assets/Precio.png"),
       location: await embedLocalImage(pdfDoc, "public/pem-assets/Ubicacion.png"),
       bedrooms: await embedLocalImage(pdfDoc, "public/pem-assets/Recamara.png"),
-      bathrooms: await embedLocalImage(pdfDoc, "public/pem-assets/Baños.png"),
+      bathrooms: await embedLocalImage(pdfDoc, "public/pem-assets/Banos.png"),
       area: await embedLocalImage(pdfDoc, "public/pem-assets/Superficie.png"),
     },
   };
