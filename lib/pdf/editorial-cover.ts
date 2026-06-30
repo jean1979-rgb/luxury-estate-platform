@@ -107,10 +107,10 @@ export function drawEditorialCover(params: DrawCoverParams) {
 
   if (assets?.headerLogo) {
     drawAssetContain(page, assets.headerLogo, {
-      x: 125,
-      y: height - 177,
-      width: 345,
-      height: 138,
+      x: 132,
+      y: height - 170,
+      width: 330,
+      height: 126,
     });
   }
 
@@ -128,19 +128,19 @@ export function drawEditorialCover(params: DrawCoverParams) {
   page.drawLine({ start: { x: 385, y: 252 }, end: { x: 385, y: 95 }, thickness: 0.7, color: gold });
 
   if (assets?.laurel) {
-    drawAssetContain(page, assets.laurel, { x: 415, y: 130, width: 105, height: 95 });
+    drawAssetContain(page, assets.laurel, { x: 410, y: 112, width: 120, height: 92 });
   }
 
   page.drawText("LUXURY SCORE", { x: 432, y: 247, size: 9.5, font: bold, color: gold });
   const scoreText = String(score);
   page.drawText(scoreText, {
-    x: 470 - serif.widthOfTextAtSize(scoreText, 70) / 2,
-    y: 154,
-    size: 70,
+    x: 470 - serif.widthOfTextAtSize(scoreText, 60) / 2,
+    y: 160,
+    size: 60,
     font: serif,
     color: gold,
   });
-  page.drawText("/ 100", { x: 445, y: 132, size: 20, font: serif, color: white });
+  page.drawText("/ 100", { x: 448, y: 138, size: 17, font: serif, color: white });
   page.drawLine({ start: { x: 420, y: 92 }, end: { x: 540, y: 92 }, thickness: 0.7, color: gold });
   page.drawText("CURATED COLLECTION", { x: 423, y: 67, size: 11, font: serif, color: gold });
 
@@ -158,7 +158,7 @@ export function drawEditorialCover(params: DrawCoverParams) {
     const finalValue = cleanText(value) || "-";
 
     if (icon) {
-      drawAssetContain(page, icon, { x: 34, y: factY - 8, width: 84, height: 28 });
+      drawAssetContain(page, icon, { x: 34, y: factY - 7, width: 92, height: 24 });
     } else {
       page.drawText(String(label), { x: 66, y: factY, size: 9, font: bold, color: gold });
     }
@@ -166,11 +166,11 @@ export function drawEditorialCover(params: DrawCoverParams) {
     const valueLines = wrapText(finalValue, label === "UBICACIÓN" ? 35 : 25).slice(0, 2);
     let valueY = factY;
     for (const valueLine of valueLines) {
-      page.drawText(valueLine, { x: 145, y: valueY, size: 9.5, font: regular, color: white });
+      page.drawText(valueLine, { x: 155, y: valueY, size: 9.5, font: regular, color: white });
       valueY -= 12;
     }
 
-    factY -= label === "UBICACIÓN" ? 34 : 25;
+    factY -= label === "UBICACIÓN" ? 35 : 27;
   }
 
   page.drawLine({ start: { x: 34, y: 32 }, end: { x: 215, y: 32 }, thickness: 0.55, color: line });
