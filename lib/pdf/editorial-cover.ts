@@ -128,19 +128,19 @@ export function drawEditorialCover(params: DrawCoverParams) {
   page.drawLine({ start: { x: 385, y: 252 }, end: { x: 385, y: 95 }, thickness: 0.7, color: gold });
 
   if (assets?.laurel) {
-    drawAssetContain(page, assets.laurel, { x: 392, y: 104, width: 165, height: 110 });
+    drawAssetContain(page, assets.laurel, { x: 388, y: 112, width: 175, height: 118 });
   }
 
   page.drawText("LUXURY SCORE", { x: 432, y: 247, size: 9.5, font: bold, color: gold });
   const scoreText = String(score);
   page.drawText(scoreText, {
-    x: 474 - serif.widthOfTextAtSize(scoreText, 48) / 2,
-    y: 172,
-    size: 48,
+    x: 475 - serif.widthOfTextAtSize(scoreText, 54) / 2,
+    y: 168,
+    size: 54,
     font: serif,
     color: gold,
   });
-  page.drawText("/ 100", { x: 452, y: 132, size: 16, font: serif, color: white });
+  page.drawText("/ 100", { x: 452, y: 136, size: 16, font: serif, color: white });
   page.drawLine({ start: { x: 420, y: 92 }, end: { x: 540, y: 92 }, thickness: 0.7, color: gold });
   page.drawText("CURATED COLLECTION", { x: 423, y: 67, size: 11, font: serif, color: gold });
 
@@ -177,7 +177,7 @@ export function drawEditorialCover(params: DrawCoverParams) {
   page.drawLine({ start: { x: 380, y: 32 }, end: { x: width - 34, y: 32 }, thickness: 0.55, color: line });
 
   if (assets?.footer) {
-    drawAssetContain(page, assets.footer, { x: width / 2 - 110, y: 24, width: 220, height: 38 });
+    drawAssetContain(page, assets.footer, { x: width / 2 - 115, y: 18, width: 230, height: 42 });
   } else {
     page.drawText("PRIVATE ESTATES MEXICO", {
       x: width / 2 - regular.widthOfTextAtSize("PRIVATE ESTATES MEXICO", 7) / 2,
