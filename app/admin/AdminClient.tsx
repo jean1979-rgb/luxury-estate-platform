@@ -134,9 +134,16 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
   const { form, dispatch } = useAdminPropertyEditor(EMPTY_ADMIN_PROPERTY);
 
   const setForm = (next: SetStateAction<AdminPropertyInput>) => {
-    const current = normalizeAdminForm(form);
-    const value = typeof next === "function" ? next(current) : next;
-    dispatch({ type: "SET_FORM", payload: normalizeAdminForm(value) });
+    if (typeof next === "function") {
+      dispatch({
+        type: "UPDATE_FORM",
+        updater: (current: AdminPropertyInput) =>
+          normalizeAdminForm(next(normalizeAdminForm(current))),
+      });
+      return;
+    }
+
+    dispatch({ type: "SET_FORM", payload: normalizeAdminForm(next) });
   };
 
   const [selectedId, setSelectedId] = useState<string>("new");

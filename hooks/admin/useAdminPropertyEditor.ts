@@ -15,6 +15,7 @@ type State = {
 
 type Action =
   | { type: "SET_FORM"; payload: AdminPropertyInput }
+  | { type: "UPDATE_FORM"; updater: (current: AdminPropertyInput) => AdminPropertyInput }
   | { type: "PATCH_FIELD"; key: keyof AdminPropertyInput; value: any }
   | { type: "ADD_SCENE"; scene: AdminScene360 }
   | { type: "REMOVE_SCENE"; index: number }
@@ -27,6 +28,9 @@ function reducer(state: State, action: Action): State {
   switch (action.type) {
     case "SET_FORM":
       return { ...state, form: action.payload };
+
+    case "UPDATE_FORM":
+      return { ...state, form: action.updater(state.form) };
 
     case "PATCH_FIELD":
       return {
