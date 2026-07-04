@@ -110,6 +110,7 @@ export async function GET() {
     featured: item.featured,
     published: item.published,
     luxuryScore: item.luxuryScore ?? 85,
+    pemFactors: item.pemFactors || {},
     description: item.description || "",
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
