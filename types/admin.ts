@@ -86,6 +86,7 @@ export type AdminPropertyRecord = {
   tagline: string;
   coverImage: string;
   gallery: string[];
+  pdfGallery: string[];
   videoUrl: string;
   videoPoster: string;
   videoType: string;
@@ -121,6 +122,7 @@ export const EMPTY_ADMIN_PROPERTY: AdminPropertyInput = {
   tagline: "",
   coverImage: "",
   gallery: [],
+  pdfGallery: [],
   videoUrl: "",
   videoPoster: "",
   videoType: "upload",

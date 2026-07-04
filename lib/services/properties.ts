@@ -112,6 +112,7 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
   const currency = asTrimmedString(body.currency ?? existing.currency ?? "MXN") || "MXN";
   const coverImage = asTrimmedString(body.coverImage);
   const gallery = body.gallery !== undefined ? asStringArray(body.gallery) : Array.isArray(existing.gallery) ? existing.gallery.filter((item): item is string => typeof item === "string") : [];
+  const pdfGallery = body.pdfGallery !== undefined ? asStringArray(body.pdfGallery) : Array.isArray((existing as any).pdfGallery) ? (existing as any).pdfGallery.filter((item: unknown): item is string => typeof item === "string") : [];
   const zoneSlug = asTrimmedString(body.zoneSlug);
   const zoneLabel = asTrimmedString(body.zoneLabel);
 
@@ -176,6 +177,7 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
       areaTotal,
       coverImage: coverImage || null,
       gallery,
+      pdfGallery,
       tagline: tagline || null,
       description: description || null,
 

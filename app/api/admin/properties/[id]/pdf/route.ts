@@ -1,3 +1,4 @@
+import fontkit from "@pdf-lib/fontkit";
 import { NextResponse } from "next/server";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -132,14 +133,22 @@ async function embedImage(pdfDoc: PDFDocument, url?: string | null) {
   }
 }
 
-function getGalleryUrls(value: unknown, coverImage?: string | null) {
-  let gallery: string[] = [];
+function asImageUrlArray(value: unknown) {
+  if (!Array.isArray(value)) return [];
 
-  if (Array.isArray(value)) {
-    gallery = value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
-  }
+  return value.filter(
+    (item): item is string =>
+      typeof item === "string" && item.trim().length > 0
+  );
+}
 
-  const urls = [coverImage, ...gallery]
+function getGalleryUrls(galleryValue: unknown, coverImage?: string | null, pdfGalleryValue?: unknown) {
+  const gallery = asImageUrlArray(galleryValue);
+  const pdfGallery = asImageUrlArray(pdfGalleryValue);
+
+  const selectedGallery = pdfGallery.length > 0 ? pdfGallery : gallery;
+
+  const urls = [coverImage, ...selectedGallery]
     .filter((item): item is string => typeof item === "string" && item.trim().length > 0);
 
   return Array.from(new Set(urls)).slice(0, 16);
@@ -160,23 +169,30 @@ export async function GET(_req: Request, { params }: PageProps) {
   }
 
   const pdfDoc = await PDFDocument.create();
+  pdfDoc.registerFontkit(fontkit);
   pdfDoc.setTitle(property.title);
   pdfDoc.setAuthor("Private Estates Mexico");
   pdfDoc.setSubject("Ficha de propiedad");
 
   const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-  const serifFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-  const serifBoldFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+  let serifFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+  let serifBoldFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+
+  try {
+    const cormorantBytes = await readFile(path.join(process.cwd(), "public/pem-assets/fonts/CormorantGaramond-Light.ttf"));
+    serifFont = await pdfDoc.embedFont(new Uint8Array(cormorantBytes));
+    serifBoldFont = serifFont;
+  } catch {}
 
   const page = pdfDoc.addPage([595.28, 841.89]);
   const { width, height } = page.getSize();
 
   const black = rgb(0.04, 0.04, 0.04);
   const white = rgb(0.97, 0.96, 0.93);
-  const gold = rgb(0.70, 0.43, 0.13);
+  const gold = rgb(0.784, 0.635, 0.431);
   const muted = rgb(0.70, 0.66, 0.58);
-  const line = rgb(0.42, 0.28, 0.13);
+  const line = rgb(0.784, 0.635, 0.431);
 
   page.drawRectangle({
     x: 0,
@@ -189,9 +205,9 @@ export async function GET(_req: Request, { params }: PageProps) {
   const image = await embedImage(pdfDoc, property.coverImage);
 
   const pemAssets = {
-    headerLogo: await embedLocalImage(pdfDoc, "public/pem-assets/Logo.jpg"),
+    headerLogo: await embedLocalImage(pdfDoc, "public/pem-assets/Logo.png"),
     laurel: await embedLocalImage(pdfDoc, "public/pem-assets/Laurel.png"),
-    footer: await embedLocalImage(pdfDoc, "public/pem-assets/Logo footer.png"),
+    footer: await embedLocalImage(pdfDoc, "public/pem-assets/Logo footer clean.png"),
     icons: {
       price: await embedLocalImage(pdfDoc, "public/pem-assets/Precio.png"),
       location: await embedLocalImage(pdfDoc, "public/pem-assets/Ubicacion.png"),
@@ -322,6 +338,7 @@ export async function GET(_req: Request, { params }: PageProps) {
   const page2 = pdfDoc.addPage([595.28, 841.89]);
 
   drawEditorialAssessment({
+    assets: pemAssets,
     page: page2,
     width,
     height,
@@ -354,6 +371,7 @@ export async function GET(_req: Request, { params }: PageProps) {
     const page3 = pdfDoc.addPage([595.28, 841.89]);
 
     drawEditorialStory({
+    assets: pemAssets,
       page: page3,
       width,
       height,
@@ -395,6 +413,7 @@ export async function GET(_req: Request, { params }: PageProps) {
   const spatialPage = pdfDoc.addPage([595.28, 841.89]);
 
   drawEditorialSpatial({
+    assets: pemAssets,
     page: spatialPage,
     width,
     height,
@@ -419,7 +438,7 @@ export async function GET(_req: Request, { params }: PageProps) {
     wrapText,
   });
 
-  const galleryUrls = getGalleryUrls(property.gallery, property.coverImage);
+  const galleryUrls = getGalleryUrls(property.gallery, property.coverImage, (property as any).pdfGallery);
 
   if (galleryUrls.length > 1) {
     const lifestyleImage = await embedImage(pdfDoc, galleryUrls[1] || property.coverImage);
@@ -427,6 +446,7 @@ export async function GET(_req: Request, { params }: PageProps) {
     const lifestylePage = pdfDoc.addPage([595.28, 841.89]);
 
     drawEditorialLifestyle({
+    assets: pemAssets,
       page: lifestylePage,
       width,
       height,
@@ -464,6 +484,7 @@ export async function GET(_req: Request, { params }: PageProps) {
       const galleryPage = pdfDoc.addPage([595.28, 841.89]);
 
       drawEditorialGallery({
+    assets: pemAssets,
         page: galleryPage,
         width,
         height,
@@ -492,6 +513,7 @@ export async function GET(_req: Request, { params }: PageProps) {
   const contactPage = pdfDoc.addPage([595.28,841.89]);
 
   drawEditorialContact({
+    assets: pemAssets,
 
     page:contactPage,
 

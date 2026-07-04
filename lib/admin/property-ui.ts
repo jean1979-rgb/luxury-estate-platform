@@ -46,6 +46,7 @@ export function applyPropertyResult(params: {
       tagline: saved.tagline,
       coverImage: saved.coverImage,
       gallery: saved.gallery,
+      pdfGallery: Array.isArray((saved as any).pdfGallery) ? (saved as any).pdfGallery : [],
       videoUrl: saved.videoUrl || "",
       videoPoster: saved.videoPoster || "",
       videoType: saved.videoType || "upload",

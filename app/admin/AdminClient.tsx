@@ -66,6 +66,7 @@ function normalizeAdminForm(value: Partial<AdminPropertyInput> | null | undefine
     tagline: raw.tagline ?? "",
     coverImage: raw.coverImage ?? "",
     gallery: Array.isArray(raw.gallery) ? raw.gallery.filter((item: any): item is string => typeof item === "string") : [],
+    pdfGallery: Array.isArray((raw as any).pdfGallery) ? (raw as any).pdfGallery.filter((item: any): item is string => typeof item === "string") : [],
     videoUrl: raw.videoUrl ?? "",
     videoPoster: raw.videoPoster ?? "",
     videoType: raw.videoType || "upload",
@@ -262,6 +263,7 @@ const { handleUpload } = useAdminUploads({
       tagline: item.tagline,
       coverImage: item.coverImage,
       gallery: item.gallery,
+      pdfGallery: Array.isArray((item as any).pdfGallery) ? (item as any).pdfGallery : [],
       videoUrl: item.videoUrl || "",
       videoPoster: item.videoPoster || "",
       videoType: item.videoType ? item.videoType : "upload",
@@ -307,10 +309,31 @@ const { handleUpload } = useAdminUploads({
   }
 
   function removeGalleryImage(index: number) {
-    setForm((prev) => ({
-      ...prev,
-      gallery: prev.gallery.filter((_, i: any) => i !== index),
-    }));
+    setForm((prev) => {
+      const image = prev.gallery[index];
+
+      return {
+        ...prev,
+        gallery: prev.gallery.filter((_, i: any) => i !== index),
+        pdfGallery: image
+          ? (prev.pdfGallery || []).filter((item) => item !== image)
+          : prev.pdfGallery || [],
+      };
+    });
+  }
+
+  function togglePdfGalleryImage(image: string) {
+    setForm((prev) => {
+      const current = Array.isArray(prev.pdfGallery) ? prev.pdfGallery : [];
+      const exists = current.includes(image);
+
+      return {
+        ...prev,
+        pdfGallery: exists
+          ? current.filter((item) => item !== image)
+          : [...current, image],
+      };
+    });
   }
 
   function addEmptyScene() {
@@ -1052,6 +1075,7 @@ const { handleUpload } = useAdminUploads({
                   onChange={handleChange}
                   onUpload={handleUpload}
                   onRemoveGalleryImage={removeGalleryImage}
+                  onTogglePdfImage={togglePdfGalleryImage}
                   onReorderGallery={(from, to) => {
                     setForm((prev) => {
                       const next = [...prev.gallery];

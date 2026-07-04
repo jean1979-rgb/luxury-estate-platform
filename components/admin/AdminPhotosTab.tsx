@@ -6,20 +6,24 @@ import type { DragEvent, ChangeEvent } from "react";
 
 type Props = {
   gallery: string[];
+  pdfGallery: string[];
   uploadingGallery: boolean;
   coverImage: string;
   onUploadGallery: (file: File) => Promise<void> | void;
   onRemoveGalleryImage: (index: number) => void;
+  onTogglePdfImage: (image: string) => void;
   onUseAsCover: (image: string) => void;
   onReorderGallery: (from: number, to: number) => void;
 };
 
 export default function AdminPhotosTab({
   gallery,
+  pdfGallery,
   uploadingGallery,
   coverImage,
   onUploadGallery,
   onRemoveGalleryImage,
+  onTogglePdfImage,
   onUseAsCover,
   onReorderGallery,
 }: Props) {
@@ -85,13 +89,14 @@ export default function AdminPhotosTab({
             <div className="text-sm text-white/70">
               {gallery.length} imagen{gallery.length === 1 ? "" : "es"}
             </div>
-            <div className="text-xs text-white/35">Scroll interno activo</div>
+            <div className="text-xs text-amber-300">PDF: {pdfGallery.length} seleccionadas</div>
           </div>
 
           <div className="max-h-[72vh] overflow-y-auto pr-2">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 2xl:grid-cols-7">
               {gallery.map((image, index) => {
                 const isCover = image === coverImage;
+                const isPdf = pdfGallery.includes(image);
 
                 return (
                   <article
@@ -117,10 +122,6 @@ export default function AdminPhotosTab({
                     </div>
 
                     <div className="space-y-2 p-3">
-                      <div className="truncate text-[11px] text-white/35">
-                        {image}
-                      </div>
-
                       <div className="grid gap-2">
                         <button
                           type="button"
@@ -132,6 +133,18 @@ export default function AdminPhotosTab({
                           }`}
                         >
                           {isCover ? "Portada actual" : "Usar como portada"}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => onTogglePdfImage(image)}
+                          className={`w-full rounded-2xl border px-3 py-2 text-xs transition ${
+                            isPdf
+                              ? "border-amber-300/50 bg-amber-300/10 text-amber-200"
+                              : "border-white/10 text-white/75 hover:bg-white/10"
+                          }`}
+                        >
+                          {isPdf ? "✓ PDF" : "Foto PDF"}
                         </button>
 
                         <button

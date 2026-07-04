@@ -48,6 +48,7 @@ export function mapTokkoToAdminProperty(item: TokkoAdminItem): AdminPropertyInpu
     tagline: item.editorial?.tagline || item.editorial?.descriptionLuxury || "",
     coverImage: item.base?.images?.[0] || "",
     gallery: Array.isArray(item.base?.images) ? item.base.images : [],
+    pdfGallery: [],
     videoUrl: "",
     videoPoster: "",
     videoType: "upload",

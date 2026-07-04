@@ -1,42 +1,219 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
+
 type GalleryProps = {
   images?: string[];
   title?: string;
 };
 
 export default function Gallery({ images = [], title = "Propiedad" }: GalleryProps) {
-  const safeImages = Array.isArray(images)
-    ? images.filter((img) => typeof img === "string" && img.trim().length > 0)
-    : [];
+  const safeImages = useMemo(
+    () =>
+      Array.isArray(images)
+        ? images.filter((img) => typeof img === "string" && img.trim().length > 0)
+        : [],
+    [images]
+  );
+
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [open, setOpen] = useState(false);
+
+  const total = safeImages.length;
+  const current = safeImages[selectedIndex] ?? safeImages[0] ?? "";
+
+  useEffect(() => {
+    setSelectedIndex((prev) => {
+      if (safeImages.length === 0) return 0;
+      return Math.min(prev, safeImages.length - 1);
+    });
+  }, [safeImages.length]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+      if (total <= 1) return;
+      if (e.key === "ArrowLeft") goPrev();
+      if (e.key === "ArrowRight") goNext();
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, total]);
+
+  function goPrev() {
+    if (total <= 1) return;
+    setSelectedIndex((prev) => (prev - 1 + total) % total);
+  }
+
+  function goNext() {
+    if (total <= 1) return;
+    setSelectedIndex((prev) => (prev + 1) % total);
+  }
 
   if (safeImages.length === 0) {
     return (
-      <div className="flex h-[360px] w-full items-center justify-center bg-black text-sm text-white/40">
+      <div className="flex h-[560px] w-full items-center justify-center bg-black text-sm text-white/40">
         Sin imágenes disponibles
       </div>
     );
   }
 
+  const maxThumbs = 5;
+  const half = Math.floor(maxThumbs / 2);
+
+  let start = Math.max(0, selectedIndex - half);
+  let end = start + maxThumbs;
+
+  if (end > total) {
+    end = total;
+    start = Math.max(0, end - maxThumbs);
+  }
+
+  const visibleThumbs = safeImages.slice(start, end);
+
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {safeImages.map((image, index) => (
-        <a
-          key={`${image}-${index}`}
-          href={image}
-          target="_blank"
-          rel="noreferrer"
-          className="group block overflow-hidden rounded-[28px] border border-white/10 bg-black"
-        >
-          <div className="relative aspect-[4/3] w-full overflow-hidden bg-black">
+    <>
+      <div className="space-y-4">
+        <div className="relative overflow-hidden bg-black">
+          <div className="relative h-[360px] w-full cursor-zoom-in md:h-[680px]" onClick={() => setOpen(true)}>
             <img
-              src={image}
-              alt={`${title} ${index + 1}`}
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              src={current}
+              alt={`${title} ${selectedIndex + 1}`}
+              className="absolute inset-0 h-full w-full object-contain bg-black"
+            />
+
+            {total > 1 ? (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); goPrev(); }}
+                  className="absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-black/45 px-4 py-2 text-4xl leading-none text-white hover:bg-black/65"
+                  aria-label="Imagen anterior"
+                >
+                  ‹
+                </button>
+
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); goNext(); }}
+                  className="absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-black/45 px-4 py-2 text-4xl leading-none text-white hover:bg-black/65"
+                  aria-label="Imagen siguiente"
+                >
+                  ›
+                </button>
+              </>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="bg-transparent px-0 pb-0 pt-2">
+          {total > 1 ? (
+            <div className="flex w-full items-center justify-center gap-2 overflow-hidden md:gap-3">
+              <button
+                type="button"
+                onClick={goPrev}
+                className="shrink-0 rounded-full bg-neutral-500/80 px-3 py-2 text-3xl leading-none text-white hover:bg-neutral-600"
+                aria-label="Miniatura anterior"
+              >
+                ‹
+              </button>
+
+              <div className="flex min-w-0 items-center gap-2 overflow-x-auto">
+                {visibleThumbs.map((image, localIndex) => {
+                  const realIndex = start + localIndex;
+                  const active = realIndex === selectedIndex;
+
+                  return (
+                    <button
+                      key={`${image}-${realIndex}`}
+                      type="button"
+                      onClick={() => setSelectedIndex(realIndex)}
+                      className={`relative h-[64px] w-[96px] shrink-0 overflow-hidden border md:h-[84px] md:w-[126px] ${
+                        active ? "border-neutral-900 ring-1 ring-neutral-900" : "border-neutral-200"
+                      }`}
+                      aria-label={`Ver imagen ${realIndex + 1}`}
+                    >
+                      <img
+                        src={image}
+                        alt={`${title} miniatura ${realIndex + 1}`}
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                type="button"
+                onClick={goNext}
+                className="shrink-0 rounded-full bg-neutral-500/80 px-3 py-2 text-3xl leading-none text-white hover:bg-neutral-600"
+                aria-label="Miniatura siguiente"
+              >
+                ›
+              </button>
+            </div>
+          ) : null}
+
+        </div>
+      </div>
+
+      {open ? (
+        <div
+          className="fixed inset-0 z-[9999] bg-black"
+          onClick={() => setOpen(false)}
+        >
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="absolute right-8 top-4 z-30 text-6xl leading-none text-white"
+            aria-label="Cerrar"
+          >
+            ×
+          </button>
+
+          {total > 1 ? (
+            <>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goPrev();
+                }}
+                className="absolute left-6 top-1/2 z-30 -translate-y-1/2 text-7xl leading-none text-white"
+                aria-label="Imagen anterior"
+              >
+                ‹
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goNext();
+                }}
+                className="absolute right-6 top-1/2 z-30 -translate-y-1/2 text-7xl leading-none text-white"
+                aria-label="Imagen siguiente"
+              >
+                ›
+              </button>
+            </>
+          ) : null}
+
+          <div
+            className="flex h-full w-full items-center justify-center p-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={current}
+              alt={`${title} ampliada ${selectedIndex + 1}`}
+              className="max-h-[88vh] max-w-[88vw] object-contain"
             />
           </div>
-        </a>
-      ))}
-    </div>
+        </div>
+      ) : null}
+    </>
   );
 }

@@ -69,6 +69,7 @@ export function useAdminBootstrap({
           tagline: first.tagline,
           coverImage: first.coverImage,
           gallery: Array.isArray(first.gallery) ? first.gallery : [],
+          pdfGallery: Array.isArray((first as any).pdfGallery) ? (first as any).pdfGallery : [],
           videoUrl: first.videoUrl || "",
           videoPoster: first.videoPoster || "",
           videoType: first.videoType || "upload",

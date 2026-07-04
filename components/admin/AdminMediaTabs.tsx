@@ -19,6 +19,7 @@ type Props = {
   onChange: <K extends keyof AdminPropertyInput>(key: K, value: AdminPropertyInput[K]) => void;
   onUpload: (file: File, folder: "cover" | "gallery" | "scenes360") => Promise<void> | void;
   onRemoveGalleryImage: (index: number) => void;
+  onTogglePdfImage: (image: string) => void;
   onReorderGallery: (from: number, to: number) => void;
   onAddScene: () => void;
   onReorderScenes: (from: number, to: number) => void;
@@ -88,6 +89,7 @@ export default function AdminMediaTabs({
   onChange,
   onUpload,
   onRemoveGalleryImage,
+  onTogglePdfImage,
   onReorderGallery,
   onAddScene,
   onReorderScenes,
@@ -189,10 +191,12 @@ export default function AdminMediaTabs({
       {activeTab === "photos" ? (
         <AdminPhotosTab
           gallery={gallery}
+          pdfGallery={Array.isArray((form as any).pdfGallery) ? (form as any).pdfGallery : []}
           uploadingGallery={uploadingGallery}
           coverImage={form.coverImage}
           onUploadGallery={(file) => onUpload(file, "gallery")}
           onRemoveGalleryImage={onRemoveGalleryImage}
+          onTogglePdfImage={onTogglePdfImage}
           onUseAsCover={(image) => onChange("coverImage", image)}
           onReorderGallery={onReorderGallery}
         />
