@@ -901,6 +901,15 @@ const { handleUpload } = useAdminUploads({
                       <span className="text-white">{form.gallery.length}</span>
                     </div>
 
+                    <div className="flex items-center justify-between rounded-2xl border border-amber-400/20 bg-amber-500/[0.03] px-4 py-3">
+                      <span>Fotos PDF</span>
+                      <span className="text-amber-300">
+                        {Array.isArray(form.pdfGallery)
+                          ? form.pdfGallery.length
+                          : 0}
+                      </span>
+                    </div>
+
                     <div className="flex items-center justify-between rounded-2xl border border-white/10 px-4 py-3">
                       <span>Cover</span>
                       <span className="text-white">{form.coverImage ? "Sí" : "No"}</span>
