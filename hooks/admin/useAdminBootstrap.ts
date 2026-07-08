@@ -78,6 +78,7 @@ export function useAdminBootstrap({
           published: first.published,
           luxuryScore: first.luxuryScore,
           pemFactors: first.pemFactors || {},
+          materials: Array.isArray(first.materials) ? first.materials : [],
           description: first.description,
         });
       }

@@ -57,6 +57,7 @@ export function mapTokkoToAdminProperty(item: TokkoAdminItem): AdminPropertyInpu
     published: false,
     luxuryScore: 80,
     pemFactors: {},
+    materials: [],
     description: item.editorial?.descriptionLuxury || item.base?.description || "",
   };
 }

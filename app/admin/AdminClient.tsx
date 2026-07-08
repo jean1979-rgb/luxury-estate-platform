@@ -19,6 +19,7 @@ import AdminTokkoPanel from "@/components/admin/AdminTokkoPanel";
 import LogoutButton from "@/components/auth/LogoutButton";
 import { buildScene, buildHotspot } from "@/lib/admin/editor-commands";
 import type { TokkoAdminItem } from "@/lib/admin/tokko-helpers";
+import { materialCatalog } from "@/lib/editorial/materialCatalog";
 function slugify(value: string) {
   return value
     .normalize("NFD")
@@ -273,6 +274,7 @@ const { handleUpload } = useAdminUploads({
       published: item.published,
       luxuryScore: item.luxuryScore,
       pemFactors: item.pemFactors || {},
+      materials: Array.isArray(item.materials) ? item.materials : [],
     });
   }
 
@@ -304,6 +306,22 @@ const { handleUpload } = useAdminUploads({
           ...current,
           [group]: nextList,
         },
+      };
+    });
+  }
+
+  function toggleMaterial(value: string) {
+    setForm((prev) => {
+      const currentList = Array.isArray(prev.materials)
+        ? prev.materials
+        : [];
+      const nextList = currentList.includes(value)
+        ? currentList.filter((item) => item !== value)
+        : [...currentList, value];
+
+      return {
+        ...prev,
+        materials: nextList,
       };
     });
   }
@@ -1067,6 +1085,32 @@ const { handleUpload } = useAdminUploads({
                           </div>
                         </div>
                       ))}
+                    </div>
+
+                    <div className="mt-6 rounded-[22px] border border-white/10 bg-white/[0.025] p-4">
+                      <div className="mb-4 text-[11px] uppercase tracking-[0.22em] text-[#d6b464]">
+                        Materialidad y acabados
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {materialCatalog.map((material) => {
+                          const selected = Array.isArray(form.materials)
+                            ? form.materials.includes(material.id)
+                            : false;
+
+                          return (
+                            <label key={material.id} className="flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-3 py-3 text-sm text-white/70">
+                              <input
+                                type="checkbox"
+                                checked={selected}
+                                onChange={() => toggleMaterial(material.id)}
+                                className="h-4 w-4 accent-[#d6b464]"
+                              />
+                              <span>{material.title}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -55,6 +55,7 @@ export function applyPropertyResult(params: {
       published: saved.published,
       luxuryScore: saved.luxuryScore,
       pemFactors: saved.pemFactors || {},
+      materials: Array.isArray(saved.materials) ? saved.materials : [],
       description: saved.description,
     });
   }

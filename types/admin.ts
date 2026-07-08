@@ -96,6 +96,7 @@ export type AdminPropertyRecord = {
   published: boolean;
   luxuryScore: number;
   pemFactors: AdminPemFactors;
+  materials: string[];
   description: string;
   createdAt: string;
   updatedAt: string;
@@ -132,5 +133,6 @@ export const EMPTY_ADMIN_PROPERTY: AdminPropertyInput = {
   published: false,
   luxuryScore: 85,
   pemFactors: {},
+  materials: [],
   description: "",
 };
