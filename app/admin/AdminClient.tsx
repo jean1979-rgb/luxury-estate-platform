@@ -20,6 +20,16 @@ import LogoutButton from "@/components/auth/LogoutButton";
 import { buildScene, buildHotspot } from "@/lib/admin/editor-commands";
 import type { TokkoAdminItem } from "@/lib/admin/tokko-helpers";
 import { materialCatalog } from "@/lib/editorial/materialCatalog";
+
+const materialGroups = [
+  "Piedra Natural",
+  "Madera",
+  "Telas Naturales",
+  "Detalles Metálicos",
+  "Acabados",
+  "Iluminación",
+] as const;
+
 function slugify(value: string) {
   return value
     .normalize("NFD")
@@ -1092,13 +1102,21 @@ const { handleUpload } = useAdminUploads({
                         Materialidad y acabados
                       </div>
 
-                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {materialCatalog.map((material) => {
-                          const selected = Array.isArray(form.materials)
-                            ? form.materials.includes(material.id)
-                            : false;
+                      {materialGroups.map((group)=>(
+                        <div key={group} className="space-y-3">
+                          <div className="text-xs tracking-[0.35em] uppercase text-[#c58d42]">
+                            {group}
+                          </div>
 
-                          return (
+                          <div className="grid gap-3">
+                            {materialCatalog
+                              .filter((m)=>m.family===group)
+                              .map((material)=>{
+                                const selected=Array.isArray(form.materials)
+                                  ? form.materials.includes(material.id)
+                                  : false;
+
+                                return (
                             <label key={material.id} className="flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-3 py-3 text-sm text-white/70">
                               <input
                                 type="checkbox"
@@ -1108,9 +1126,11 @@ const { handleUpload } = useAdminUploads({
                               />
                               <span>{material.title}</span>
                             </label>
-                          );
-                        })}
-                      </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
