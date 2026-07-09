@@ -15,6 +15,7 @@ import { drawEditorialGallery } from "@/lib/pdf/editorial-gallery";
 import { drawEditorialLifestyle } from "@/lib/pdf/editorial-lifestyle";
 import { drawEditorialSpatial } from "@/lib/pdf/editorial-spatial";
 import { drawEditorialContact } from "@/lib/pdf/editorial-contact";
+import { drawEditorialMaterials } from "@/lib/pdf/editorial-materials";
 import QRCode from "qrcode";
 
 export const runtime = "nodejs";
@@ -334,6 +335,7 @@ export async function GET(_req: Request, { params }: PageProps) {
   }
 
   const pemFactorItems = getPemFactorItems(property.pemFactors);
+  const galleryUrls = getGalleryUrls(property.gallery, property.coverImage, (property as any).pdfGallery);
 
   const page2 = pdfDoc.addPage([595.28, 841.89]);
 
@@ -396,6 +398,37 @@ export async function GET(_req: Request, { params }: PageProps) {
     });
   }
 
+  const selectedMaterials = Array.isArray((property as any).materials) ? (property as any).materials : [];
+
+  if (selectedMaterials.length > 0) {
+    const materialsImage = await embedImage(pdfDoc, galleryUrls[2] || galleryUrls[1] || property.coverImage);
+    const materialsPage = pdfDoc.addPage([595.28, 841.89]);
+
+    drawEditorialMaterials({
+      assets: pemAssets,
+      page: materialsPage,
+      width,
+      height,
+      property,
+      image: materialsImage,
+      fonts: {
+        regular: regularFont,
+        bold: boldFont,
+        serif: serifFont,
+        serifBold: serifBoldFont,
+      },
+      colors: {
+        black,
+        white,
+        gold,
+        muted,
+        line,
+      },
+      cleanText,
+      wrapText,
+    });
+  }
+
   const publicUrl = `https://www.privateestatesmexico.com/properties/${property.slug || property.id}`;
   const qrDataUrl = await QRCode.toDataURL(publicUrl, {
     margin: 1,
@@ -437,8 +470,6 @@ export async function GET(_req: Request, { params }: PageProps) {
     cleanText,
     wrapText,
   });
-
-  const galleryUrls = getGalleryUrls(property.gallery, property.coverImage, (property as any).pdfGallery);
 
   if (galleryUrls.length > 1) {
     const lifestyleImage = await embedImage(pdfDoc, galleryUrls[1] || property.coverImage);
