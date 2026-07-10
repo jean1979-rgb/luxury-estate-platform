@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useEffect, useRef, useState } from "react";
 import type { DragEvent, ChangeEvent } from "react";
 import type {
   PdfAssignments,
@@ -52,6 +53,31 @@ export default function AdminPhotosTab({
 }: Props) {
   const dragIndexRef = useRef<number | null>(null);
   const [pendingImage, setPendingImage] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!pendingImage) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setPendingImage(null);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [pendingImage]);
 
   async function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files || []);
@@ -213,80 +239,83 @@ export default function AdminPhotosTab({
         </section>
       )}
 
-      {pendingImage ? (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-5 backdrop-blur-sm"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              setPendingImage(null);
-            }
-          }}
-        >
-          <div className="w-full max-w-lg rounded-[28px] border border-white/15 bg-[#121212] p-6 shadow-2xl">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="text-[11px] uppercase tracking-[0.28em] text-amber-300">
-                  PDF editorial
+      {mounted && pendingImage
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-black/80 px-4 py-8 backdrop-blur-sm"
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget) {
+                  setPendingImage(null);
+                }
+              }}
+            >
+              <div className="my-auto w-full max-w-lg rounded-[28px] border border-white/15 bg-[#121212] p-6 shadow-2xl">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.28em] text-amber-300">
+                      PDF editorial
+                    </div>
+
+                    <h3 className="mt-2 text-xl font-medium text-white">
+                      Asignar fotografía
+                    </h3>
+
+                    <p className="mt-2 text-sm text-white/50">
+                      Selecciona la página donde se utilizará esta imagen.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setPendingImage(null)}
+                    className="rounded-full border border-white/10 px-3 py-2 text-sm text-white/60 hover:bg-white/10"
+                  >
+                    Cerrar
+                  </button>
                 </div>
 
-                <h3 className="mt-2 text-xl font-medium text-white">
-                  Asignar fotografía
-                </h3>
+                <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                  {PDF_PAGE_OPTIONS.map((option) => {
+                    const selected =
+                      pdfAssignments[pendingImage] === option.value;
 
-                <p className="mt-2 text-sm text-white/50">
-                  Selecciona la página donde se utilizará esta imagen.
-                </p>
-              </div>
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => {
+                          onSetPdfAssignment(pendingImage, option.value);
+                          setPendingImage(null);
+                        }}
+                        className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
+                          selected
+                            ? "border-amber-300/60 bg-amber-300/10 text-amber-200"
+                            : "border-white/10 text-white/75 hover:bg-white/10"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
 
-              <button
-                type="button"
-                onClick={() => setPendingImage(null)}
-                className="rounded-full border border-white/10 px-3 py-2 text-sm text-white/60 hover:bg-white/10"
-              >
-                Cerrar
-              </button>
-            </div>
-
-            <div className="mt-5 grid gap-2 sm:grid-cols-2">
-              {PDF_PAGE_OPTIONS.map((option) => {
-                const selected =
-                  pdfAssignments[pendingImage] === option.value;
-
-                return (
+                {pdfGallery.includes(pendingImage) ? (
                   <button
-                    key={option.value}
                     type="button"
                     onClick={() => {
-                      onSetPdfAssignment(pendingImage, option.value);
+                      onTogglePdfImage(pendingImage);
                       setPendingImage(null);
                     }}
-                    className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
-                      selected
-                        ? "border-amber-300/60 bg-amber-300/10 text-amber-200"
-                        : "border-white/10 text-white/75 hover:bg-white/10"
-                    }`}
+                    className="mt-5 w-full rounded-2xl border border-red-300/20 px-4 py-3 text-sm text-red-200/80 transition hover:bg-red-300/10"
                   >
-                    {option.label}
+                    Quitar del PDF
                   </button>
-                );
-              })}
-            </div>
-
-            {pdfGallery.includes(pendingImage) ? (
-              <button
-                type="button"
-                onClick={() => {
-                  onTogglePdfImage(pendingImage);
-                  setPendingImage(null);
-                }}
-                className="mt-5 w-full rounded-2xl border border-red-300/20 px-4 py-3 text-sm text-red-200/80 transition hover:bg-red-300/10"
-              >
-                Quitar del PDF
-              </button>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
+                ) : null}
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
     </div>
   );
 }
