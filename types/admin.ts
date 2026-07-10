@@ -1,5 +1,18 @@
 export type AdminPropertyStatus = "draft" | "published" | "archived";
 
+export type PdfEditorialPage =
+  | "cover"
+  | "architecture"
+  | "spaces"
+  | "materials"
+  | "wellness"
+  | "gallery"
+  | "destination"
+  | "investment"
+  | "contact";
+
+export type PdfAssignments = Partial<Record<string, PdfEditorialPage>>;
+
 export type AdminPropertyType =
   | "villa"
   | "penthouse"
@@ -87,6 +100,7 @@ export type AdminPropertyRecord = {
   coverImage: string;
   gallery: string[];
   pdfGallery: string[];
+  pdfAssignments?: PdfAssignments;
   videoUrl: string;
   videoPoster: string;
   videoType: string;
@@ -124,6 +138,7 @@ export const EMPTY_ADMIN_PROPERTY: AdminPropertyInput = {
   coverImage: "",
   gallery: [],
   pdfGallery: [],
+  pdfAssignments: {},
   videoUrl: "",
   videoPoster: "",
   videoType: "upload",

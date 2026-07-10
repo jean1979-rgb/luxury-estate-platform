@@ -87,6 +87,12 @@ export async function PATCH(req: Request, context: RouteContext) {
       coverImage: hydrated.coverImage || "",
       gallery: Array.isArray(hydrated.gallery) ? hydrated.gallery : [],
       pdfGallery: Array.isArray((hydrated as any).pdfGallery) ? (hydrated as any).pdfGallery : [],
+      pdfAssignments:
+        (hydrated as any).pdfAssignments &&
+        typeof (hydrated as any).pdfAssignments === "object" &&
+        !Array.isArray((hydrated as any).pdfAssignments)
+          ? (hydrated as any).pdfAssignments
+          : {},
       videoUrl: hydrated.videoUrl || "",
       videoPoster: hydrated.videoPoster || "",
       videoType: hydrated.videoType || "upload",

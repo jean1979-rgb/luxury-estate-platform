@@ -47,6 +47,12 @@ export function applyPropertyResult(params: {
       coverImage: saved.coverImage,
       gallery: saved.gallery,
       pdfGallery: Array.isArray((saved as any).pdfGallery) ? (saved as any).pdfGallery : [],
+      pdfAssignments:
+        saved.pdfAssignments &&
+        typeof saved.pdfAssignments === "object" &&
+        !Array.isArray(saved.pdfAssignments)
+          ? saved.pdfAssignments
+          : {},
       videoUrl: saved.videoUrl || "",
       videoPoster: saved.videoPoster || "",
       videoType: saved.videoType || "upload",

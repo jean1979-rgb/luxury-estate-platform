@@ -1,7 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { AdminHotspot, AdminHotspotType, AdminPropertyInput, AdminScene360 } from "@/types/admin";
+import type {
+  AdminHotspot,
+  AdminHotspotType,
+  AdminPropertyInput,
+  AdminScene360,
+  PdfEditorialPage,
+} from "@/types/admin";
 import AdminCoverTab from "@/components/admin/AdminCoverTab";
 import AdminPhotosTab from "@/components/admin/AdminPhotosTab";
 import AdminScenes360Tab from "@/components/admin/AdminScenes360Tab";
@@ -20,6 +26,7 @@ type Props = {
   onUpload: (file: File, folder: "cover" | "gallery" | "scenes360") => Promise<void> | void;
   onRemoveGalleryImage: (index: number) => void;
   onTogglePdfImage: (image: string) => void;
+  onSetPdfAssignment: (image: string, page: PdfEditorialPage) => void;
   onReorderGallery: (from: number, to: number) => void;
   onAddScene: () => void;
   onReorderScenes: (from: number, to: number) => void;
@@ -90,6 +97,7 @@ export default function AdminMediaTabs({
   onUpload,
   onRemoveGalleryImage,
   onTogglePdfImage,
+  onSetPdfAssignment,
   onReorderGallery,
   onAddScene,
   onReorderScenes,
@@ -191,12 +199,14 @@ export default function AdminMediaTabs({
       {activeTab === "photos" ? (
         <AdminPhotosTab
           gallery={gallery}
-          pdfGallery={Array.isArray((form as any).pdfGallery) ? (form as any).pdfGallery : []}
+          pdfGallery={Array.isArray(form.pdfGallery) ? form.pdfGallery : []}
+          pdfAssignments={form.pdfAssignments || {}}
           uploadingGallery={uploadingGallery}
           coverImage={form.coverImage}
           onUploadGallery={(file) => onUpload(file, "gallery")}
           onRemoveGalleryImage={onRemoveGalleryImage}
           onTogglePdfImage={onTogglePdfImage}
+          onSetPdfAssignment={onSetPdfAssignment}
           onUseAsCover={(image) => onChange("coverImage", image)}
           onReorderGallery={onReorderGallery}
         />

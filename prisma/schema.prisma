@@ -80,6 +80,7 @@ model BrokerProperty {
   coverImage        String?
   gallery           Json?
   pdfGallery        Json?
+  pdfAssignments    Json?
   videoUrl          String?
   videoPoster       String?
   videoType         String?

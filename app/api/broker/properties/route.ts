@@ -54,6 +54,12 @@ export async function GET() {
     coverImage: item.coverImage || "",
     gallery: Array.isArray(item.gallery) ? item.gallery : [],
     pdfGallery: Array.isArray(item.pdfGallery) ? item.pdfGallery : [],
+    pdfAssignments:
+      item.pdfAssignments &&
+      typeof item.pdfAssignments === "object" &&
+      !Array.isArray(item.pdfAssignments)
+        ? item.pdfAssignments
+        : {},
     videoUrl: item.videoUrl || "",
     videoPoster: item.videoPoster || "",
     videoType: item.videoType || "upload",
@@ -216,6 +222,12 @@ export async function POST(req: Request) {
           coverImage: body.coverImage ? String(body.coverImage).trim() : null,
           gallery: Array.isArray(body.gallery) ? body.gallery : [],
           pdfGallery: Array.isArray(body.pdfGallery) ? body.pdfGallery : [],
+          pdfAssignments:
+            body.pdfAssignments &&
+            typeof body.pdfAssignments === "object" &&
+            !Array.isArray(body.pdfAssignments)
+              ? body.pdfAssignments
+              : {},
           tagline: body.tagline ? String(body.tagline).trim() : null,
           description: body.description ? String(body.description).trim() : null,
           videoUrl: body.videoUrl ? String(body.videoUrl).trim() : null,
@@ -266,6 +278,12 @@ export async function POST(req: Request) {
       coverImage: updated.coverImage || "",
       gallery: Array.isArray(updated.gallery) ? updated.gallery : [],
       pdfGallery: Array.isArray((updated as any).pdfGallery) ? (updated as any).pdfGallery : [],
+      pdfAssignments:
+        (updated as any).pdfAssignments &&
+        typeof (updated as any).pdfAssignments === "object" &&
+        !Array.isArray((updated as any).pdfAssignments)
+          ? (updated as any).pdfAssignments
+          : {},
       videoUrl: updated.videoUrl || "",
       videoPoster: updated.videoPoster || "",
       videoType: updated.videoType || "upload",

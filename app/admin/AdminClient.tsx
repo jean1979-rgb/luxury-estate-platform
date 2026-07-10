@@ -12,6 +12,7 @@ import type {
   AdminPropertyInput,
   AdminPropertyRecord,
   AdminScene360,
+  PdfEditorialPage,
 } from "@/types/admin";
 import { EMPTY_ADMIN_PROPERTY } from "@/types/admin";
 import AdminMediaTabs from "@/components/admin/AdminMediaTabs";
@@ -78,6 +79,12 @@ function normalizeAdminForm(value: Partial<AdminPropertyInput> | null | undefine
     coverImage: raw.coverImage ?? "",
     gallery: Array.isArray(raw.gallery) ? raw.gallery.filter((item: any): item is string => typeof item === "string") : [],
     pdfGallery: Array.isArray((raw as any).pdfGallery) ? (raw as any).pdfGallery.filter((item: any): item is string => typeof item === "string") : [],
+      pdfAssignments:
+        raw.pdfAssignments &&
+        typeof raw.pdfAssignments === "object" &&
+        !Array.isArray(raw.pdfAssignments)
+          ? raw.pdfAssignments
+          : {},
     videoUrl: raw.videoUrl ?? "",
     videoPoster: raw.videoPoster ?? "",
     videoType: raw.videoType || "upload",
@@ -340,12 +347,19 @@ const { handleUpload } = useAdminUploads({
     setForm((prev) => {
       const image = prev.gallery[index];
 
+      const nextAssignments = { ...(prev.pdfAssignments || {}) };
+
+      if (image) {
+        delete nextAssignments[image];
+      }
+
       return {
         ...prev,
         gallery: prev.gallery.filter((_, i: any) => i !== index),
         pdfGallery: image
           ? (prev.pdfGallery || []).filter((item) => item !== image)
           : prev.pdfGallery || [],
+        pdfAssignments: nextAssignments,
       };
     });
   }
@@ -355,11 +369,37 @@ const { handleUpload } = useAdminUploads({
       const current = Array.isArray(prev.pdfGallery) ? prev.pdfGallery : [];
       const exists = current.includes(image);
 
+      const nextAssignments = { ...(prev.pdfAssignments || {}) };
+
+      if (exists) {
+        delete nextAssignments[image];
+      }
+
       return {
         ...prev,
         pdfGallery: exists
           ? current.filter((item) => item !== image)
           : [...current, image],
+        pdfAssignments: nextAssignments,
+      };
+    });
+  }
+
+  function setPdfAssignment(image: string, page: PdfEditorialPage) {
+    setForm((prev) => {
+      const currentPdfGallery = Array.isArray(prev.pdfGallery)
+        ? prev.pdfGallery
+        : [];
+
+      return {
+        ...prev,
+        pdfGallery: currentPdfGallery.includes(image)
+          ? currentPdfGallery
+          : [...currentPdfGallery, image],
+        pdfAssignments: {
+          ...(prev.pdfAssignments || {}),
+          [image]: page,
+        },
       };
     });
   }
@@ -1149,6 +1189,7 @@ const { handleUpload } = useAdminUploads({
                   onUpload={handleUpload}
                   onRemoveGalleryImage={removeGalleryImage}
                   onTogglePdfImage={togglePdfGalleryImage}
+                  onSetPdfAssignment={setPdfAssignment}
                   onReorderGallery={(from, to) => {
                     setForm((prev) => {
                       const next = [...prev.gallery];

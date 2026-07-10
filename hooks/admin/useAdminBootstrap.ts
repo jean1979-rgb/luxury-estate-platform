@@ -70,6 +70,12 @@ export function useAdminBootstrap({
           coverImage: first.coverImage,
           gallery: Array.isArray(first.gallery) ? first.gallery : [],
           pdfGallery: Array.isArray((first as any).pdfGallery) ? (first as any).pdfGallery : [],
+      pdfAssignments:
+        first.pdfAssignments &&
+        typeof first.pdfAssignments === "object" &&
+        !Array.isArray(first.pdfAssignments)
+          ? first.pdfAssignments
+          : {},
           videoUrl: first.videoUrl || "",
           videoPoster: first.videoPoster || "",
           videoType: first.videoType || "upload",
