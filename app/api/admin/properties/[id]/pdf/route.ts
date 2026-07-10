@@ -15,6 +15,7 @@ import { drawEditorialGallery } from "@/lib/pdf/editorial-gallery";
 import { drawEditorialLifestyle } from "@/lib/pdf/editorial-lifestyle";
 import { drawEditorialSpatial } from "@/lib/pdf/editorial-spatial";
 import { drawEditorialContact } from "@/lib/pdf/editorial-contact";
+import { resolveEditorialImages } from "@/lib/pdf/editorial-images";
 import { drawEditorialMaterials } from "@/lib/pdf/editorial-materials";
 import QRCode from "qrcode";
 
@@ -335,7 +336,14 @@ export async function GET(_req: Request, { params }: PageProps) {
   }
 
   const pemFactorItems = getPemFactorItems(property.pemFactors);
-  const galleryUrls = getGalleryUrls(property.gallery, property.coverImage, (property as any).pdfGallery);
+  const editorialImages = resolveEditorialImages({
+    gallery: property.gallery,
+    pdfGallery: property.pdfGallery,
+    pdfAssignments: property.pdfAssignments,
+    coverImage: property.coverImage,
+  });
+
+  const galleryUrls = editorialImages.all;
 
   const page2 = pdfDoc.addPage([595.28, 841.89]);
 
@@ -401,7 +409,13 @@ export async function GET(_req: Request, { params }: PageProps) {
   const selectedMaterials = Array.isArray((property as any).materials) ? (property as any).materials : [];
 
   if (selectedMaterials.length > 0) {
-    const materialsImage = await embedImage(pdfDoc, galleryUrls[2] || galleryUrls[1] || property.coverImage);
+    const materialsImageUrl =
+      editorialImages.materials[0] ||
+      galleryUrls[2] ||
+      galleryUrls[1] ||
+      property.coverImage;
+
+    const materialsImage = await embedImage(pdfDoc, materialsImageUrl);
     const materialsPage = pdfDoc.addPage([595.28, 841.89]);
 
     drawEditorialMaterials({
@@ -472,7 +486,12 @@ export async function GET(_req: Request, { params }: PageProps) {
   });
 
   if (galleryUrls.length > 1) {
-    const lifestyleImage = await embedImage(pdfDoc, galleryUrls[1] || property.coverImage);
+    const lifestyleImageUrl =
+      editorialImages.wellness[0] ||
+      galleryUrls[1] ||
+      property.coverImage;
+
+    const lifestyleImage = await embedImage(pdfDoc, lifestyleImageUrl);
 
     const lifestylePage = pdfDoc.addPage([595.28, 841.89]);
 
@@ -505,7 +524,12 @@ export async function GET(_req: Request, { params }: PageProps) {
   if (galleryUrls.length > 1) {
     const galleryImages = [];
 
-    for (const url of galleryUrls.slice(1)) {
+    const curatedGalleryUrls =
+      editorialImages.gallery.length > 0
+        ? editorialImages.gallery
+        : galleryUrls.slice(1);
+
+    for (const url of curatedGalleryUrls) {
       const img = await embedImage(pdfDoc, url);
       if (img) galleryImages.push(img);
       if (galleryImages.length >= 12) break;
