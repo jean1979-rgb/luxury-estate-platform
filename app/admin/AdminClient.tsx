@@ -148,6 +148,9 @@ export default function AdminClient({ forcedPropertyId }: { forcedPropertyId?: s
   const propertyIdFromUrl = forcedPropertyId || searchParams.get("propertyId");
   const isLightStudio = Boolean(forcedPropertyId);
   const [activeHotspotScene, setActiveHotspotScene] = useState<string | null>(null);
+  const [openMaterialGroups, setOpenMaterialGroups] = useState<Record<string, boolean>>({
+    "Piedra Natural": true,
+  });
   const [items, setItems] = useState<AdminPropertyRecord[]>([]);
   
   const { form, dispatch } = useAdminPropertyEditor(EMPTY_ADMIN_PROPERTY);
@@ -1142,35 +1145,78 @@ const { handleUpload } = useAdminUploads({
                         Materialidad y acabados
                       </div>
 
-                      {materialGroups.map((group)=>(
-                        <div key={group} className="space-y-3">
-                          <div className="text-xs tracking-[0.35em] uppercase text-[#c58d42]">
-                            {group}
-                          </div>
+                      <div className="space-y-3">
+                        {materialGroups.map((group) => {
+                          const isOpen = Boolean(openMaterialGroups[group]);
+                          const groupMaterials = materialCatalog.filter(
+                            (material) => material.family === group
+                          );
+                          const selectedCount = groupMaterials.filter((material) =>
+                            Array.isArray(form.materials)
+                              ? form.materials.includes(material.id)
+                              : false
+                          ).length;
 
-                          <div className="grid gap-3">
-                            {materialCatalog
-                              .filter((m)=>m.family===group)
-                              .map((material)=>{
-                                const selected=Array.isArray(form.materials)
-                                  ? form.materials.includes(material.id)
-                                  : false;
+                          return (
+                            <div
+                              key={group}
+                              className="overflow-hidden rounded-2xl border border-white/10 bg-black/15"
+                            >
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setOpenMaterialGroups((prev) => ({
+                                    ...prev,
+                                    [group]: !prev[group],
+                                  }))
+                                }
+                                className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition hover:bg-white/[0.04]"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="text-xs uppercase tracking-[0.35em] text-[#c58d42]">
+                                    {group}
+                                  </span>
 
-                                return (
-                            <label key={material.id} className="flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-black/20 px-3 py-3 text-sm text-white/70">
-                              <input
-                                type="checkbox"
-                                checked={selected}
-                                onChange={() => toggleMaterial(material.id)}
-                                className="h-4 w-4 accent-[#d6b464]"
-                              />
-                              <span>{material.title}</span>
-                            </label>
-                                );
-                              })}
-                          </div>
-                        </div>
-                      ))}
+                                  {selectedCount > 0 ? (
+                                    <span className="rounded-full border border-[#c58d42]/30 bg-[#c58d42]/10 px-2 py-0.5 text-[10px] text-[#d6b464]">
+                                      {selectedCount}
+                                    </span>
+                                  ) : null}
+                                </div>
+
+                                <span className="text-sm text-white/50">
+                                  {isOpen ? "−" : "+"}
+                                </span>
+                              </button>
+
+                              {isOpen ? (
+                                <div className="grid gap-2 border-t border-white/10 p-3">
+                                  {groupMaterials.map((material) => {
+                                    const selected = Array.isArray(form.materials)
+                                      ? form.materials.includes(material.id)
+                                      : false;
+
+                                    return (
+                                      <label
+                                        key={material.id}
+                                        className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[13px] text-white/70"
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={selected}
+                                          onChange={() => toggleMaterial(material.id)}
+                                          className="h-4 w-4 accent-[#d6b464]"
+                                        />
+                                        <span>{material.title}</span>
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              ) : null}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 </div>
