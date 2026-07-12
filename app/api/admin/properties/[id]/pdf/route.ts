@@ -16,6 +16,7 @@ import { drawEditorialLifestyle } from "@/lib/pdf/editorial-lifestyle";
 import { drawEditorialSpatial } from "@/lib/pdf/editorial-spatial";
 import { drawEditorialContact } from "@/lib/pdf/editorial-contact";
 import { resolveEditorialImages } from "@/lib/pdf/editorial-images";
+import { getPemLabel } from "@/lib/editorial/pemFactorHelpers";
 import { drawEditorialMaterials } from "@/lib/pdf/editorial-materials";
 import QRCode from "qrcode";
 
@@ -264,71 +265,57 @@ export async function GET(_req: Request, { params }: PageProps) {
         ? "Seleccionada por Private Estates Mexico por su equilibrio entre ubicación, diseño, amenidades y valor residencial."
         : "Seleccionada por Private Estates Mexico como parte de una curaduría editorial de residencias con alto valor residencial.";
 
-  const pemFactorLabels: Record<string, string> = {
-    partial: "Vista parcial",
-    open: "Vista abierta",
-    panoramic: "Vista panorámica",
-    iconic: "Vista icónica",
-    medium: "Privacidad media",
-    high: "Privacidad alta",
-    very_high: "Privacidad muy alta",
-    estate: "Privacidad estate-level",
-    none: "Sin relación directa con el mar",
-    near_ocean: "Cercano al mar",
-    ocean_view: "Vista al mar",
-    oceanfront: "Frente al mar",
-    beach_access: "Acceso directo a playa",
-    selection: "Selección PEM",
-    signature: "Residencia Signature",
-    resort: "Lifestyle resort",
-    family: "Family retreat",
-    wellness: "Wellness",
-    entertainment: "Entretenimiento",
-    investment: "Inversión patrimonial",
-    second_home: "Segunda residencia",
-    primary_home: "Residencia permanente",
-    beach_club: "Club de playa",
-    spa: "Spa",
-    gym: "Gimnasio",
-    padel: "Pádel",
-    tennis: "Tenis",
-    marina: "Marina",
-    private_pool: "Alberca privada",
-    roof_garden: "Roof garden",
-    dock: "Muelle",
-    helipad: "Helipuerto",
-    contemporary: "Arquitectura contemporánea",
-    author_design: "Arquitectura de autor",
-    curated_interiors: "Diseño interior curado",
-    double_height: "Doble altura",
-    natural_stone: "Piedra / mármol natural",
-    luxury_millwork: "Carpintería de lujo",
-    floor_to_ceiling: "Ventanales piso-techo",
-    premium_materials: "Materiales premium",
-  };
-
-  function labelPemFactor(value: unknown) {
-    const key = String(value || "").trim();
-    return pemFactorLabels[key] || key;
-  }
-
   function getPemFactorItems(value: unknown) {
     if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+
     const factors = value as Record<string, unknown>;
     const items: string[] = [];
 
-    for (const key of ["viewQuality", "privacy", "oceanRelation", "pemClassification"]) {
-      if (typeof factors[key] === "string" && factors[key]) {
-        items.push(labelPemFactor(factors[key]));
+    if (typeof factors.viewQuality === "string" && factors.viewQuality) {
+      items.push(getPemLabel(factors.viewQuality, "viewQuality"));
+    }
+
+    if (typeof factors.privacy === "string" && factors.privacy) {
+      items.push(getPemLabel(factors.privacy, "privacy"));
+    }
+
+    if (typeof factors.oceanRelation === "string" && factors.oceanRelation) {
+      items.push(getPemLabel(factors.oceanRelation, "oceanRelation"));
+    }
+
+    if (
+      typeof factors.pemClassification === "string" &&
+      factors.pemClassification
+    ) {
+      items.push(
+        getPemLabel(
+          factors.pemClassification,
+          "pemClassification"
+        )
+      );
+    }
+
+    for (const item of Array.isArray(factors.experience)
+      ? factors.experience
+      : []) {
+      if (typeof item === "string" && item) {
+        items.push(getPemLabel(item, "experience"));
       }
     }
 
-    for (const key of ["experience", "amenities", "architecture"]) {
-      const list = factors[key];
-      if (Array.isArray(list)) {
-        for (const item of list) {
-          if (typeof item === "string" && item) items.push(labelPemFactor(item));
-        }
+    for (const item of Array.isArray(factors.amenities)
+      ? factors.amenities
+      : []) {
+      if (typeof item === "string" && item) {
+        items.push(getPemLabel(item, "amenities"));
+      }
+    }
+
+    for (const item of Array.isArray(factors.architecture)
+      ? factors.architecture
+      : []) {
+      if (typeof item === "string" && item) {
+        items.push(getPemLabel(item, "architecture"));
       }
     }
 

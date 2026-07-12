@@ -21,6 +21,7 @@ import LogoutButton from "@/components/auth/LogoutButton";
 import { buildScene, buildHotspot } from "@/lib/admin/editor-commands";
 import type { TokkoAdminItem } from "@/lib/admin/tokko-helpers";
 import { materialCatalog } from "@/lib/editorial/materialCatalog";
+import { getPemFactorsByGroup } from "@/lib/editorial/pemFactorHelpers";
 
 const materialGroups = [
   "Piedra Natural",
@@ -1025,10 +1026,11 @@ const { handleUpload } = useAdminUploads({
                           className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none"
                         >
                           <option value="">Sin definir</option>
-                          <option value="partial">Vista parcial</option>
-                          <option value="open">Vista abierta</option>
-                          <option value="panoramic">Vista panorámica</option>
-                          <option value="iconic">Vista icónica</option>
+                          {getPemFactorsByGroup("viewQuality").map((factor) => (
+                            <option key={factor.id} value={factor.id}>
+                              {factor.label}
+                            </option>
+                          ))}
                         </select>
                       </label>
 
@@ -1040,10 +1042,11 @@ const { handleUpload } = useAdminUploads({
                           className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none"
                         >
                           <option value="">Sin definir</option>
-                          <option value="medium">Media</option>
-                          <option value="high">Alta</option>
-                          <option value="very_high">Muy alta</option>
-                          <option value="estate">Estate-level</option>
+                          {getPemFactorsByGroup("privacy").map((factor) => (
+                            <option key={factor.id} value={factor.id}>
+                              {factor.label}
+                            </option>
+                          ))}
                         </select>
                       </label>
 
@@ -1055,11 +1058,11 @@ const { handleUpload } = useAdminUploads({
                           className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none"
                         >
                           <option value="">Sin definir</option>
-                          <option value="none">Sin relación directa</option>
-                          <option value="near_ocean">Cercano al mar</option>
-                          <option value="ocean_view">Vista al mar</option>
-                          <option value="oceanfront">Frente al mar</option>
-                          <option value="beach_access">Acceso directo a playa</option>
+                          {getPemFactorsByGroup("oceanRelation").map((factor) => (
+                            <option key={factor.id} value={factor.id}>
+                              {factor.label}
+                            </option>
+                          ))}
                         </select>
                       </label>
 
@@ -1071,73 +1074,72 @@ const { handleUpload } = useAdminUploads({
                           className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none"
                         >
                           <option value="">Sin definir</option>
-                          <option value="selection">Selección PEM</option>
-                          <option value="signature">Signature</option>
-                          <option value="iconic">Iconic</option>
+                          {getPemFactorsByGroup("pemClassification").map((factor) => (
+                            <option key={factor.id} value={factor.id}>
+                              {factor.label}
+                            </option>
+                          ))}
                         </select>
                       </label>
                     </div>
 
                     <div className="mt-6 grid gap-5 lg:grid-cols-3">
                       {[
-                        ["experience", "Experiencia", [
-                          ["resort", "Lifestyle resort"],
-                          ["family", "Family retreat"],
-                          ["wellness", "Wellness"],
-                          ["entertainment", "Entretenimiento"],
-                          ["investment", "Inversión patrimonial"],
-                          ["second_home", "Segunda residencia"],
-                          ["primary_home", "Residencia permanente"],
-                        ]],
-                        ["amenities", "Amenidades premium", [
-                          ["beach_club", "Club de playa"],
-                          ["spa", "Spa"],
-                          ["gym", "Gimnasio"],
-                          ["padel", "Pádel"],
-                          ["tennis", "Tenis"],
-                          ["marina", "Marina"],
-                          ["private_pool", "Alberca privada"],
-                          ["roof_garden", "Roof garden"],
-                          ["dock", "Muelle"],
-                          ["helipad", "Helipuerto"],
-                        ]],
-                        ["architecture", "Arquitectura", [
-                          ["contemporary", "Arquitectura contemporánea"],
-                          ["author_design", "Arquitectura de autor"],
-                          ["curated_interiors", "Diseño interior curado"],
-                          ["double_height", "Doble altura"],
-                          ["natural_stone", "Piedra / mármol natural"],
-                          ["luxury_millwork", "Carpintería de lujo"],
-                          ["floor_to_ceiling", "Ventanales piso-techo"],
-                          ["premium_materials", "Materiales premium"],
-                        ]],
-                      ].map(([group, label, options]: any) => (
-                        <div key={group} className="rounded-[22px] border border-white/10 bg-white/[0.025] p-4">
-                          <div className="mb-4 text-[11px] uppercase tracking-[0.22em] text-[#d6b464]">
-                            {label}
-                          </div>
+                        {
+                          group: "experience" as const,
+                          label: "Experiencia",
+                        },
+                        {
+                          group: "amenities" as const,
+                          label: "Amenidades premium",
+                        },
+                        {
+                          group: "architecture" as const,
+                          label: "Arquitectura",
+                        },
+                      ].map(({ group, label }) => {
+                        const options = getPemFactorsByGroup(group);
 
-                          <div className="space-y-3">
-                            {options.map(([value, text]: any) => {
-                              const selected = Array.isArray((form.pemFactors as any)?.[group])
-                                ? ((form.pemFactors as any)[group] as string[]).includes(value)
-                                : false;
+                        return (
+                          <div
+                            key={group}
+                            className="rounded-[22px] border border-white/10 bg-white/[0.025] p-4"
+                          >
+                            <div className="mb-4 text-[11px] uppercase tracking-[0.22em] text-[#d6b464]">
+                              {label}
+                            </div>
 
-                              return (
-                                <label key={value} className="flex cursor-pointer items-center gap-3 text-sm text-white/70">
-                                  <input
-                                    type="checkbox"
-                                    checked={selected}
-                                    onChange={() => togglePemFactor(group, value)}
-                                    className="h-4 w-4 accent-[#d6b464]"
-                                  />
-                                  <span>{text}</span>
-                                </label>
-                              );
-                            })}
+                            <div className="space-y-3">
+                              {options.map((factor) => {
+                                const selected = Array.isArray(
+                                  (form.pemFactors as any)?.[group]
+                                )
+                                  ? (
+                                      (form.pemFactors as any)[group] as string[]
+                                    ).includes(factor.id)
+                                  : false;
+
+                                return (
+                                  <label
+                                    key={factor.id}
+                                    className="flex cursor-pointer items-center gap-3 text-sm text-white/70"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={selected}
+                                      onChange={() =>
+                                        togglePemFactor(group, factor.id)
+                                      }
+                                      className="h-4 w-4 accent-[#d6b464]"
+                                    />
+                                    <span>{factor.label}</span>
+                                  </label>
+                                );
+                              })}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     <div className="mt-6 rounded-[22px] border border-white/10 bg-white/[0.025] p-4">

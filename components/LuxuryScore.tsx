@@ -1,3 +1,4 @@
+import { getPemLabel } from "@/lib/editorial/pemFactorHelpers";
 type PemFactors = {
   viewQuality?: string;
   privacy?: string;
@@ -128,66 +129,37 @@ function asPemFactors(value: unknown): PemFactors {
   return value as PemFactors;
 }
 
-const factorLabels: Record<string, string> = {
-  partial: "Vista parcial",
-  open: "Vista abierta",
-  panoramic: "Vista panorámica",
-  iconic: "Vista icónica",
-  medium: "Privacidad media",
-  high: "Privacidad alta",
-  very_high: "Privacidad muy alta",
-  estate: "Privacidad estate-level",
-  none: "Sin relación directa con el mar",
-  near_ocean: "Cercano al mar",
-  ocean_view: "Vista al mar",
-  oceanfront: "Frente al mar",
-  beach_access: "Acceso directo a playa",
-  selection: "Selección PEM",
-  signature: "Residencia Signature",
-  resort: "Lifestyle resort",
-  family: "Family retreat",
-  wellness: "Wellness",
-  entertainment: "Entretenimiento",
-  investment: "Inversión patrimonial",
-  second_home: "Segunda residencia",
-  primary_home: "Residencia permanente",
-  beach_club: "Club de playa",
-  spa: "Spa",
-  gym: "Gimnasio",
-  padel: "Pádel",
-  tennis: "Tenis",
-  marina: "Marina",
-  private_pool: "Alberca privada",
-  roof_garden: "Roof garden",
-  dock: "Muelle",
-  helipad: "Helipuerto",
-  contemporary: "Arquitectura contemporánea",
-  author_design: "Arquitectura de autor",
-  curated_interiors: "Diseño interior curado",
-  double_height: "Doble altura",
-  natural_stone: "Piedra / mármol natural",
-  luxury_millwork: "Carpintería de lujo",
-  floor_to_ceiling: "Ventanales piso-techo",
-  premium_materials: "Materiales premium",
-};
-
-function labelFor(value?: string) {
-  if (!value) return "";
-  return factorLabels[value] || value;
-}
-
 function getSelectedFactorHighlights(factors: PemFactors) {
   const items: string[] = [];
 
-  if (factors.viewQuality) items.push(labelFor(factors.viewQuality));
-  if (factors.privacy) items.push(labelFor(factors.privacy));
-  if (factors.oceanRelation) items.push(labelFor(factors.oceanRelation));
-  if (factors.pemClassification) items.push(labelFor(factors.pemClassification));
+  if (factors.viewQuality) {
+    items.push(getPemLabel(factors.viewQuality, "viewQuality"));
+  }
 
-  for (const group of [factors.experience, factors.amenities, factors.architecture]) {
-    if (Array.isArray(group)) {
-      for (const item of group) items.push(labelFor(item));
-    }
+  if (factors.privacy) {
+    items.push(getPemLabel(factors.privacy, "privacy"));
+  }
+
+  if (factors.oceanRelation) {
+    items.push(getPemLabel(factors.oceanRelation, "oceanRelation"));
+  }
+
+  if (factors.pemClassification) {
+    items.push(
+      getPemLabel(factors.pemClassification, "pemClassification")
+    );
+  }
+
+  for (const item of factors.experience || []) {
+    items.push(getPemLabel(item, "experience"));
+  }
+
+  for (const item of factors.amenities || []) {
+    items.push(getPemLabel(item, "amenities"));
+  }
+
+  for (const item of factors.architecture || []) {
+    items.push(getPemLabel(item, "architecture"));
   }
 
   return items.filter(Boolean).slice(0, 10);
@@ -206,7 +178,7 @@ export default function LuxuryScore({
   const factors = asPemFactors(pemFactors);
   const selectedHighlights = getSelectedFactorHighlights(factors);
   const positioning = factors.pemClassification
-    ? labelFor(factors.pemClassification)
+    ? getPemLabel(factors.pemClassification, "pemClassification")
     : getPositioning(value || 0);
   const collection = getCollection(location, title);
 
