@@ -8,7 +8,7 @@ import {
   rgb,
 } from "pdf-lib";
 import { prisma } from "@/lib/prisma";
-import { drawEditorialCover } from "@/lib/pdf/editorial-cover";
+import { drawEditorialPage1 } from "@/lib/pdf/pages/editorial-page1";
 import { drawEditorialAssessment } from "@/lib/pdf/editorial-assessment";
 import { drawEditorialStory } from "@/lib/pdf/editorial-story";
 import { drawEditorialGallery } from "@/lib/pdf/editorial-gallery";
@@ -188,7 +188,19 @@ export async function GET(_req: Request, { params }: PageProps) {
     serifBoldFont = serifFont;
   } catch {}
 
-  const page = pdfDoc.addPage([595.28, 841.89]);
+  const page1TemplateBytes = await readFile(
+    path.join(
+      process.cwd(),
+      "lib/pdf/templates/final/page1.pdf"
+    )
+  );
+
+  const [page1Template] = await pdfDoc.embedPdf(
+    page1TemplateBytes,
+    [0]
+  );
+
+  const page = pdfDoc.addPage([648, 936]);
   const { width, height } = page.getSize();
 
   const black = rgb(0.04, 0.04, 0.04);
@@ -205,7 +217,24 @@ export async function GET(_req: Request, { params }: PageProps) {
     color: black,
   });
 
-  const image = await embedImage(pdfDoc, property.coverImage);
+  const localPdfGallery = asImageUrlArray(property.pdfGallery);
+  const localGallery = asImageUrlArray(property.gallery);
+
+  const coverImageUrl =
+    property.coverImage ||
+    localPdfGallery[0] ||
+    localGallery[0] ||
+    null;
+
+  console.log("========== PDF IMAGE ==========");
+  console.log("coverImage:", property.coverImage);
+  console.log("pdfGallery:", property.pdfGallery);
+  console.log("gallery:", property.gallery);
+  console.log("coverImageUrl:", coverImageUrl);
+  console.log("===============================");
+
+  const image = await embedImage(pdfDoc, coverImageUrl);
+
 
   const pemAssets = {
     headerLogo: await embedLocalImage(pdfDoc, "public/pem-assets/Logo.png"),
@@ -220,7 +249,7 @@ export async function GET(_req: Request, { params }: PageProps) {
     },
   };
 
-  drawEditorialCover({
+  drawEditorialPage1({
     pdfDoc,
     page,
     width,
@@ -240,6 +269,7 @@ export async function GET(_req: Request, { params }: PageProps) {
       line,
     },
     image,
+    templatePage: page1Template,
     assets: pemAssets,
     formatPrice,
     formatCount,
