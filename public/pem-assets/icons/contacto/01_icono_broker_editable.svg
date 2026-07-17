@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140">
+  <g id="broker-icon" fill="none" stroke="#A67B0B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <circle id="head" cx="70" cy="39" r="16"/>
+    <path id="shoulders" d="M44 100c1.8-22.5 11.2-35.5 26-35.5S94.2 77.5 96 100"/>
+    <path id="base" d="M44 100h52"/>
+  </g>
+</svg>

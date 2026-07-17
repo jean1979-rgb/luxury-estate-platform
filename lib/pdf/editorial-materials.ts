@@ -252,5 +252,5 @@ export function drawEditorialMaterials(params: Params) {
     });
   });
 
-  drawPemFooter({ page, width, regular, gold, line, footer: assets?.footer });
+  drawPemFooter({ page, width, regular, gold, line });
 }

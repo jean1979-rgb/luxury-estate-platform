@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140">
+  <g id="globe-icon" fill="none" stroke="#A67B0B" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+    <circle id="outer-circle" cx="70" cy="70" r="42"/>
+    <ellipse id="vertical-ellipse" cx="70" cy="70" rx="19" ry="42"/>
+    <path id="equator" d="M28 70h84"/>
+    <path id="upper-latitude" d="M36 48c10 8 22 12 34 12s24-4 34-12"/>
+    <path id="lower-latitude" d="M36 92c10-8 22-12 34-12s24 4 34 12"/>
+    <path id="meridian" d="M70 28v84"/>
+  </g>
+</svg>

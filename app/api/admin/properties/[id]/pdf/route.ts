@@ -241,6 +241,11 @@ export async function GET(_req: Request, { params }: PageProps) {
     },
     image,
     assets: pemAssets,
+=======
+    assets: pemAssets,
+    templatePage: page1Template,=======
+    templatePage: page1Template,
+>>>>>>> dc17b58 (fix: restore stable PDF generator after rollback)
     formatPrice,
     formatCount,
     formatArea,
@@ -335,7 +340,6 @@ export async function GET(_req: Request, { params }: PageProps) {
   const page2 = pdfDoc.addPage([595.28, 841.89]);
 
   drawEditorialAssessment({
-    assets: pemAssets,
     page: page2,
     width,
     height,
@@ -368,7 +372,6 @@ export async function GET(_req: Request, { params }: PageProps) {
     const page3 = pdfDoc.addPage([595.28, 841.89]);
 
     drawEditorialStory({
-    assets: pemAssets,
       page: page3,
       width,
       height,
@@ -406,8 +409,7 @@ export async function GET(_req: Request, { params }: PageProps) {
     const materialsPage = pdfDoc.addPage([595.28, 841.89]);
 
     drawEditorialMaterials({
-      assets: pemAssets,
-      page: materialsPage,
+        page: materialsPage,
       width,
       height,
       property,
@@ -447,7 +449,6 @@ export async function GET(_req: Request, { params }: PageProps) {
   const spatialPage = pdfDoc.addPage([595.28, 841.89]);
 
   drawEditorialSpatial({
-    assets: pemAssets,
     page: spatialPage,
     width,
     height,
@@ -483,7 +484,6 @@ export async function GET(_req: Request, { params }: PageProps) {
     const lifestylePage = pdfDoc.addPage([595.28, 841.89]);
 
     drawEditorialLifestyle({
-    assets: pemAssets,
       page: lifestylePage,
       width,
       height,
@@ -526,7 +526,6 @@ export async function GET(_req: Request, { params }: PageProps) {
       const galleryPage = pdfDoc.addPage([595.28, 841.89]);
 
       drawEditorialGallery({
-    assets: pemAssets,
         page: galleryPage,
         width,
         height,
@@ -555,7 +554,6 @@ export async function GET(_req: Request, { params }: PageProps) {
   const contactPage = pdfDoc.addPage([595.28,841.89]);
 
   drawEditorialContact({
-    assets: pemAssets,
 
     page:contactPage,
 
