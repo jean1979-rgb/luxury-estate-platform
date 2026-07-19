@@ -297,6 +297,35 @@ export default function AdminPhotosTab({
                       </button>
                     );
                   })}
+
+                  <select
+                    defaultValue=""
+                    aria-label="Espacio representado"
+                    className="appearance-none rounded-2xl border border-white/10 bg-[#121212] px-4 py-3 text-left text-sm text-white/75 outline-none transition hover:bg-white/10 focus:border-amber-300/60"
+                  >
+                    <option value="" disabled>
+                      Espacio
+                    </option>
+                    <option value="fachada">Fachada</option>
+                    <option value="acceso-principal">Acceso principal</option>
+                    <option value="vestibulo">Vestíbulo</option>
+                    <option value="sala">Sala</option>
+                    <option value="comedor">Comedor</option>
+                    <option value="cocina">Cocina</option>
+                    <option value="family-room">Family Room</option>
+                    <option value="bar">Bar</option>
+                    <option value="terraza">Terraza</option>
+                    <option value="alberca">Alberca</option>
+                    <option value="jardin">Jardín</option>
+                    <option value="master-suite">Master Suite</option>
+                    <option value="recamara">Recámara</option>
+                    <option value="bano">Baño</option>
+                    <option value="vestidor">Vestidor</option>
+                    <option value="roof-garden">Roof Garden</option>
+                    <option value="vista">Vista</option>
+                    <option value="amenidad">Amenidad</option>
+                    <option value="otro">Otro</option>
+                  </select>
                 </div>
 
                 {pdfGallery.includes(pendingImage) ? (

@@ -1,3 +1,4 @@
+import { drawPdfGuides } from "@/lib/pdf/editorial-guides";
 import type { PDFDocument, PDFFont, PDFPage, RGB } from "pdf-lib";
 
 type PemAssets = {
@@ -90,7 +91,7 @@ export function drawEditorialCover(params: DrawCoverParams) {
     drawAssetCover(page, image, { x: 0, y: 0, width, height });
   }
 
-  page.drawRectangle({ x: 0, y: height - 285, width, height: 285, color: black, opacity: 0.78 });
+  page.drawRectangle({ x: 0, y: height - 285, width, height: 285, color: black });
   page.drawRectangle({ x: 0, y: height - 390, width, height: 120, color: black, opacity: 0.32 });
   page.drawRectangle({ x: 0, y: 0, width, height: 335, color: black, opacity: 0.91 });
   page.drawRectangle({ x: 0, y: 250, width, height: 105, color: black, opacity: 0.42 });
@@ -105,6 +106,9 @@ export function drawEditorialCover(params: DrawCoverParams) {
     borderWidth: 0.55,
   });
 
+  // Guías temporales de alineación.
+  drawPdfGuides(page, width, height);
+
   if (assets?.headerLogo) {
     drawAssetContain(page, assets.headerLogo, {
       x: 132,
@@ -115,7 +119,7 @@ export function drawEditorialCover(params: DrawCoverParams) {
   }
 
   page.drawText(coverLabel, { x: 34, y: 300, size: 8, font: bold, color: gold });
-  page.drawLine({ start: { x: 34, y: 286 }, end: { x: 205, y: 286 }, thickness: 0.7, color: gold });
+  page.drawLine({ start: { x: 34, y: 286 }, end: { x: 342, y: 286 }, thickness: 0.7, color: gold });
 
   const titleLines = wrapText(property.title, 29).slice(0, 3);
   let titleY = 252;
@@ -131,18 +135,58 @@ export function drawEditorialCover(params: DrawCoverParams) {
     drawAssetContain(page, assets.laurel, { x: 388, y: 105, width: 185, height: 135 });
   }
 
-  page.drawText("LUXURY SCORE", { x: 432, y: 247, size: 9.5, font: bold, color: gold });
+  const scoreCenterX = 480.5;
+
+  const scoreLabel = "LUXURY SCORE";
+  const scoreLabelSize = 9.5;
+
+  page.drawText(scoreLabel, {
+    x: scoreCenterX - bold.widthOfTextAtSize(scoreLabel, scoreLabelSize) / 2,
+    y: 247,
+    size: scoreLabelSize,
+    font: bold,
+    color: gold,
+  });
+
   const scoreText = String(score);
+  const scoreSize = 22;
+
   page.drawText(scoreText, {
-    x: 475 - serif.widthOfTextAtSize(scoreText, 54) / 2,
-    y: 168,
-    size: 54,
+    x: scoreCenterX - serif.widthOfTextAtSize(scoreText, scoreSize) / 2,
+    y: 185,
+    size: scoreSize,
     font: serif,
     color: gold,
   });
-  page.drawText("/ 100", { x: 452, y: 136, size: 16, font: serif, color: white });
-  page.drawLine({ start: { x: 420, y: 92 }, end: { x: 540, y: 92 }, thickness: 0.7, color: gold });
-  page.drawText("CURATED COLLECTION", { x: 423, y: 67, size: 11, font: serif, color: gold });
+
+  const subscoreText = "/ 100";
+  const subscoreSize = 11;
+
+  page.drawText(subscoreText, {
+    x: scoreCenterX - serif.widthOfTextAtSize(subscoreText, subscoreSize) / 2,
+    y: 139,
+    size: subscoreSize,
+    font: serif,
+    color: white,
+  });
+
+  page.drawLine({
+    start: { x: 420, y: 92 },
+    end: { x: 540, y: 92 },
+    thickness: 0.7,
+    color: gold,
+  });
+
+  const collectionText = "CURATED COLLECTION";
+  const collectionSize = 11;
+
+  page.drawText(collectionText, {
+    x: scoreCenterX - serif.widthOfTextAtSize(collectionText, collectionSize) / 2,
+    y: 67,
+    size: collectionSize,
+    font: serif,
+    color: gold,
+  });
 
   const facts = [
     ["PRECIO", formatPrice(property.price, property.currency), assets?.icons?.price],

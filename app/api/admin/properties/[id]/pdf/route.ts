@@ -9,7 +9,7 @@ import {
 } from "pdf-lib";
 import { prisma } from "@/lib/prisma";
 import { drawEditorialCover } from "@/lib/pdf/editorial-cover";
-import { drawEditorialAssessment } from "@/lib/pdf/editorial-assessment";
+import { drawEditorialPage2 } from "@/lib/pdf/pages/editorial-page2";
 import { drawEditorialStory } from "@/lib/pdf/editorial-story";
 import { drawEditorialGallery } from "@/lib/pdf/editorial-gallery";
 import { drawEditorialLifestyle } from "@/lib/pdf/editorial-lifestyle";
@@ -241,11 +241,6 @@ export async function GET(_req: Request, { params }: PageProps) {
     },
     image,
     assets: pemAssets,
-=======
-    assets: pemAssets,
-    templatePage: page1Template,=======
-    templatePage: page1Template,
->>>>>>> dc17b58 (fix: restore stable PDF generator after rollback)
     formatPrice,
     formatCount,
     formatArea,
@@ -337,13 +332,89 @@ export async function GET(_req: Request, { params }: PageProps) {
 
   const galleryUrls = editorialImages.all;
 
-  const page2 = pdfDoc.addPage([595.28, 841.89]);
+  const page2TemplateBytes = await readFile(
+    path.join(
+      process.cwd(),
+      "lib/pdf/templates/final/page2.pdf"
+    )
+  );
 
-  drawEditorialAssessment({
+  const [page2Template] = await pdfDoc.embedPdf(
+    page2TemplateBytes,
+    [0]
+  );
+
+  const page2 = pdfDoc.addPage([595.28, 841.89]);
+  const {
+    width: page2Width,
+    height: page2Height,
+  } = page2.getSize();
+
+  const architectureUrls =
+    editorialImages.architecture.length > 0
+      ? editorialImages.architecture
+      : [
+          galleryUrls[1],
+          galleryUrls[2],
+          property.coverImage,
+        ].filter(
+          (value): value is string =>
+            typeof value === "string" &&
+            value.trim().length > 0
+        );
+
+  const architectureImage1 = await embedImage(
+    pdfDoc,
+    architectureUrls[0] ||
+      galleryUrls[1] ||
+      property.coverImage
+  );
+
+  const architectureImage2 = await embedImage(
+    pdfDoc,
+    architectureUrls[1] ||
+      architectureUrls[0] ||
+      galleryUrls[2] ||
+      property.coverImage
+  );
+
+  console.log("[PDF PAGE 2]", {
+    architectureUrls,
+    image1Loaded: Boolean(architectureImage1),
+    image2Loaded: Boolean(architectureImage2),
+  });
+
+  const architectureFactorIds =
+    property.pemFactors &&
+    typeof property.pemFactors === "object" &&
+    !Array.isArray(property.pemFactors) &&
+    Array.isArray(
+      (property.pemFactors as Record<string, unknown>)
+        .architecture
+    )
+      ? (
+          (property.pemFactors as Record<string, unknown>)
+            .architecture as unknown[]
+        )
+      : [];
+
+  const architectureFactors =
+    architectureFactorIds
+      .map((factorId) =>
+        cleanText(getPemLabel(String(factorId)))
+      )
+      .filter(Boolean);
+
+  drawEditorialPage2({
+    templatePage: page2Template,
     page: page2,
-    width,
-    height,
+    width: page2Width,
+    height: page2Height,
     property,
+    images: [
+      architectureImage1,
+      architectureImage2,
+    ],
     fonts: {
       regular: regularFont,
       bold: boldFont,
@@ -357,13 +428,7 @@ export async function GET(_req: Request, { params }: PageProps) {
       muted,
       line,
     },
-    score,
-    selectionLabel,
-    selectionReason,
-    pemFactorItems,
-    formatPrice,
-    formatCount,
-    formatArea,
+    architectureFactors,
     cleanText,
     wrapText,
   });

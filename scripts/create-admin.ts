@@ -1,7 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import "dotenv/config";
+import { prisma } from "../lib/prisma";
 import bcrypt from "bcryptjs";
-
-const prisma = new PrismaClient();
 
 async function main() {
   const email = "admin@privateestates.mx";
@@ -38,7 +37,6 @@ async function main() {
 
 main()
   .catch((error) => {
-    console.error("ADMIN_ERROR");
     console.error(error);
     process.exit(1);
   })

@@ -1,7 +1,9 @@
-import type { PDFFont, PDFPage, RGB } from "pdf-lib";
+import { drawPdfGuides } from "@/lib/pdf/editorial-guides";
+import type { PDFEmbeddedPage, PDFFont, PDFPage, RGB } from "pdf-lib";
 import { rgb } from "pdf-lib";
 
 type Params = {
+  templatePage?: PDFEmbeddedPage;
   page: PDFPage;
   width: number;
   height: number;
@@ -65,6 +67,7 @@ function drawChip(page: PDFPage, text: string, x: number, y: number, font: PDFFo
 
 export function drawEditorialAssessment(params: Params) {
   const {
+    templatePage,
     page,
     width,
     height,
@@ -85,7 +88,208 @@ export function drawEditorialAssessment(params: Params) {
   const { regular, bold, serif } = fonts;
   const { black, white, gold, muted, line } = colors;
 
-  page.drawRectangle({ x: 0, y: 0, width, height, color: black });
+  if (templatePage) {
+    page.drawPage(templatePage, {
+      x: 0,
+      y: 0,
+      width,
+      height,
+    });
+
+    drawPdfGuides(page, width, height);
+
+    // ======================================================
+    // ENCABEZADO
+    // ======================================================
+
+    page.drawText("PRIVATE ESTATES REVIEW", {
+      x: 46,
+      y: 782,
+      size: 7.5,
+      font: bold,
+      color: gold,
+    });
+
+    page.drawText("Editorial Assessment", {
+      x: 46,
+      y: 735,
+      size: 28,
+      font: serif,
+      color: white,
+    });
+
+    // ======================================================
+    // SELECCIÓN EDITORIAL
+    // ======================================================
+
+    page.drawText(selectionLabel, {
+      x: 46,
+      y: 680,
+      size: 11,
+      font: serif,
+      color: gold,
+    });
+
+    let reasonY = 650;
+
+    for (const lineText of wrapText(selectionReason, 48).slice(0, 4)) {
+      page.drawText(lineText, {
+        x: 46,
+        y: reasonY,
+        size: 9.5,
+        font: regular,
+        color: muted,
+      });
+
+      reasonY -= 15;
+    }
+
+    // ======================================================
+    // LUXURY SCORE
+    // ======================================================
+
+    const scoreCenterX = 445;
+
+    const scoreLabel = "LUXURY SCORE";
+    const scoreLabelSize = 7.5;
+
+    page.drawText(scoreLabel, {
+      x:
+        scoreCenterX -
+        bold.widthOfTextAtSize(scoreLabel, scoreLabelSize) / 2,
+      y: 674,
+      size: scoreLabelSize,
+      font: bold,
+      color: gold,
+    });
+
+    const scoreText = String(score);
+    const scoreSize = 44;
+
+    page.drawText(scoreText, {
+      x:
+        scoreCenterX -
+        serif.widthOfTextAtSize(scoreText, scoreSize) / 2,
+      y: 605,
+      size: scoreSize,
+      font: serif,
+      color: gold,
+    });
+
+    const subscoreText = "/ 100";
+    const subscoreSize = 11;
+
+    page.drawText(subscoreText, {
+      x:
+        scoreCenterX -
+        serif.widthOfTextAtSize(subscoreText, subscoreSize) / 2,
+      y: 579,
+      size: subscoreSize,
+      font: serif,
+      color: white,
+    });
+
+    // ======================================================
+    // PERFIL DE LA PROPIEDAD
+    // ======================================================
+
+    page.drawText("PROPERTY PROFILE", {
+      x: 46,
+      y: 500,
+      size: 7.5,
+      font: bold,
+      color: gold,
+    });
+
+    const facts = [
+      ["PRECIO", formatPrice(property.price, property.currency)],
+      ["UBICACIÓN", shortLocation(property.location, property.city)],
+      ["RECÁMARAS", formatCount(property.bedrooms)],
+      ["BAÑOS", formatCount(property.bathrooms)],
+      [
+        "SUPERFICIE",
+        formatArea(property.areaTotal ?? property.areaInterior),
+      ],
+    ].filter(([, value]) => cleanText(value));
+
+    let factY = 466;
+
+    for (const [label, value] of facts) {
+      page.drawText(String(label), {
+        x: 46,
+        y: factY,
+        size: 7.3,
+        font: bold,
+        color: gold,
+      });
+
+      const valueLines = wrapText(
+        cleanText(value),
+        label === "UBICACIÓN" ? 25 : 22
+      ).slice(0, 2);
+
+      let valueY = factY;
+
+      for (const valueLine of valueLines) {
+        page.drawText(valueLine, {
+          x: 160,
+          y: valueY,
+          size: 8.8,
+          font: regular,
+          color: white,
+        });
+
+        valueY -= 11;
+      }
+
+      factY -= label === "UBICACIÓN" ? 30 : 24;
+    }
+
+    // ======================================================
+    // FACTORES DESTACADOS PEM
+    // ======================================================
+
+    page.drawText("FACTORES DESTACADOS PEM", {
+      x: 300,
+      y: 500,
+      size: 7.5,
+      font: bold,
+      color: gold,
+    });
+
+    let chipX = 300;
+    let chipY = 466;
+
+    for (const item of pemFactorItems.slice(0, 12)) {
+      const w = drawChip(
+        page,
+        cleanText(item),
+        chipX,
+        chipY,
+        regular,
+        gold,
+        white
+      );
+
+      chipX += w + 7;
+
+      if (chipX > width - 115) {
+        chipX = 300;
+        chipY -= 31;
+      }
+    }
+
+    return;
+  }
+
+  // Fallback si no hay plantilla.
+  page.drawRectangle({
+    x: 0,
+    y: 0,
+    width,
+    height,
+    color: black,
+  });
 
   page.drawRectangle({
     x: 26,
@@ -94,158 +298,5 @@ export function drawEditorialAssessment(params: Params) {
     height: height - 52,
     borderColor: line,
     borderWidth: 0.45,
-  });
-
-  page.drawText("PRIVATE ESTATES REVIEW", {
-    x: 44,
-    y: height - 72,
-    size: 8,
-    font: bold,
-    color: gold,
-  });
-
-  page.drawText("Editorial Assessment", {
-    x: 44,
-    y: height - 122,
-    size: 32,
-    font: serif,
-    color: white,
-  });
-
-  page.drawLine({
-    start: { x: 44, y: height - 145 },
-    end: { x: width - 44, y: height - 145 },
-    thickness: 0.7,
-    color: gold,
-  });
-
-  page.drawText(selectionLabel, {
-    x: 44,
-    y: height - 185,
-    size: 13,
-    font: serif,
-    color: gold,
-  });
-
-  let reasonY = height - 220;
-  for (const lineText of wrapText(selectionReason, 54).slice(0, 4)) {
-    page.drawText(lineText, {
-      x: 44,
-      y: reasonY,
-      size: 10.5,
-      font: regular,
-      color: muted,
-    });
-    reasonY -= 17;
-  }
-
-  page.drawText("LUXURY SCORE", {
-    x: 410,
-    y: height - 188,
-    size: 8,
-    font: bold,
-    color: gold,
-  });
-
-  const scoreText = String(score);
-  page.drawText(scoreText, {
-    x: 440 - serif.widthOfTextAtSize(scoreText, 70) / 2,
-    y: height - 270,
-    size: 70,
-    font: serif,
-    color: gold,
-  });
-
-  page.drawText("/ 100", {
-    x: 421,
-    y: height - 295,
-    size: 14,
-    font: serif,
-    color: white,
-  });
-
-  page.drawLine({
-    start: { x: 385, y: height - 320 },
-    end: { x: 500, y: height - 320 },
-    thickness: 0.6,
-    color: gold,
-  });
-
-  const facts = [
-    ["Precio", formatPrice(property.price, property.currency)],
-    ["Ubicación", shortLocation(property.location, property.city)],
-    ["Recámaras", formatCount(property.bedrooms)],
-    ["Baños", formatCount(property.bathrooms)],
-    ["Superficie", formatArea(property.areaTotal ?? property.areaInterior)],
-  ].filter(([, value]) => cleanText(value));
-
-  page.drawText("PROPERTY PROFILE", {
-    x: 44,
-    y: height - 380,
-    size: 8,
-    font: bold,
-    color: gold,
-  });
-
-  let factY = height - 415;
-  for (const [label, value] of facts) {
-    page.drawText(String(label).toUpperCase(), {
-      x: 44,
-      y: factY,
-      size: 7.5,
-      font: bold,
-      color: gold,
-    });
-
-    const valueLines = wrapText(cleanText(value), label === "Ubicación" ? 32 : 26).slice(0, 2);
-    let vy = factY;
-    for (const valueLine of valueLines) {
-      page.drawText(valueLine, {
-        x: 155,
-        y: vy,
-        size: 9.5,
-        font: regular,
-        color: white,
-      });
-      vy -= 12;
-    }
-
-    factY -= label === "Ubicación" ? 32 : 25;
-  }
-
-  page.drawText("FACTORES DESTACADOS PEM", {
-    x: 300,
-    y: height - 380,
-    size: 8,
-    font: bold,
-    color: gold,
-  });
-
-  let chipX = 300;
-  let chipY = height - 415;
-
-  for (const item of pemFactorItems.slice(0, 12)) {
-    const w = drawChip(page, cleanText(item), chipX, chipY, regular, gold, white);
-    chipX += w + 8;
-
-    if (chipX > width - 140) {
-      chipX = 300;
-      chipY -= 33;
-    }
-  }
-
-  page.drawLine({
-    start: { x: 44, y: 78 },
-    end: { x: width - 44, y: 78 },
-    thickness: 0.45,
-    color: line,
-  });
-
-  page.drawText("Private Estates Mexico · Editorial Collection", {
-    x: 44,
-    y: 50,
-    size: 7.5,
-    font: regular,
-    color: muted,
   });
 }
