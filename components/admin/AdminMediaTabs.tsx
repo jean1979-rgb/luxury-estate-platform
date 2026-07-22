@@ -36,6 +36,8 @@ type Props = {
   onUpdateHotspot: (sceneIndex: number, hotspotIndex: number, patch: Partial<AdminHotspot>) => void;
   onRemoveHotspot: (sceneIndex: number, hotspotIndex: number) => void;
   onUploadVideo: (file: File) => Promise<void> | void;
+  onSave: () => void;
+  saving: boolean;
   yawToPercent: (yaw: number) => number;
   pitchToPercent: (pitch: number) => number;
 };
@@ -107,6 +109,8 @@ export default function AdminMediaTabs({
   onUpdateHotspot,
   onRemoveHotspot,
   onUploadVideo,
+  onSave,
+  saving,
   yawToPercent,
   pitchToPercent,
 }: Props) {
@@ -130,13 +134,24 @@ export default function AdminMediaTabs({
   return (
     <section className="rounded-[28px] border border-white/10 bg-black/20 p-6">
       <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-        <div>
-          <div className="text-[11px] uppercase tracking-[0.3em] text-white/35">
-            Media suite
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.3em] text-white/35">
+              Media suite
+            </div>
+            <div className="mt-2 text-sm text-white/55">
+              Cover, fotos y escenas 360 en una sola superficie full width.
+            </div>
           </div>
-          <div className="mt-2 text-sm text-white/55">
-            Cover, fotos y escenas 360 en una sola superficie full width.
-          </div>
+
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={saving}
+            className="rounded-2xl bg-white px-4 py-2 text-sm font-medium text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {saving ? "Guardando..." : "Guardar"}
+          </button>
         </div>
 
         <div className="grid grid-cols-3 gap-3 text-sm text-white/65 xl:min-w-[420px]">

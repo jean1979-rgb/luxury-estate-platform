@@ -22,6 +22,7 @@ import { buildScene, buildHotspot } from "@/lib/admin/editor-commands";
 import type { TokkoAdminItem } from "@/lib/admin/tokko-helpers";
 import { materialCatalog } from "@/lib/editorial/materialCatalog";
 import { getPemFactorsByGroup } from "@/lib/editorial/pemFactorHelpers";
+import { generateEditorial } from "@/lib/editorial/editorialEngine";
 
 const materialGroups = [
   "Piedra Natural",
@@ -241,6 +242,15 @@ const { handleUpload } = useAdminUploads({
   function handleChange<K extends keyof AdminPropertyInput>(key: K, value: AdminPropertyInput[K]) {
     dispatch({ type: "PATCH_FIELD", key, value });
   }
+
+
+  function handleGenerateEditorial() {
+    const editorial = generateEditorial(form);
+
+    dispatch({ type: "PATCH_FIELD", key: "tagline", value: editorial.tagline });
+    dispatch({ type: "PATCH_FIELD", key: "description", value: editorial.description });
+  }
+
 
   function createDraftPropertyId() {
     if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -688,6 +698,14 @@ const { handleUpload } = useAdminUploads({
                     className="rounded-2xl border border-white/15 px-4 py-3 text-sm text-white/80 transition hover:bg-white/10"
                   >
                     Generar slug
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleGenerateEditorial}
+                    className="rounded-2xl border border-white/15 px-4 py-3 text-sm text-white/80 transition hover:bg-white/10"
+                  >
+                    Generar editorial
                   </button>
 
                   {selectedId !== "new" && (
@@ -1263,6 +1281,8 @@ const { handleUpload } = useAdminUploads({
                   onUpdateHotspot={updateHotspot}
                   onRemoveHotspot={removeHotspot}
                   onUploadVideo={(file) => handleUpload(file, "video")}
+                  onSave={handleSave}
+                  saving={saving}
                   yawToPercent={yawToPercent}
                   pitchToPercent={pitchToPercent}
                 />
