@@ -35,9 +35,15 @@ export async function renderEditorialPdf(
   console.log("\n==============================");
   console.log("PDF ID:", id);
 
+  console.log("\n==============================");
+  console.log("PDF ID:", id);
+
   const property = await prisma.brokerProperty.findUnique({
     where: { id },
   });
+
+  console.log("PROPERTY FOUND:", property?.title);
+  console.log("==============================\n");
 
   console.log("PROPERTY FOUND:", property?.title);
   console.log("==============================\n");
