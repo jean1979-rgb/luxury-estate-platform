@@ -1,5 +1,6 @@
 import type { AdminPropertyInput } from "@/types/admin";
 import { EDITORIAL_CATALOG } from "./editorialCatalog";
+import { amenityEditorialCatalog } from "./amenityEditorialCatalog";
 
 export type EditorialResult = {
   tagline: string;
@@ -54,6 +55,7 @@ function generateDescription(profile: PropertyProfile): string {
     `Con ${profile.area} m² de construcción, ${profile.bedrooms} recámaras y ${profile.bathrooms} baños, la distribución privilegia áreas sociales generosas, espacios privados bien definidos y una circulación pensada para disfrutar la propiedad en cualquier momento del día.`;
 
   const p3 =
+    describeAmenities(profile.factors) ||
     `Más que una propiedad, representa una oportunidad para vivir dentro de una de las colecciones residenciales más exclusivas, combinando diseño, funcionalidad y un estilo de vida orientado al bienestar.`;
 
   return [p1, p2, p3].join("\n\n");
@@ -91,6 +93,33 @@ function describeFactors(factors: AdminPemFactors): string {
 }
 
 
+function describeAmenities(factors: AdminPemFactors): string {
+  const amenities = factors.amenities ?? [];
+
+  const matches = amenityEditorialCatalog
+    .map(entry => ({
+      paragraph:
+        entry.paragraphs[
+          Math.floor(Math.random() * entry.paragraphs.length)
+        ],
+      score: entry.amenities.filter(a => amenities.includes(a)).length,
+    }))
+    .filter(entry => entry.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  if (matches.length === 0) {
+    return "";
+  }
+
+  if (matches.length === 1) {
+    return matches[0].paragraph;
+  }
+
+  return matches
+    .slice(0, 2)
+    .map(m => m.paragraph)
+    .join(" ");
+}
 
 
 export function generateEditorial(
