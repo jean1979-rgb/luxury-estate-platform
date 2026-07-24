@@ -296,6 +296,12 @@ const { handleUpload } = useAdminUploads({
       coverImage: item.coverImage,
       gallery: item.gallery,
       pdfGallery: Array.isArray((item as any).pdfGallery) ? (item as any).pdfGallery : [],
+      pdfAssignments:
+        item.pdfAssignments &&
+        typeof item.pdfAssignments === "object" &&
+        !Array.isArray(item.pdfAssignments)
+          ? item.pdfAssignments
+          : {},
       videoUrl: item.videoUrl || "",
       videoPoster: item.videoPoster || "",
       videoType: item.videoType ? item.videoType : "upload",
