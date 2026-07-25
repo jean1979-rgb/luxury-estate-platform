@@ -1,0 +1,68 @@
+{
+  "madera": [
+    "Nogal Americano",
+    "Tzalam",
+    "Parota",
+    "Encino",
+    "Roble Europeo",
+    "Cedro",
+    "Teca",
+    "Ébano"
+  ],
+  "piedra-natural": [
+    "Travertino",
+    "Calacatta",
+    "Carrara",
+    "Arabescato",
+    "Taj Mahal",
+    "Cuarcita Blanca",
+    "Cantera",
+    "Pizarra"
+  ],
+  "granito": [
+    "Negro San Gabriel",
+    "Black Galaxy",
+    "Via Láctea",
+    "White Ice"
+  ],
+  "cuarzo": [
+    "Silestone Blanco",
+    "Silestone Gris",
+    "Caesarstone",
+    "Dekton"
+  ],
+  "metales": [
+    "Latón Cepillado",
+    "Bronce Envejecido",
+    "Acero Inoxidable Cepillado",
+    "Níquel Satinado",
+    "Negro Mate"
+  ],
+  "cristal": [
+    "Low Iron",
+    "Cristal Claro",
+    "Cristal Ahumado",
+    "Cristal Estriado"
+  ],
+  "textiles": [
+    "Lino",
+    "Bouclé",
+    "Terciopelo",
+    "Chenille",
+    "Piel"
+  ],
+  "acabados": [
+    "Microcemento",
+    "Concreto Aparente",
+    "Chukum",
+    "Estuco Mineral",
+    "Mortero Fino"
+  ],
+  "iluminacion": [
+    "LED Lineal",
+    "Luminaria Empotrada",
+    "Lámpara Colgante",
+    "Latón",
+    "Cristal"
+  ]
+}

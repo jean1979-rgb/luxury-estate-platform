@@ -39,17 +39,29 @@ export async function PATCH(req: Request, context: RouteContext) {
   const { id } = await context.params;
   const body = await req.json();
 
+  console.log("========== PATCH ==========");
+  console.log("id:", id);
+  console.log("pdfGallery:", body.pdfGallery);
+  console.log("pdfAssignments:", JSON.stringify(body.pdfAssignments, null, 2));
+  console.log("===========================");
+
   try {
+    console.log("A: antes de updateBrokerProperty");
     const item = await updateBrokerProperty(session.user.id, id, body, session.user.role);
+    console.log("B: updateBrokerProperty terminó");
+    console.log("UPDATE RETURNED:", item?.id);
+
+    console.log("UPDATE RETURNED:", item ? item.id : null);
+    console.log("UPDATE PDF ASSIGNMENTS:", JSON.stringify((item as any)?.pdfAssignments, null, 2));
 
     if (!item) {
       return NextResponse.json({ ok: false, message: "Propiedad no encontrada." }, { status: 404 });
     }
 
+    console.log("C: antes de hydrated");
     const hydrated = await prisma.brokerProperty.findFirst({
       where: {
         id,
-        ownerBrokerId: session.user.id,
       },
       include: {
         sceneItems: {
@@ -63,6 +75,7 @@ export async function PATCH(req: Request, context: RouteContext) {
       },
     });
 
+    console.log("D: hydrated =", !!hydrated);
     if (!hydrated) {
       return NextResponse.json({ ok: false, message: "Propiedad no encontrada tras guardar." }, { status: 404 });
     }

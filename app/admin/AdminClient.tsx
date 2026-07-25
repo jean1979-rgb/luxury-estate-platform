@@ -245,10 +245,16 @@ const { handleUpload } = useAdminUploads({
 
 
   function handleGenerateEditorial() {
+    console.log("[EDITORIAL] inicio", form);
+
     const editorial = generateEditorial(form);
+
+    console.log("[EDITORIAL] resultado", editorial);
 
     dispatch({ type: "PATCH_FIELD", key: "tagline", value: editorial.tagline });
     dispatch({ type: "PATCH_FIELD", key: "description", value: editorial.description });
+
+    console.log("[EDITORIAL] dispatch terminado");
   }
 
 

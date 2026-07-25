@@ -1,17 +1,8 @@
 import { RenderContext } from "../context";
-import { loadTemplatePage } from "../templates";
+import { renderEditorialPage } from "../core/editorial-renderer";
 
 export async function renderPage5(
   ctx: RenderContext,
 ) {
-  const template = await loadTemplatePage(ctx.pdf, 5);
-
-  const page = ctx.pdf.addPage([
-    template.width,
-    template.height,
-  ]);
-
-  page.drawPage(template);
-
-  return page;
+  return renderEditorialPage(ctx, 5);
 }
