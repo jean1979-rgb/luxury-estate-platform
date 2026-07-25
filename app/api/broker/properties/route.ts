@@ -117,6 +117,7 @@ export async function GET() {
     published: item.published,
     luxuryScore: item.luxuryScore ?? 85,
     pemFactors: item.pemFactors || {},
+    materials: Array.isArray(item.materials) ? item.materials : [],
     description: item.description || "",
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
@@ -243,6 +244,10 @@ export async function POST(req: Request) {
             body.pemFactors && typeof body.pemFactors === "object" && !Array.isArray(body.pemFactors)
               ? body.pemFactors
               : {},
+          materials:
+            Array.isArray(body.materials)
+              ? body.materials
+              : [],
           sourceProvider:
             String(body.source?.provider || "").toLowerCase() === "tokko" || String(id).startsWith("admin-")
               ? "TOKKO"

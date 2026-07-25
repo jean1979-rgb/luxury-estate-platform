@@ -87,6 +87,7 @@ model BrokerProperty {
   tagline           String?
   description       String?
   pemFactors        Json?
+  materials         Json?
   luxuryScore       Int?
   featured          Boolean            @default(false)
   published         Boolean            @default(false)

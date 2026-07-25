@@ -131,6 +131,12 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
   const luxuryScore = asOptionalInt(body.luxuryScore) ?? existing.luxuryScore ?? 85;
   const pemFactors: Prisma.InputJsonObject =
     asJsonObject(body.pemFactors) ?? asJsonObject(existing.pemFactors) ?? {};
+
+  const materials = body.materials !== undefined
+    ? asStringArray(body.materials)
+    : Array.isArray((existing as any).materials)
+      ? (existing as any).materials.filter((item: unknown): item is string => typeof item === "string")
+      : [];
   const status = published ? "published" : "draft";
   const publicationStatus = published ? "PUBLISHED" : "DRAFT";
 
@@ -194,6 +200,7 @@ export async function updateBrokerProperty(userId: string, id: string, body: Pro
       published,
       luxuryScore,
       pemFactors,
+      materials,
     },
     include: { sceneItems: true },
   });

@@ -4,7 +4,10 @@ export type PemMaterialCategory =
   | "textile"
   | "metal"
   | "finish"
-  | "lighting";
+  | "lighting"
+  | "glass"
+  | "quartz"
+  | "granite";
 
 export type PemMaterial = {
   id: string;
@@ -16,38 +19,34 @@ export type PemMaterial = {
 };
 
 export const materialCatalog: PemMaterial[] = [
-  { id: "travertino_veracruz", title: "Travertino Veracruz", category: "stone", family: "Piedra Natural", sample: "/pem-assets/materials/travertino-veracruz.jpg", description: "Piedra natural de tonos cálidos para pisos, muros y revestimientos arquitectónicos." },
-  { id: "travertino_romano", title: "Travertino Romano", category: "stone", family: "Piedra Natural", sample: "/pem-assets/materials/travertino-romano.jpg", description: "Travertino de apariencia clásica con textura mineral y carácter atemporal." },
-  { id: "calacatta_oro", title: "Calacatta Oro", category: "stone", family: "Piedra Natural", sample: "/pem-assets/materials/calacatta-oro.jpg", description: "Mármol blanco con vetas doradas, asociado con interiores de alta gama." },
-  { id: "carrara", title: "Carrara", category: "stone", family: "Piedra Natural", sample: "/pem-assets/materials/carrara.jpg", description: "Mármol clásico de base clara y veta sutil para espacios elegantes." },
-  { id: "taj_mahal", title: "Quartzita Taj Mahal", category: "stone", family: "Piedra Natural", sample: "/pem-assets/materials/taj-mahal.jpg", description: "Quartzita premium de tonalidad cálida y gran resistencia." },
-  { id: "gris_oxford", title: "Mármol Gris Oxford", category: "stone", family: "Piedra Natural", sample: "/pem-assets/materials/gris-oxford.jpg", description: "Piedra gris elegante para baños, pisos y acentos sobrios." },
-  { id: "negro_marquina", title: "Negro Marquina", category: "stone", family: "Piedra Natural", sample: "/pem-assets/materials/negro-marquina.jpg", description: "Mármol negro de alto contraste con veta blanca." },
-  { id: "cantera_galarza", title: "Cantera Galarza", category: "stone", family: "Piedra Natural", sample: "/pem-assets/materials/cantera-galarza.jpg", description: "Piedra mexicana de tono claro para muros, pisos y exteriores." },
-  { id: "onyx_honey", title: "Ónix Honey", category: "stone", family: "Piedra Natural", sample: "/pem-assets/materials/onyx-honey.jpg", description: "Piedra translúcida de carácter escultórico y tonos dorados." },
+  { id:"travertino", title:"Travertino", category:"stone", family:"Piedra Natural", sample:"/pem-assets/materials/piedra-natural/travertino.png", description:"Piedra natural para interiores y exteriores." },
+  { id:"calacatta", title:"Calacatta", category:"stone", family:"Piedra Natural", sample:"/pem-assets/materials/piedra-natural/calacatta.png", description:"Mármol de alta gama con vetas elegantes." },
+  { id:"carrara", title:"Carrara", category:"stone", family:"Piedra Natural", sample:"/pem-assets/materials/piedra-natural/carrara.png", description:"Mármol clásico de tonalidad clara." },
+  { id:"arabescato", title:"Arabescato", category:"stone", family:"Piedra Natural", sample:"/pem-assets/materials/piedra-natural/arabescato.png", description:"Piedra natural con veta decorativa." },
+  { id:"taj_mahal", title:"Taj Mahal", category:"stone", family:"Piedra Natural", sample:"/pem-assets/materials/piedra-natural/taj-mahal.png", description:"Cuarcita premium de tonos cálidos." },
+  { id:"cuarcita_blanca", title:"Cuarcita Blanca", category:"stone", family:"Piedra Natural", sample:"/pem-assets/materials/piedra-natural/cuarcita-blanca.png", description:"Piedra natural de apariencia luminosa." },
+  { id:"cantera", title:"Cantera", category:"stone", family:"Piedra Natural", sample:"/pem-assets/materials/piedra-natural/cantera.png", description:"Piedra mexicana para arquitectura." },
+  { id:"pizarra", title:"Pizarra", category:"stone", family:"Piedra Natural", sample:"/pem-assets/materials/piedra-natural/pizarra.png", description:"Piedra oscura de textura natural." },
 
-  { id: "nogal_americano", title: "Nogal Americano", category: "wood", family: "Madera", sample: "/pem-assets/materials/nogal-americano.jpg", description: "Carpintería noble con veta profunda y tonalidad cálida." },
-  { id: "tzalam", title: "Tzalam", category: "wood", family: "Madera", sample: "/pem-assets/materials/tzalam.jpg", description: "Madera tropical de gran presencia visual, resistencia y carácter natural." },
-  { id: "parota", title: "Parota", category: "wood", family: "Madera", sample: "/pem-assets/materials/parota.jpg", description: "Madera mexicana de veta marcada para piezas protagonistas." },
-  { id: "encino", title: "Encino", category: "wood", family: "Madera", sample: "/pem-assets/materials/encino.jpg", description: "Madera clara y versátil para interiores contemporáneos." },
-  { id: "roble_europeo", title: "Roble Europeo", category: "wood", family: "Madera", sample: "/pem-assets/materials/roble-europeo.jpg", description: "Madera elegante de textura uniforme para carpintería fina." },
+  { id:"nogal_americano", title:"Nogal Americano", category:"wood", family:"Madera", sample:"/pem-assets/materials/madera/nogal-americano.png", description:"Madera noble de tonalidad cálida." },
+  { id:"tzalam", title:"Tzalam", category:"wood", family:"Madera", sample:"/pem-assets/materials/madera/tzalam.png", description:"Madera tropical resistente." },
+  { id:"parota", title:"Parota", category:"wood", family:"Madera", sample:"/pem-assets/materials/madera/parota.png", description:"Madera mexicana de gran presencia." },
+  { id:"encino", title:"Encino", category:"wood", family:"Madera", sample:"/pem-assets/materials/madera/encino.png", description:"Madera clara contemporánea." },
+  { id:"roble_europeo", title:"Roble Europeo", category:"wood", family:"Madera", sample:"/pem-assets/materials/madera/roble-europeo.png", description:"Madera elegante para carpintería fina." },
+  { id:"cedro", title:"Cedro", category:"wood", family:"Madera", sample:"/pem-assets/materials/madera/cedro.png", description:"Madera aromática de acabado cálido." },
+  { id:"teca", title:"Teca", category:"wood", family:"Madera", sample:"/pem-assets/materials/madera/teca.png", description:"Madera resistente para exteriores." },
+  { id:"ebano", title:"Ébano", category:"wood", family:"Madera", sample:"/pem-assets/materials/madera/ebano.png", description:"Madera oscura de carácter premium." },
 
-  { id: "lino_natural", title: "Lino Natural", category: "textile", family: "Telas Naturales", sample: "/pem-assets/materials/lino-natural.jpg", description: "Textil orgánico de apariencia fresca, ligera y sofisticada." },
-  { id: "boucle", title: "Bouclé", category: "textile", family: "Telas Naturales", sample: "/pem-assets/materials/boucle.jpg", description: "Textura suave y envolvente para interiores cálidos." },
-  { id: "chenille", title: "Chenille", category: "textile", family: "Telas Naturales", sample: "/pem-assets/materials/chenille.jpg", description: "Textil residencial de tacto suave y acabado refinado." },
-  { id: "piel_cognac", title: "Piel Cognac", category: "textile", family: "Telas Naturales", sample: "/pem-assets/materials/piel-cognac.jpg", description: "Piel cálida para acentos de carácter atemporal." },
+  { id:"boucle", title:"Bouclé", category:"textile", family:"Textiles", sample:"/pem-assets/materials/textiles/boucle.png", description:"Textil de textura suave." },
+  { id:"chenille", title:"Chenille", category:"textile", family:"Textiles", sample:"/pem-assets/materials/textiles/chenille.png", description:"Textil residencial sofisticado." },
+  { id:"lino", title:"Lino", category:"textile", family:"Textiles", sample:"/pem-assets/materials/textiles/lino.png", description:"Fibra natural ligera." },
+  { id:"piel", title:"Piel", category:"textile", family:"Textiles", sample:"/pem-assets/materials/textiles/piel.png", description:"Acabado cálido y atemporal." },
+  { id:"terciopelo", title:"Terciopelo", category:"textile", family:"Textiles", sample:"/pem-assets/materials/textiles/terciopelo.png", description:"Textura profunda para interiores." },
 
-  { id: "bronce_cepillado", title: "Bronce Cepillado", category: "metal", family: "Detalles Metálicos", sample: "/pem-assets/materials/bronce-cepillado.jpg", description: "Metal cálido para herrajes, grifería, luminarias y acentos decorativos." },
-  { id: "laton_satinado", title: "Latón Satinado", category: "metal", family: "Detalles Metálicos", sample: "/pem-assets/materials/laton-satinado.jpg", description: "Acabado metálico elegante con brillo controlado." },
-  { id: "champagne_gold", title: "Champagne Gold", category: "metal", family: "Detalles Metálicos", sample: "/pem-assets/materials/champagne-gold.jpg", description: "Tono metálico suave para detalles contemporáneos." },
-  { id: "acero_inoxidable", title: "Acero Inoxidable", category: "metal", family: "Detalles Metálicos", sample: "/pem-assets/materials/acero-inoxidable.jpg", description: "Acabado durable para cocinas, baños y elementos funcionales." },
+  { id:"microcemento", title:"Microcemento", category:"finish", family:"Acabados", sample:"/pem-assets/materials/acabados/microcemento.png", description:"Acabado continuo contemporáneo." },
+  { id:"concreto_aparente", title:"Concreto Aparente", category:"finish", family:"Acabados", sample:"/pem-assets/materials/acabados/concreto-aparente.png", description:"Superficie arquitectónica moderna." },
+  { id:"chukum", title:"Chukum", category:"finish", family:"Acabados", sample:"/pem-assets/materials/acabados/chukum.png", description:"Acabado natural mexicano." },
 
-  { id: "chukum", title: "Chukum", category: "finish", family: "Acabados", sample: "/pem-assets/materials/chukum.jpg", description: "Acabado natural de inspiración yucateca, ideal para muros, baños y albercas." },
-  { id: "microcemento", title: "Microcemento", category: "finish", family: "Acabados", sample: "/pem-assets/materials/microcemento.jpg", description: "Acabado continuo de estética limpia y contemporánea." },
-  { id: "concreto_aparente", title: "Concreto Aparente", category: "finish", family: "Acabados", sample: "/pem-assets/materials/concreto-aparente.jpg", description: "Superficie arquitectónica sobria de carácter moderno." },
-  { id: "estuco_veneciano", title: "Estuco Veneciano", category: "finish", family: "Acabados", sample: "/pem-assets/materials/estuco-veneciano.jpg", description: "Acabado artesanal de textura pulida y apariencia sofisticada." },
-  { id: "mosaico_artesanal", title: "Mosaico Artesanal", category: "finish", family: "Acabados", sample: "/pem-assets/materials/mosaico-artesanal.jpg", description: "Detalle decorativo hecho a mano para acentos únicos." },
-
-  { id: "luz_calida", title: "Iluminación Cálida", category: "lighting", family: "Iluminación", sample: "/pem-assets/materials/luz-calida.jpg", description: "Temperatura cálida para atmósferas residenciales envolventes." },
-  { id: "luz_indirecta", title: "Luz Indirecta", category: "lighting", family: "Iluminación", sample: "/pem-assets/materials/luz-indirecta.jpg", description: "Iluminación arquitectónica integrada para profundidad y confort visual." },
+  { id:"luz_calida", title:"Iluminación Cálida", category:"lighting", family:"Iluminación", sample:"/pem-assets/materials/iluminacion/luz-calida.png", description:"Luz ambiental residencial." },
+  { id:"luz_indirecta", title:"Luz Indirecta", category:"lighting", family:"Iluminación", sample:"/pem-assets/materials/iluminacion/luz-indirecta.png", description:"Iluminación arquitectónica." },
 ];
