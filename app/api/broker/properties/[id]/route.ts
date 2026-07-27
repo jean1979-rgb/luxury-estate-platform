@@ -43,6 +43,7 @@ export async function PATCH(req: Request, context: RouteContext) {
   console.log("id:", id);
   console.log("pdfGallery:", body.pdfGallery);
   console.log("pdfAssignments:", JSON.stringify(body.pdfAssignments, null, 2));
+  console.log("materials:", body.materials);
   console.log("===========================");
 
   try {
@@ -50,6 +51,7 @@ export async function PATCH(req: Request, context: RouteContext) {
     const item = await updateBrokerProperty(session.user.id, id, body, session.user.role);
     console.log("B: updateBrokerProperty terminó");
     console.log("UPDATE RETURNED:", item?.id);
+    console.log("UPDATE MATERIALS:", item?.materials);
 
     console.log("UPDATE RETURNED:", item ? item.id : null);
     console.log("UPDATE PDF ASSIGNMENTS:", JSON.stringify((item as any)?.pdfAssignments, null, 2));
@@ -142,6 +144,9 @@ export async function PATCH(req: Request, context: RouteContext) {
       published: hydrated.published,
       luxuryScore: hydrated.luxuryScore ?? 85,
       pemFactors: hydrated.pemFactors || {},
+      materials: Array.isArray(hydrated.materials)
+        ? hydrated.materials
+        : [],
       description: hydrated.description || "",
       createdAt: hydrated.createdAt.toISOString(),
       updatedAt: hydrated.updatedAt.toISOString(),

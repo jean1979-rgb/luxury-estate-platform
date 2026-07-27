@@ -27,12 +27,11 @@ import { generateEditorial } from "@/lib/editorial/editorialEngine";
 const materialGroups = [
   "Piedra Natural",
   "Madera",
-  "Telas Naturales",
+  "Textiles",
   "Detalles Metálicos",
   "Acabados",
   "Iluminación",
 ] as const;
-
 function slugify(value: string) {
   return value
     .normalize("NFD")
@@ -251,8 +250,17 @@ const { handleUpload } = useAdminUploads({
 
     console.log("[EDITORIAL] resultado", editorial);
 
-    dispatch({ type: "PATCH_FIELD", key: "tagline", value: editorial.tagline });
-    dispatch({ type: "PATCH_FIELD", key: "description", value: editorial.description });
+dispatch({
+  type: "PATCH_FIELD",
+  key: "tagline",
+  value: editorial.portada.tagline,
+});
+
+dispatch({
+  type: "PATCH_FIELD",
+  key: "description",
+  value: editorial.arquitectura.descripcion,
+});
 
     console.log("[EDITORIAL] dispatch terminado");
   }

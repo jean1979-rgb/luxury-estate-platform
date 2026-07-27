@@ -1,15 +1,26 @@
 import type { AdminPropertyInput } from "@/types/admin";
 import { EDITORIAL_CATALOG } from "./editorialCatalog";
 import { amenityEditorialCatalog } from "./amenityEditorialCatalog";
+import type {
+  EditorialAmenidades,
+  EditorialArquitectura,
+  EditorialCierre,
+  EditorialDestino,
+  EditorialEspacios,
+  EditorialGaleria,
+  EditorialInversion,
+  EditorialMateriales,
+  EditorialResult,
+} from "./types";
 
-export type EditorialResult = {
-  tagline: string;
-  editorialTagline: string;
-  description: string;
-};
 
 import type { AdminPemFactors } from "@/types/admin";
 import { editorialPhrases } from "./editorialPhrases";
+import { materialCatalog } from "./materialCatalog";
+import {
+  labelPemFactor,
+  descriptionPemFactor,
+} from "./pemFactorCatalog";
 
 type PropertyProfile = {
   type: string;
@@ -18,6 +29,7 @@ type PropertyProfile = {
   bathrooms: number;
   area: string;
   factors: AdminPemFactors;
+  materials: string[];
 };
 
 function buildPropertyProfile(property: AdminPropertyInput): PropertyProfile {
@@ -28,6 +40,7 @@ function buildPropertyProfile(property: AdminPropertyInput): PropertyProfile {
     bathrooms: property.bathrooms,
     area: property.areaInterior || property.areaTotal,
     factors: property.pemFactors ?? {},
+    materials: property.materials ?? [],
   };
 }
 
@@ -98,73 +111,63 @@ function generateEditorialTagline(profile: PropertyProfile): string {
 }
 
 
-function generateDescription(profile: PropertyProfile): string {
-  const location =
-    profile.location &&
-    !/beachfront|real-diamante|las-brisas|collection|residences/i.test(profile.location)
-      ? profile.location
-      : "una de las zonas más exclusivas del destino";
-
-  const p1 =
-    `Ubicada en ${location}, esta propiedad integra arquitectura, amplitud y una distribución concebida para disfrutar cada espacio con absoluta comodidad. La relación entre los interiores, el entorno y la vida cotidiana crea una experiencia residencial elegante y natural.`;
-
-  const editorial = describeEnvironment(profile);
-
-  const p2 =
-    editorial ||
-    `El entorno aporta identidad a la propiedad, creando una relación natural entre la arquitectura, el paisaje y la ubicación privilegiada donde se desarrolla la experiencia residencial.`;
-
-  const p3 =
-    describeSpaces(profile);
-
-  const p4 =
-    describeAmenities(profile.factors) ||
-    `Las amenidades complementan el estilo de vida, ofreciendo espacios pensados para el descanso, la convivencia y el bienestar cotidiano.`;
-
-  const p5 =
-    describeClosing(profile);
-
-  return [p1, p2, p3, p4, p5].join("\n\n");
-}
 
 
 
 
 
 
-function describeEnvironment(profile: PropertyProfile): string {
 
-  const lines:string[]=[];
+function describeEnvironment(
+  profile: PropertyProfile
+): EditorialArquitectura {
+  const lines: string[] = [];
 
-  switch(profile.factors.oceanRelation){
+  switch (profile.factors.oceanRelation) {
     case "oceanfront":
-      lines.push("El mar se integra de forma natural a la vida diaria, ofreciendo una relación permanente con el paisaje costero.");
+      lines.push(
+        "El mar se integra de forma natural a la vida diaria, ofreciendo una relación permanente con el paisaje costero."
+      );
       break;
 
     case "ocean_view":
-      lines.push("Las vistas hacia el océano acompañan los principales espacios de la residencia y enriquecen cada momento del día.");
+      lines.push(
+        "Las vistas hacia el océano acompañan los principales espacios de la residencia y enriquecen cada momento del día."
+      );
       break;
 
     case "beach_access":
-      lines.push("La cercanía a la playa permite disfrutar un estilo de vida relajado y conectado con el entorno.");
+      lines.push(
+        "La cercanía a la playa permite disfrutar un estilo de vida relajado y conectado con el entorno."
+      );
       break;
   }
 
-  switch(profile.factors.viewQuality){
+  switch (profile.factors.viewQuality) {
     case "panoramic":
-      lines.push("Las panorámicas abiertas aportan profundidad, amplitud y una conexión constante con el paisaje.");
+      lines.push(
+        "Las panorámicas abiertas aportan profundidad, amplitud y una conexión constante con el paisaje."
+      );
       break;
 
     case "iconic":
-      lines.push("Las vistas emblemáticas convierten al entorno en uno de los principales atributos de la propiedad.");
+      lines.push(
+        "Las vistas emblemáticas convierten al entorno en uno de los principales atributos de la propiedad."
+      );
       break;
   }
 
-  if(lines.length===0){
-    lines.push("La ubicación ofrece un equilibrio entre privacidad, conectividad y calidad de vida.");
+  if (lines.length === 0) {
+    lines.push(
+      "La ubicación ofrece un equilibrio entre privacidad, conectividad y calidad de vida."
+    );
   }
 
-  return lines.join(" ");
+  return {
+    titulo: "Arquitectura y entorno",
+    descripcion: lines.join(" "),
+    factores: [],
+  };
 }
 
 
@@ -198,8 +201,78 @@ function describeFactors(factors: AdminPemFactors): string {
 
 
 
-function describeSpaces(profile: PropertyProfile): string {
 
+
+
+function describeMaterialFamily(family: string): string {
+
+  switch (family) {
+
+    case "Piedra Natural":
+      return "Seleccionada por su carácter atemporal, profundidad visual y resistencia, aporta una presencia arquitectónica sólida en cada espacio.";
+
+    case "Madera":
+      return "La calidez y riqueza natural de la madera equilibran la arquitectura contemporánea con una sensación de confort permanente.";
+
+    case "Textiles":
+      return "Los textiles complementan los interiores mediante textura, confort y una estética cuidadosamente integrada al proyecto.";
+
+    case "Detalles Metálicos":
+      return "Los acabados metálicos incorporan precisión, durabilidad y un lenguaje contemporáneo en los detalles constructivos.";
+
+    case "Acabados":
+      return "Los acabados fueron elegidos para generar continuidad visual, fácil mantenimiento y una apariencia refinada.";
+
+    case "Cristal":
+      return "El cristal favorece la entrada de luz natural, la amplitud visual y la integración entre interiores y exteriores.";
+
+    case "Cuarzo":
+      return "El cuarzo combina elevada resistencia con una apariencia uniforme, ideal para superficies de uso cotidiano.";
+
+    case "Granito":
+      return "El granito aporta resistencia estructural, durabilidad y una estética natural de gran presencia.";
+
+    case "Iluminación":
+      return "La estrategia de iluminación contribuye a resaltar materiales, volúmenes y atmósferas durante todo el día.";
+
+    default:
+      return "Material seleccionado por su calidad, durabilidad y aportación estética dentro del proyecto.";
+
+  }
+
+}
+
+
+function buildEditorialMateriales(
+  profile: PropertyProfile
+): EditorialMateriales {
+
+  const materiales = profile.materials
+    .map(id => materialCatalog.find(item => item.id === id))
+    .filter((item): item is typeof materialCatalog[number] => Boolean(item))
+    .map(item => ({
+      titulo: item.title,
+      descripcion:
+        item.description ||
+        describeMaterialFamily(item.family),
+      muestra: item.sample,
+    }));
+
+  return {
+    titulo: "Materiales",
+    subtitulo: "Selección de acabados",
+    materiales,
+    fraseEditorial:
+      materiales.length > 0
+        ? "La selección de materiales privilegia calidad, permanencia y coherencia estética."
+        : "",
+  };
+
+}
+
+function describeSpaces(
+  profile: PropertyProfile
+): EditorialEspacios {
   const parts:string[]=[];
 
   parts.push(
@@ -227,7 +300,17 @@ function describeSpaces(profile: PropertyProfile): string {
 
   }
 
-  return parts.join(" ");
+  return {
+    titulo: "Espacios",
+    subtitulo: "Distribución y funcionalidad",
+    espacios: [
+      {
+        titulo: "Distribución",
+        descripcion: parts.join(" "),
+      },
+    ],
+    fraseEditorial: "",
+  };
 
 }
 
@@ -252,11 +335,15 @@ function describeClosing(profile: PropertyProfile): string {
     ideas.push("el estilo de vida");
   }
 
-  if(ideas.length===0){
-    ideas.push("su propuesta residencial");
-  }
+if (profile.factors.amenities?.length) {
+  ideas.push("el estilo de vida");
+}
 
-  return `Más que una propiedad, representa una oportunidad para formar parte de un entorno residencial cuidadosamente concebido, donde la arquitectura, la privacidad y la calidad de vida se integran con una visión patrimonial de largo plazo.`;
+if (ideas.length === 0) {
+  ideas.push("su propuesta residencial");
+}
+
+return `Más que una propiedad, representa una oportunidad para formar parte de un entorno residencial cuidadosamente concebido, donde la arquitectura, la privacidad y la calidad de vida se integran con una visión patrimonial de largo plazo.`;
 }
 
 
@@ -286,14 +373,101 @@ function describeAmenities(factors: AdminPemFactors): string {
 }
 
 
+
+function buildEditorialAmenities(
+  profile: PropertyProfile
+): EditorialAmenidades {
+
+  const amenities = profile.factors.amenities ?? [];
+
+  return {
+    titulo: "Amenidades",
+    subtitulo: "Espacios complementarios",
+    amenidades: amenities.map((name: string) => ({
+      titulo: labelPemFactor(name, "amenities"),
+      descripcion: descriptionPemFactor(name, "amenities"),
+    })),
+    fraseEditorial: describeAmenities(profile.factors),
+  };
+
+}
+
+
+
+function buildEditorialDestino(
+  profile: PropertyProfile
+): EditorialDestino {
+
+  return {
+    titulo: profile.location,
+    subtitulo: "Entorno y ubicación",
+    descripcion: `La propiedad se encuentra en ${profile.location}, un entorno que aporta identidad, conectividad y valor residencial.`,
+    lugaresCercanos: [],
+  };
+
+}
+
+
+
+function buildEditorialInversion(
+  profile: PropertyProfile
+): EditorialInversion {
+
+  return {
+    titulo: "Valor patrimonial",
+    descripcion:
+      "La combinación de ubicación, atributos arquitectónicos y calidad residencial fortalece el valor patrimonial de esta propiedad.",
+    beneficios: [
+      "Ubicación consolidada",
+      "Calidad arquitectónica",
+      "Valor patrimonial",
+    ],
+    fraseEditorial:
+      "Una propiedad concebida para preservar su atractivo y permanencia en el tiempo.",
+  };
+
+}
+
+
+
+function buildEditorialCierre(
+  profile: PropertyProfile
+): EditorialCierre {
+
+  return {
+    titulo: "Una residencia para disfrutar",
+    subtitulo: profile.location,
+    fraseFinal:
+      `La combinación de arquitectura, ubicación y calidad constructiva convierte esta propiedad en una oportunidad excepcional dentro de ${profile.location}.`,
+  };
+
+}
+
+
 export function generateEditorial(
   property: AdminPropertyInput
 ): EditorialResult {
   const profile = buildPropertyProfile(property);
 
-  return {
+return {
+  portada: {
     tagline: generateTagline(profile),
     editorialTagline: generateEditorialTagline(profile),
-    description: generateDescription(profile),
-  };
+  },
+
+arquitectura: describeEnvironment(profile),
+  espacios: describeSpaces(profile),
+
+  materiales: buildEditorialMateriales(profile),
+
+  amenidades: buildEditorialAmenities(profile),
+
+  galeria: {} as EditorialGaleria,
+
+  destino: buildEditorialDestino(profile),
+
+  inversion: buildEditorialInversion(profile),
+
+  cierre: buildEditorialCierre(profile),
+};
 }

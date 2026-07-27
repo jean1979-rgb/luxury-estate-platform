@@ -306,11 +306,16 @@ export async function POST(req: Request) {
             externalId: updated.sourceExternalId || undefined,
           }
         : { provider: "manual" },
+
       featured: updated.featured,
       published: updated.published,
       luxuryScore: updated.luxuryScore ?? 85,
       pemFactors: updated.pemFactors || {},
+      materials: Array.isArray(updated.materials)
+        ? updated.materials
+        : [],
       description: updated.description || "",
+
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
     };

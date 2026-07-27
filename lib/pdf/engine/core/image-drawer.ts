@@ -33,13 +33,32 @@ export async function drawImageCover(
 ) {
   if (!imagePath) return;
 
-  const absolute = path.join(
-    process.cwd(),
-    "public",
-    imagePath.replace(/^\/+/, ""),
-  );
+  let bytes: Uint8Array;
 
-  const bytes = await fs.readFile(absolute);
+  if (
+    imagePath.startsWith("http://") ||
+    imagePath.startsWith("https://")
+  ) {
+    const response = await fetch(imagePath);
+
+    if (!response.ok) {
+      throw new Error(
+        `No se pudo descargar la imagen: ${imagePath}`,
+      );
+    }
+
+    bytes = new Uint8Array(
+      await response.arrayBuffer(),
+    );
+  } else {
+    const absolute = path.join(
+      process.cwd(),
+      "public",
+      imagePath.replace(/^\/+/, ""),
+    );
+
+    bytes = await fs.readFile(absolute);
+  }
 
   const image =
     imagePath.toLowerCase().endsWith(".png")
