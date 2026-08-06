@@ -8,6 +8,12 @@ export async function render_qr(
   page: PDFPage,
   template: any,
 ) {
+  const artboard = template.artboard();
+
+  if (!artboard) {
+    return;
+  }
+
   const placeholder =
     template.dynamic("Qr");
 
@@ -16,9 +22,7 @@ export async function render_qr(
   }
 
   const qr =
-    (ctx.property as any).qrImage ??
-    (ctx.property as any).qr ??
-    null;
+    ctx.document.cierre.qr;
 
   if (!qr) {
     return;
@@ -29,5 +33,6 @@ export async function render_qr(
     page,
     qr,
     placeholder.bounds,
+    artboard,
   );
 }

@@ -47,6 +47,8 @@ export function getImageForEditorialPage(
   property: Property,
   page: EditorialImagePage,
 ): string | null {
+  console.log("IMAGE RESOLVER EXECUTED");
+
   const pdfGallery = asStringArray(
     (property as any).pdfGallery,
   );
@@ -57,6 +59,7 @@ export function getImageForEditorialPage(
 
   for (const image of pdfGallery) {
     if (assignments[image] === page) {
+      console.log("IMAGE RESOLVER RESULT:", page, image);
       return image;
     }
   }

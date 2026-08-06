@@ -39,6 +39,8 @@ export async function loadTemplate(
     `page${page}.json`,
   );
 
+  console.log("LOADING JSON FILE:", file);
+
   const json = JSON.parse(
     await readFile(file, "utf8"),
   ) as TemplateJson;

@@ -3,6 +3,10 @@ import { PDFDocument } from "pdf-lib";
 
 import { prisma } from "@/lib/prisma";
 
+import { generateEditorial } from "@/lib/editorial/editorialEngine";
+import { buildEditorialPdfDocument } from "@/lib/pdf/document/EditorialPdfDocumentBuilder";
+
+
 import { renderPage1 } from "./pages/page1";
 import { renderPage2 } from "./pages/page2";
 import { renderPage3 } from "./pages/page3";
@@ -57,9 +61,19 @@ export async function renderEditorialPdf(
 
   const pdf = await PDFDocument.create();
 
+  const editorial = generateEditorial(
+    property as any,
+  );
+
+  const document = buildEditorialPdfDocument(
+    property,
+    editorial,
+  );
+
   const ctx = {
     pdf,
     property,
+    document,
   };
 
   await renderPage1(ctx);

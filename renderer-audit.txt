@@ -1,0 +1,1007 @@
+==================================================
+FILE: lib/pdf/engine/core/editorial-renderer.ts
+==================================================
+import { rgb } from "pdf-lib";
+
+import { RenderContext } from "../context";
+import { loadFonts } from "./fonts";
+import {
+  cleanText,
+  drawCenteredText,
+} from "./template-text";
+import type {
+  Artboard,
+  TemplateItem,
+} from "./types";
+import { loadTemplate } from "../template-reader";
+import { render_text } from "./renderers/render-text";
+import { render_score } from "./renderers/render-score";
+import { render_single_image } from "./renderers/render-single-image";
+import { render_qr } from "./renderers/render-qr";
+import { render_gallery } from "./renderers/render-gallery";
+import { render_materials } from "./renderers/render-materials";
+import { render_amenities } from "./renderers/render-amenities";
+import { loadTemplatePage } from "../templates";
+
+export async function renderEditorialPage(
+  ctx: RenderContext,
+  pageNumber: number,
+) {
+  const pdfTemplate = await loadTemplatePage(
+    ctx.pdf,
+    pageNumber,
+  );
+
+  const template = await loadTemplate(
+    pageNumber,
+  );
+
+  console.log("NEW PAGE SIZE:", pdfTemplate.width, pdfTemplate.height);
+
+  const page = ctx.pdf.addPage([
+    pdfTemplate.width,
+    pdfTemplate.height,
+  ]);
+
+  page.drawPage(pdfTemplate);
+
+  switch (pageNumber) {
+    case 1:
+      await renderPage1(ctx, page, template);
+      break;
+
+    case 2:
+      await renderPage2(ctx, page, template);
+      break;
+
+    case 3:
+      await renderPage3(ctx, page, template);
+      break;
+
+    case 4:
+      await renderPage4(ctx, page, template);
+      break;
+
+    case 5:
+      await renderPage5(ctx, page, template);
+      break;
+
+    case 6:
+      await renderPage6(ctx, page, template);
+      break;
+
+    case 7:
+      await renderPage7(ctx, page, template);
+      break;
+
+    case 8:
+      await renderPage8(ctx, page, template);
+      break;
+
+    case 9:
+      await renderPage9(ctx, page, template);
+      break;
+  }
+
+  return page;
+}
+
+
+
+async function renderPage1(
+  ctx: RenderContext,
+  page: any,
+  template: any,
+) {
+  await render_text(
+    ctx,
+    page,
+    template,
+  );
+
+  await render_score(
+    ctx,
+    page,
+    template,
+  );
+
+  await render_single_image(
+    ctx,
+    page,
+    template,
+    "cover",
+  );
+}
+
+async function renderPage2(
+  ctx: RenderContext,
+  page: any,
+  template: any,
+) {
+  await render_text(
+    ctx,
+    page,
+    template,
+  );
+
+  await render_single_image(
+    ctx,
+    page,
+    template,
+    "architecture",
+  );
+}
+
+async function renderPage3(
+  ctx: RenderContext,
+  page: any,
+  template: any,
+) {
+  await render_text(
+    ctx,
+    page,
+    template,
+  );
+
+  await render_gallery(
+    ctx,
+    page,
+    template,
+    "spaces",
+    [
+      "Foto 1",
+      "Foto 2",
+      "Foto 3",
+      "Foto 4",
+    ],
+  );
+}
+
+async function renderPage4(
+  ctx: RenderContext,
+  page: any,
+  template: any,
+) {
+  await render_text(
+    ctx,
+    page,
+    template,
+  );
+
+  await render_materials(
+    ctx,
+    page,
+    template,
+  );
+}
+
+async function renderPage5(
+  ctx: RenderContext,
+  page: any,
+  template: any,
+) {
+  await render_amenities(
+    ctx,
+    page,
+    template,
+  );
+}
+
+async function renderPage6(
+  ctx: RenderContext,
+  page: any,
+  template: any,
+) {
+  await render_gallery(
+    ctx,
+    page,
+    template,
+    "spaces",
+    [
+      "Foto 1",
+      "Foto 2",
+      "Foto 3",
+      "Foto 4",
+    ],
+  );
+}
+
+async function renderPage7(
+  ctx: RenderContext,
+  page: any,
+  template: any,
+) {
+  await render_text(
+    ctx,
+    page,
+    template,
+  );
+
+  await render_single_image(
+    ctx,
+    page,
+    template,
+    "destination",
+  );
+}
+
+async function renderPage8(
+  ctx: RenderContext,
+  page: any,
+  template: any,
+) {
+  await render_text(
+    ctx,
+    page,
+    template,
+  );
+
+  await render_single_image(
+    ctx,
+    page,
+    template,
+    "investment",
+  );
+}
+
+async function renderPage9(
+  ctx: RenderContext,
+  page: any,
+  template: any,
+) {
+  await render_text(
+    ctx,
+    page,
+    template,
+  );
+
+  await render_score(
+    ctx,
+    page,
+    template,
+  );
+
+  await render_single_image(
+    ctx,
+    page,
+    template,
+    "contact",
+  );
+
+  await render_qr(
+    ctx,
+    page,
+    template,
+  );
+}
+
+==================================================
+FILE: lib/pdf/engine/core/renderers/render-text.ts
+==================================================
+import { rgb, PDFPage } from "pdf-lib";
+
+import type { RenderContext } from "../../context";
+import { loadFonts } from "../fonts";
+import { cleanText, drawCenteredText } from "../template-text";
+import type { Artboard, TemplateItem } from "../types";
+
+export async function render_text(
+  ctx: RenderContext,
+  page: PDFPage,
+  template: any,
+) {
+  const artboard = template.artboard() as Artboard;
+  const fonts = await loadFonts(ctx.pdf);
+
+  const property =
+    ctx.property as typeof ctx.property & {
+      tagline?: string | null;
+      classification?: string | null;
+      pemClassification?: string | null;
+      brokerProfile?: {
+        phone?: string | null;
+      } | null;
+    };
+
+  const values = {
+    classification: cleanText(
+      property.pemClassification ??
+      property.classification,
+    ),
+    title: cleanText(property.title),
+    subtitle: cleanText(property.tagline),
+    collection: cleanText(property.zoneLabel),
+    price: cleanText(property.price),
+    bedrooms:
+      property.bedrooms != null
+        ? String(property.bedrooms)
+        : "",
+    bathrooms:
+      property.bathrooms != null
+        ? (
+            property.halfBathrooms
+              ? `${property.bathrooms + 0.5}`
+              : `${property.bathrooms}`
+          )
+        : "",
+    area:
+      property.areaInterior != null
+        ? `${property.areaInterior} m²`
+        : "",
+    luxuryScore:
+      property.luxuryScore != null
+        ? String(property.luxuryScore)
+        : "",
+    phone: cleanText(
+      property.brokerProfile?.phone,
+    ),
+    editorial_quote:
+      "Permítanos asesorarle en la adquisición de esta propiedad única",
+  };
+
+  const fields = [
+    ["classification","trajanSemibold",rgb(197/255,141/255,66/255),9.65],
+    ["title","trajanLight",rgb(1,1,1),15],
+    ["subtitle","trajanLight",rgb(1,1,1),11],
+    ["editorial_quote","trajanLight",rgb(1,1,1),10],
+    ["collection","trajanLight",rgb(1,1,1),12],
+    ["price","trajanLight",rgb(1,1,1),12],
+    ["bedrooms","trajanLight",rgb(1,1,1),12],
+    ["bathrooms","trajanLight",rgb(1,1,1),12],
+    ["area","trajanLight",rgb(1,1,1),12],
+    ["Numero score","trajanLight",rgb(1,1,1),70],
+    ["phone","trajanLight",rgb(1,1,1),11],
+  ] as const;
+
+  for (const [field,font,color,defaultSize] of fields) {
+
+    const item =
+      template.field(field) as TemplateItem | undefined;
+
+    if (!item) continue;
+
+    const key =
+      field === "Numero score"
+        ? "luxuryScore"
+        : field;
+
+    drawCenteredText(
+      page,
+      item,
+      artboard,
+      (values as any)[key] ?? "",
+      (fonts as any)[font],
+      item.size ?? defaultSize,
+      color,
+    );
+  }
+}
+
+==================================================
+FILE: lib/pdf/engine/core/renderers/render-single-image.ts
+==================================================
+import type { PDFPage } from "pdf-lib";
+
+import type { RenderContext } from "../../context";
+import { getImageForEditorialPage } from "../image-resolver";
+import { drawImageCover } from "../image-drawer";
+
+export type EditorialImagePage =
+  | "cover"
+  | "architecture"
+  | "spaces"
+  | "materials"
+  | "wellness"
+  | "gallery"
+  | "destination"
+  | "investment"
+  | "contact";
+
+export async function render_single_image(
+  ctx: RenderContext,
+  page: PDFPage,
+  template: any,
+  editorialPage: EditorialImagePage,
+  placeholderName = "Foto principal",
+) {
+  const artboard = template.artboard();
+
+  if (!artboard) {
+    return;
+  }
+
+  const placeholder =
+    template.dynamic(placeholderName);
+
+  if (!placeholder) {
+    return;
+  }
+
+  const image =
+    getImageForEditorialPage(
+      ctx.property,
+      editorialPage,
+    );
+
+  if (!image) {
+    return;
+  }
+
+  await drawImageCover(
+    ctx.pdf,
+    page,
+    image,
+    placeholder.bounds,
+    artboard,
+  );
+}
+
+==================================================
+FILE: lib/pdf/engine/core/renderers/render-gallery.ts
+==================================================
+import type { PDFPage } from "pdf-lib";
+
+import type { RenderContext } from "../../context";
+import { drawImageCover } from "../image-drawer";
+import { getImagesForEditorialPage } from "../image-resolver";
+
+export async function render_gallery(
+  ctx: RenderContext,
+  page: PDFPage,
+  template: any,
+  editorialPage:
+    | "gallery"
+    | "spaces"
+    | "materials"
+    | "wellness",
+  placeholderNames: string[],
+) {
+  const artboard = template.artboard();
+
+  if (!artboard) {
+    return;
+  }
+
+
+  const images =
+    getImagesForEditorialPage(
+      ctx.property,
+      editorialPage,
+    );
+
+  if (!Array.isArray(images) || images.length === 0) {
+    return;
+  }
+
+  const total =
+    Math.min(
+      placeholderNames.length,
+      images.length,
+    );
+
+  for (let i = 0; i < total; i++) {
+
+    const placeholder =
+      template.dynamic(
+        placeholderNames[i],
+      );
+
+    if (!placeholder) continue;
+
+    await drawImageCover(
+      ctx.pdf,
+      page,
+      images[i],
+      placeholder.bounds,
+      artboard,
+    );
+  }
+}
+
+==================================================
+FILE: lib/pdf/engine/core/renderers/render-materials.ts
+==================================================
+import {
+  PDFPage,
+  StandardFonts,
+  rgb,
+} from "pdf-lib";
+
+import { materialCatalog } from "../../../../editorial/materialCatalog";
+import type { RenderContext } from "../../context";
+import type { TemplateContract } from "../../template-reader";
+import { drawImageCover } from "../image-drawer";
+import { getImageForEditorialPage } from "../image-resolver";
+import {
+  cleanText,
+  drawCenteredText,
+} from "../template-text";
+
+export async function render_materials(
+  ctx: RenderContext,
+  page: PDFPage,
+  template: TemplateContract,
+) {
+  const artboard = template.artboard();
+
+  if (!artboard) {
+    return;
+  }
+
+  /*
+   * Foto editorial principal de la hoja 4.
+   */
+  const heroImage = getImageForEditorialPage(
+    ctx.property,
+    "materials",
+  );
+
+  const heroPlaceholder = template.dynamic(
+    "Foto 1",
+  );
+
+  if (heroImage && heroPlaceholder) {
+    await drawImageCover(
+      ctx.pdf,
+      page,
+      heroImage,
+      heroPlaceholder.bounds,
+      artboard,
+    );
+  }
+
+  /*
+   * La propiedad guarda únicamente los IDs seleccionados
+   * en el catálogo de materiales.
+   */
+  const selectedMaterialIds = Array.isArray(
+    ctx.property.materials,
+  )
+    ? ctx.property.materials
+        .filter(
+          (value): value is string =>
+            typeof value === "string" &&
+            value.trim().length > 0,
+        )
+        .slice(0, 6)
+    : [];
+
+  if (selectedMaterialIds.length === 0) {
+    return;
+  }
+
+  const font = await ctx.pdf.embedFont(
+    StandardFonts.Helvetica,
+  );
+
+  for (
+    let index = 0;
+    index < selectedMaterialIds.length;
+    index++
+  ) {
+    const materialId =
+      selectedMaterialIds[index];
+
+    const material = materialCatalog.find(
+      (entry) => entry.id === materialId,
+    );
+
+    if (!material) {
+      continue;
+    }
+
+    const slot = index + 1;
+
+    /*
+     * Imagen de la muestra del catálogo.
+     */
+    const samplePlaceholder = template.dynamic(
+      `MUESTRA MATERIAL ${slot}`,
+    );
+
+    if (
+      samplePlaceholder &&
+      material.sample
+    ) {
+      await drawImageCover(
+        ctx.pdf,
+        page,
+        material.sample,
+        samplePlaceholder.bounds,
+        artboard,
+      );
+    }
+
+    /*
+     * Nombre visible del material.
+     */
+    const namePlaceholder = template.dynamic(
+      `Nombre muestra ${slot}`,
+    );
+
+    const materialName = cleanText(
+      material.title,
+    );
+
+    if (
+      namePlaceholder &&
+      materialName
+    ) {
+      drawCenteredText(
+        page,
+        namePlaceholder,
+        artboard,
+        materialName,
+        font,
+        9,
+        rgb(1, 1, 1),
+      );
+    }
+  }
+}
+
+==================================================
+FILE: lib/pdf/engine/core/renderers/render-score.ts
+==================================================
+import { rgb, PDFPage } from "pdf-lib";
+
+import type { RenderContext } from "../../context";
+import { loadFonts } from "../fonts";
+import { drawCenteredText } from "../template-text";
+import type { Artboard, TemplateItem } from "../types";
+
+export async function render_score(
+  ctx: RenderContext,
+  page: PDFPage,
+  template: any,
+) {
+  const item =
+    template.field("Numero score") as
+      | TemplateItem
+      | undefined;
+
+  if (!item) return;
+
+  const artboard =
+    template.artboard() as Artboard;
+
+  const fonts =
+    await loadFonts(ctx.pdf);
+
+  const property =
+    ctx.property as typeof ctx.property & {
+      luxuryScore?: number | null;
+    };
+
+  drawCenteredText(
+    page,
+    item,
+    artboard,
+    property.luxuryScore != null
+      ? String(property.luxuryScore)
+      : "",
+    fonts.trajanLight,
+    item.size ?? 70,
+    rgb(1,1,1),
+  );
+}
+
+==================================================
+FILE: lib/pdf/engine/core/renderers/render-qr.ts
+==================================================
+import type { PDFPage } from "pdf-lib";
+
+import type { RenderContext } from "../../context";
+import { drawImageCover } from "../image-drawer";
+
+export async function render_qr(
+  ctx: RenderContext,
+  page: PDFPage,
+  template: any,
+) {
+  const artboard = template.artboard();
+
+  if (!artboard) {
+    return;
+  }
+
+  const placeholder =
+    template.dynamic("Qr");
+
+  if (!placeholder) {
+    return;
+  }
+
+  const qr =
+    (ctx.property as any).qrImage ??
+    (ctx.property as any).qr ??
+    null;
+
+  if (!qr) {
+    return;
+  }
+
+  await drawImageCover(
+    ctx.pdf,
+    page,
+    qr,
+    placeholder.bounds,
+    artboard,
+  );
+}
+
+==================================================
+FILE: lib/pdf/engine/core/template-text.ts
+==================================================
+import { PDFPage, PDFFont, rgb } from "pdf-lib";
+import type { Bounds, Artboard, TemplateItem } from "./types";
+
+
+export function cleanText(value: unknown): string {
+  return String(value ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function toPdfBounds(
+  bounds: Bounds,
+  artboard: Artboard,
+) {
+  return {
+    x: bounds.left - artboard.left,
+    y: bounds.bottom - artboard.bottom,
+    width: bounds.width,
+    height: bounds.height,
+  };
+}
+
+export function drawCenteredText(
+  page: PDFPage,
+  item: TemplateItem,
+  artboard: Artboard,
+  text: string,
+  font: PDFFont,
+  preferredSize: number,
+  color: ReturnType<typeof rgb>,
+) {
+  const box = toPdfBounds(item.bounds, artboard);
+
+  const size = preferredSize;
+
+  const textWidth = font.widthOfTextAtSize(
+    text,
+    size,
+  );
+
+  page.drawRectangle({
+    x: box.x - 3,
+    y: box.y - 3,
+    width: box.width + 6,
+    height: box.height + 6,
+    color: rgb(0, 0, 0),
+  });
+
+  page.drawText(text, {
+    x: box.x + (box.width - textWidth) / 2,
+    y: box.y,
+    size,
+    font,
+    color,
+  });
+}
+
+==================================================
+FILE: lib/pdf/engine/core/image-drawer.ts
+==================================================
+import fs from "node:fs/promises";
+import path from "node:path";
+
+import {
+  PDFDocument,
+  PDFPage,
+} from "pdf-lib";
+
+import type { Artboard, Bounds } from "./types";
+import { toPdfBounds } from "./template-text";
+
+function fitCover(
+  imgWidth: number,
+  imgHeight: number,
+  boxWidth: number,
+  boxHeight: number,
+) {
+  const scale = Math.max(
+    boxWidth / imgWidth,
+    boxHeight / imgHeight,
+  );
+
+  return {
+    width: imgWidth * scale,
+    height: imgHeight * scale,
+  };
+}
+
+export async function drawImageCover(
+  pdf: PDFDocument,
+  page: PDFPage,
+  imagePath: string,
+  bounds: Bounds,
+  artboard: Artboard,
+) {
+  console.log("IMAGE BOUNDS:", JSON.stringify(bounds));
+  if (!imagePath) return;
+
+  let bytes: Uint8Array;
+
+  if (
+    imagePath.startsWith("http://") ||
+    imagePath.startsWith("https://")
+  ) {
+    console.log("DRAW IMAGE URL:", imagePath);
+    const response = await fetch(imagePath);
+    console.log("DRAW IMAGE STATUS:", response.status, response.ok);
+
+    if (!response.ok) {
+      throw new Error(
+        `No se pudo descargar la imagen: ${imagePath}`,
+      );
+    }
+
+    bytes = new Uint8Array(
+      await response.arrayBuffer(),
+    );
+  } else {
+    const absolute = path.join(
+      process.cwd(),
+      "public",
+      imagePath.replace(/^\/+/, ""),
+    );
+
+    bytes = await fs.readFile(absolute);
+  }
+
+  const image =
+    imagePath.toLowerCase().endsWith(".png")
+      ? await pdf.embedPng(bytes)
+      : await pdf.embedJpg(bytes);
+
+  const pdfBounds = toPdfBounds(
+    bounds,
+    artboard,
+  );
+
+  const size = fitCover(
+    image.width,
+    image.height,
+    pdfBounds.width,
+    pdfBounds.height,
+  );
+
+  page.drawImage(image, {
+    x: pdfBounds.x - (size.width - pdfBounds.width) / 2,
+    y: pdfBounds.y - (size.height - pdfBounds.height) / 2,
+    width: size.width,
+    height: size.height,
+  });
+}
+
+==================================================
+FILE: lib/pdf/engine/core/image-resolver.ts
+==================================================
+import type { Property } from "../context";
+
+export type EditorialImagePage =
+  | "cover"
+  | "architecture"
+  | "spaces"
+  | "materials"
+  | "wellness"
+  | "gallery"
+  | "destination"
+  | "investment"
+  | "contact";
+
+type AssignmentMap = Record<string, EditorialImagePage>;
+
+function asStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter(
+        (v): v is string => typeof v === "string"
+      )
+    : [];
+}
+
+function asAssignmentMap(
+  value: unknown,
+): AssignmentMap {
+  if (
+    !value ||
+    typeof value !== "object" ||
+    Array.isArray(value)
+  ) {
+    return {};
+  }
+
+  const result: AssignmentMap = {};
+
+  for (const [k, v] of Object.entries(value)) {
+    if (typeof v === "string") {
+      result[k] = v as EditorialImagePage;
+    }
+  }
+
+  return result;
+}
+
+export function getImageForEditorialPage(
+  property: Property,
+  page: EditorialImagePage,
+): string | null {
+  console.log("IMAGE RESOLVER EXECUTED");
+
+  const pdfGallery = asStringArray(
+    (property as any).pdfGallery,
+  );
+
+  const assignments = asAssignmentMap(
+    (property as any).pdfAssignments,
+  );
+
+  for (const image of pdfGallery) {
+    if (assignments[image] === page) {
+      console.log("IMAGE RESOLVER RESULT:", page, image);
+      return image;
+    }
+  }
+
+  return null;
+}
+
+
+export function getImagesForEditorialPage(
+  property: Property,
+  page: EditorialImagePage,
+): string[] {
+  const pdfGallery = asStringArray(
+    (property as any).pdfGallery,
+  );
+
+  const assignments = asAssignmentMap(
+    (property as any).pdfAssignments,
+  );
+
+  return pdfGallery.filter(
+    (image) => assignments[image] === page,
+  );
+}
+
+==================================================
+FILE: lib/pdf/engine/core/types.ts
+==================================================
+export type Bounds = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+};
+
+export type TemplateItem = {
+  field?: string;
+  name?: string;
+  layer?: string;
+  type?: string;
+  text?: string;
+  size?: number;
+  bounds: Bounds;
+};
+
+export type Artboard = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+};

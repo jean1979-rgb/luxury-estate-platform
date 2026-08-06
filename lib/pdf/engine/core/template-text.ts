@@ -31,11 +31,6 @@ export function drawCenteredText(
 ) {
   const box = toPdfBounds(item.bounds, artboard);
 
-  if (item.field === "title") {
-    box.x = 55;
-    box.width = page.getWidth() - 110;
-  }
-
   const size = preferredSize;
 
   const textWidth = font.widthOfTextAtSize(

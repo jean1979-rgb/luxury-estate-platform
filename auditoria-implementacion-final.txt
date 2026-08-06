@@ -1,0 +1,1325 @@
+==========================================================
+GIT STATUS
+==========================================================
+On branch feat/editorial-result-v2
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   lib/pdf/engine/core/editorial-renderer.ts
+	modified:   lib/pdf/engine/core/image-drawer.ts
+	modified:   lib/pdf/engine/core/image-resolver.ts
+	modified:   lib/pdf/engine/core/renderers/render-gallery.ts
+	modified:   lib/pdf/engine/core/renderers/render-materials.ts
+	modified:   lib/pdf/engine/core/renderers/render-qr.ts
+	modified:   lib/pdf/engine/core/renderers/render-single-image.ts
+	modified:   lib/pdf/engine/core/template-text.ts
+	modified:   lib/pdf/engine/renderer.ts
+	modified:   lib/pdf/engine/template-reader/index.ts
+	modified:   lib/pdf/engine/templates.ts
+	modified:   lib/pdf/templates/page1.ai
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	auditoria-implementacion-final.txt
+	lib/pdf/templates/~ai-dd2ba551-228e-4b1f-b73d-22b5a57d5681_.tmp
+	renderer-audit-numbered.txt
+	renderer-audit.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+==========================================================
+TREE
+==========================================================
+lib/pdf/engine/context.ts
+lib/pdf/engine/core/assets.ts
+lib/pdf/engine/core/colors.ts
+lib/pdf/engine/core/editorial-renderer.ts
+lib/pdf/engine/core/fonts.ts
+lib/pdf/engine/core/helpers.ts
+lib/pdf/engine/core/image-drawer.ts
+lib/pdf/engine/core/image-resolver.ts
+lib/pdf/engine/core/images.ts
+lib/pdf/engine/core/renderers/render-amenities.ts
+lib/pdf/engine/core/renderers/render-factors.ts
+lib/pdf/engine/core/renderers/render-gallery.ts
+lib/pdf/engine/core/renderers/render-materials.ts
+lib/pdf/engine/core/renderers/render-qr.ts
+lib/pdf/engine/core/renderers/render-score.ts
+lib/pdf/engine/core/renderers/render-single-image.ts
+lib/pdf/engine/core/renderers/render-text.ts
+lib/pdf/engine/core/template-text.ts
+lib/pdf/engine/core/types.ts
+lib/pdf/engine/pages/page1.ts
+lib/pdf/engine/pages/page2.ts
+lib/pdf/engine/pages/page3.ts
+lib/pdf/engine/pages/page4.ts
+lib/pdf/engine/pages/page5.ts
+lib/pdf/engine/pages/page6.ts
+lib/pdf/engine/pages/page7.ts
+lib/pdf/engine/pages/page8.ts
+lib/pdf/engine/pages/page9.ts
+lib/pdf/engine/renderer.ts
+lib/pdf/engine/template-reader/index.ts
+lib/pdf/engine/templates.ts
+lib/pdf/templates/~ai-dd2ba551-228e-4b1f-b73d-22b5a57d5681_.tmp
+lib/pdf/templates/page1.ai
+lib/pdf/templates/page1.json
+lib/pdf/templates/page2.ai
+lib/pdf/templates/page2.json
+lib/pdf/templates/page3.ai
+lib/pdf/templates/page3.json
+lib/pdf/templates/page4.ai
+lib/pdf/templates/page4.json
+lib/pdf/templates/page5.ai
+lib/pdf/templates/page5.json
+lib/pdf/templates/page6.ai
+lib/pdf/templates/page6.json
+lib/pdf/templates/page7.ai
+lib/pdf/templates/page7.json
+lib/pdf/templates/page8.ai
+lib/pdf/templates/page8.json
+lib/pdf/templates/page9.ai
+lib/pdf/templates/page9.json
+
+==========================================================
+EDITORIAL RENDERER
+==========================================================
+     1	import { rgb } from "pdf-lib";
+     2	
+     3	import { RenderContext } from "../context";
+     4	import { loadFonts } from "./fonts";
+     5	import {
+     6	  cleanText,
+     7	  drawCenteredText,
+     8	} from "./template-text";
+     9	import type {
+    10	  Artboard,
+    11	  TemplateItem,
+    12	} from "./types";
+    13	import { loadTemplate } from "../template-reader";
+    14	import { render_text } from "./renderers/render-text";
+    15	import { render_score } from "./renderers/render-score";
+    16	import { render_single_image } from "./renderers/render-single-image";
+    17	import { render_qr } from "./renderers/render-qr";
+    18	import { render_gallery } from "./renderers/render-gallery";
+    19	import { render_materials } from "./renderers/render-materials";
+    20	import { render_amenities } from "./renderers/render-amenities";
+    21	import { loadTemplatePage } from "../templates";
+    22	
+    23	export async function renderEditorialPage(
+    24	  ctx: RenderContext,
+    25	  pageNumber: number,
+    26	) {
+    27	  const pdfTemplate = await loadTemplatePage(
+    28	    ctx.pdf,
+    29	    pageNumber,
+    30	  );
+    31	
+    32	  const template = await loadTemplate(
+    33	    pageNumber,
+    34	  );
+    35	
+    36	  console.log("NEW PAGE SIZE:", pdfTemplate.width, pdfTemplate.height);
+    37	
+    38	  const page = ctx.pdf.addPage([
+    39	    pdfTemplate.width,
+    40	    pdfTemplate.height,
+    41	  ]);
+    42	
+    43	  page.drawPage(pdfTemplate);
+    44	
+    45	  switch (pageNumber) {
+    46	    case 1:
+    47	      await renderPage1(ctx, page, template);
+    48	      break;
+    49	
+    50	    case 2:
+    51	      await renderPage2(ctx, page, template);
+    52	      break;
+    53	
+    54	    case 3:
+    55	      await renderPage3(ctx, page, template);
+    56	      break;
+    57	
+    58	    case 4:
+    59	      await renderPage4(ctx, page, template);
+    60	      break;
+    61	
+    62	    case 5:
+    63	      await renderPage5(ctx, page, template);
+    64	      break;
+    65	
+    66	    case 6:
+    67	      await renderPage6(ctx, page, template);
+    68	      break;
+    69	
+    70	    case 7:
+    71	      await renderPage7(ctx, page, template);
+    72	      break;
+    73	
+    74	    case 8:
+    75	      await renderPage8(ctx, page, template);
+    76	      break;
+    77	
+    78	    case 9:
+    79	      await renderPage9(ctx, page, template);
+    80	      break;
+    81	  }
+    82	
+    83	  return page;
+    84	}
+    85	
+    86	
+    87	
+    88	async function renderPage1(
+    89	  ctx: RenderContext,
+    90	  page: any,
+    91	  template: any,
+    92	) {
+    93	  await render_text(
+    94	    ctx,
+    95	    page,
+    96	    template,
+    97	  );
+    98	
+    99	  await render_score(
+   100	    ctx,
+   101	    page,
+   102	    template,
+   103	  );
+   104	
+   105	  await render_single_image(
+   106	    ctx,
+   107	    page,
+   108	    template,
+   109	    "cover",
+   110	  );
+   111	}
+   112	
+   113	async function renderPage2(
+   114	  ctx: RenderContext,
+   115	  page: any,
+   116	  template: any,
+   117	) {
+   118	  await render_text(
+   119	    ctx,
+   120	    page,
+   121	    template,
+   122	  );
+   123	
+   124	  await render_single_image(
+   125	    ctx,
+   126	    page,
+   127	    template,
+   128	    "architecture",
+   129	  );
+   130	}
+   131	
+   132	async function renderPage3(
+   133	  ctx: RenderContext,
+   134	  page: any,
+   135	  template: any,
+   136	) {
+   137	  await render_text(
+   138	    ctx,
+   139	    page,
+   140	    template,
+   141	  );
+   142	
+   143	  await render_gallery(
+   144	    ctx,
+   145	    page,
+   146	    template,
+   147	    "spaces",
+   148	    [
+   149	      "Foto 1",
+   150	      "Foto 2",
+   151	      "Foto 3",
+   152	      "Foto 4",
+   153	    ],
+   154	  );
+   155	}
+   156	
+   157	async function renderPage4(
+   158	  ctx: RenderContext,
+   159	  page: any,
+   160	  template: any,
+   161	) {
+   162	  await render_text(
+   163	    ctx,
+   164	    page,
+   165	    template,
+   166	  );
+   167	
+   168	  await render_materials(
+   169	    ctx,
+   170	    page,
+   171	    template,
+   172	  );
+   173	}
+   174	
+   175	async function renderPage5(
+   176	  ctx: RenderContext,
+   177	  page: any,
+   178	  template: any,
+   179	) {
+   180	  await render_amenities(
+   181	    ctx,
+   182	    page,
+   183	    template,
+   184	  );
+   185	}
+   186	
+   187	async function renderPage6(
+   188	  ctx: RenderContext,
+   189	  page: any,
+   190	  template: any,
+   191	) {
+   192	  await render_gallery(
+   193	    ctx,
+   194	    page,
+   195	    template,
+   196	    "spaces",
+   197	    [
+   198	      "Foto 1",
+   199	      "Foto 2",
+   200	      "Foto 3",
+   201	      "Foto 4",
+   202	    ],
+   203	  );
+   204	}
+   205	
+   206	async function renderPage7(
+   207	  ctx: RenderContext,
+   208	  page: any,
+   209	  template: any,
+   210	) {
+   211	  await render_text(
+   212	    ctx,
+   213	    page,
+   214	    template,
+   215	  );
+   216	
+   217	  await render_single_image(
+   218	    ctx,
+   219	    page,
+   220	    template,
+   221	    "destination",
+   222	  );
+   223	}
+   224	
+   225	async function renderPage8(
+   226	  ctx: RenderContext,
+   227	  page: any,
+   228	  template: any,
+   229	) {
+   230	  await render_text(
+   231	    ctx,
+   232	    page,
+   233	    template,
+   234	  );
+   235	
+   236	  await render_single_image(
+   237	    ctx,
+   238	    page,
+   239	    template,
+   240	    "investment",
+   241	  );
+   242	}
+   243	
+   244	async function renderPage9(
+   245	  ctx: RenderContext,
+   246	  page: any,
+   247	  template: any,
+   248	) {
+   249	  await render_text(
+   250	    ctx,
+   251	    page,
+   252	    template,
+   253	  );
+   254	
+   255	  await render_score(
+   256	    ctx,
+   257	    page,
+   258	    template,
+   259	  );
+   260	
+   261	  await render_single_image(
+   262	    ctx,
+   263	    page,
+   264	    template,
+   265	    "contact",
+   266	  );
+   267	
+   268	  await render_qr(
+   269	    ctx,
+   270	    page,
+   271	    template,
+   272	  );
+   273	}
+
+==========================================================
+RENDER TEXT
+==========================================================
+     1	import { rgb, PDFPage } from "pdf-lib";
+     2	
+     3	import type { RenderContext } from "../../context";
+     4	import { loadFonts } from "../fonts";
+     5	import { cleanText, drawCenteredText } from "../template-text";
+     6	import type { Artboard, TemplateItem } from "../types";
+     7	
+     8	export async function render_text(
+     9	  ctx: RenderContext,
+    10	  page: PDFPage,
+    11	  template: any,
+    12	) {
+    13	  const artboard = template.artboard() as Artboard;
+    14	  const fonts = await loadFonts(ctx.pdf);
+    15	
+    16	  const property =
+    17	    ctx.property as typeof ctx.property & {
+    18	      tagline?: string | null;
+    19	      classification?: string | null;
+    20	      pemClassification?: string | null;
+    21	      brokerProfile?: {
+    22	        phone?: string | null;
+    23	      } | null;
+    24	    };
+    25	
+    26	  const values = {
+    27	    classification: cleanText(
+    28	      property.pemClassification ??
+    29	      property.classification,
+    30	    ),
+    31	    title: cleanText(property.title),
+    32	    subtitle: cleanText(property.tagline),
+    33	    collection: cleanText(property.zoneLabel),
+    34	    price: cleanText(property.price),
+    35	    bedrooms:
+    36	      property.bedrooms != null
+    37	        ? String(property.bedrooms)
+    38	        : "",
+    39	    bathrooms:
+    40	      property.bathrooms != null
+    41	        ? (
+    42	            property.halfBathrooms
+    43	              ? `${property.bathrooms + 0.5}`
+    44	              : `${property.bathrooms}`
+    45	          )
+    46	        : "",
+    47	    area:
+    48	      property.areaInterior != null
+    49	        ? `${property.areaInterior} m²`
+    50	        : "",
+    51	    luxuryScore:
+    52	      property.luxuryScore != null
+    53	        ? String(property.luxuryScore)
+    54	        : "",
+    55	    phone: cleanText(
+    56	      property.brokerProfile?.phone,
+    57	    ),
+    58	    editorial_quote:
+    59	      "Permítanos asesorarle en la adquisición de esta propiedad única",
+    60	  };
+    61	
+    62	  const fields = [
+    63	    ["classification","trajanSemibold",rgb(197/255,141/255,66/255),9.65],
+    64	    ["title","trajanLight",rgb(1,1,1),15],
+    65	    ["subtitle","trajanLight",rgb(1,1,1),11],
+    66	    ["editorial_quote","trajanLight",rgb(1,1,1),10],
+    67	    ["collection","trajanLight",rgb(1,1,1),12],
+    68	    ["price","trajanLight",rgb(1,1,1),12],
+    69	    ["bedrooms","trajanLight",rgb(1,1,1),12],
+    70	    ["bathrooms","trajanLight",rgb(1,1,1),12],
+    71	    ["area","trajanLight",rgb(1,1,1),12],
+    72	    ["Numero score","trajanLight",rgb(1,1,1),70],
+    73	    ["phone","trajanLight",rgb(1,1,1),11],
+    74	  ] as const;
+    75	
+    76	  for (const [field,font,color,defaultSize] of fields) {
+    77	
+    78	    const item =
+    79	      template.field(field) as TemplateItem | undefined;
+    80	
+    81	    if (!item) continue;
+    82	
+    83	    const key =
+    84	      field === "Numero score"
+    85	        ? "luxuryScore"
+    86	        : field;
+    87	
+    88	    drawCenteredText(
+    89	      page,
+    90	      item,
+    91	      artboard,
+    92	      (values as any)[key] ?? "",
+    93	      (fonts as any)[font],
+    94	      item.size ?? defaultSize,
+    95	      color,
+    96	    );
+    97	  }
+    98	}
+
+==========================================================
+RENDER SINGLE IMAGE
+==========================================================
+     1	import type { PDFPage } from "pdf-lib";
+     2	
+     3	import type { RenderContext } from "../../context";
+     4	import { getImageForEditorialPage } from "../image-resolver";
+     5	import { drawImageCover } from "../image-drawer";
+     6	
+     7	export type EditorialImagePage =
+     8	  | "cover"
+     9	  | "architecture"
+    10	  | "spaces"
+    11	  | "materials"
+    12	  | "wellness"
+    13	  | "gallery"
+    14	  | "destination"
+    15	  | "investment"
+    16	  | "contact";
+    17	
+    18	export async function render_single_image(
+    19	  ctx: RenderContext,
+    20	  page: PDFPage,
+    21	  template: any,
+    22	  editorialPage: EditorialImagePage,
+    23	  placeholderName = "Foto principal",
+    24	) {
+    25	  const artboard = template.artboard();
+    26	
+    27	  if (!artboard) {
+    28	    return;
+    29	  }
+    30	
+    31	  const placeholder =
+    32	    template.dynamic(placeholderName);
+    33	
+    34	  if (!placeholder) {
+    35	    return;
+    36	  }
+    37	
+    38	  const image =
+    39	    getImageForEditorialPage(
+    40	      ctx.property,
+    41	      editorialPage,
+    42	    );
+    43	
+    44	  if (!image) {
+    45	    return;
+    46	  }
+    47	
+    48	  await drawImageCover(
+    49	    ctx.pdf,
+    50	    page,
+    51	    image,
+    52	    placeholder.bounds,
+    53	    artboard,
+    54	  );
+    55	}
+
+==========================================================
+RENDER GALLERY
+==========================================================
+     1	import type { PDFPage } from "pdf-lib";
+     2	
+     3	import type { RenderContext } from "../../context";
+     4	import { drawImageCover } from "../image-drawer";
+     5	import { getImagesForEditorialPage } from "../image-resolver";
+     6	
+     7	export async function render_gallery(
+     8	  ctx: RenderContext,
+     9	  page: PDFPage,
+    10	  template: any,
+    11	  editorialPage:
+    12	    | "gallery"
+    13	    | "spaces"
+    14	    | "materials"
+    15	    | "wellness",
+    16	  placeholderNames: string[],
+    17	) {
+    18	  const artboard = template.artboard();
+    19	
+    20	  if (!artboard) {
+    21	    return;
+    22	  }
+    23	
+    24	
+    25	  const images =
+    26	    getImagesForEditorialPage(
+    27	      ctx.property,
+    28	      editorialPage,
+    29	    );
+    30	
+    31	  if (!Array.isArray(images) || images.length === 0) {
+    32	    return;
+    33	  }
+    34	
+    35	  const total =
+    36	    Math.min(
+    37	      placeholderNames.length,
+    38	      images.length,
+    39	    );
+    40	
+    41	  for (let i = 0; i < total; i++) {
+    42	
+    43	    const placeholder =
+    44	      template.dynamic(
+    45	        placeholderNames[i],
+    46	      );
+    47	
+    48	    if (!placeholder) continue;
+    49	
+    50	    await drawImageCover(
+    51	      ctx.pdf,
+    52	      page,
+    53	      images[i],
+    54	      placeholder.bounds,
+    55	      artboard,
+    56	    );
+    57	  }
+    58	}
+
+==========================================================
+RENDER MATERIALS
+==========================================================
+     1	import {
+     2	  PDFPage,
+     3	  StandardFonts,
+     4	  rgb,
+     5	} from "pdf-lib";
+     6	
+     7	import { materialCatalog } from "../../../../editorial/materialCatalog";
+     8	import type { RenderContext } from "../../context";
+     9	import type { TemplateContract } from "../../template-reader";
+    10	import { drawImageCover } from "../image-drawer";
+    11	import { getImageForEditorialPage } from "../image-resolver";
+    12	import {
+    13	  cleanText,
+    14	  drawCenteredText,
+    15	} from "../template-text";
+    16	
+    17	export async function render_materials(
+    18	  ctx: RenderContext,
+    19	  page: PDFPage,
+    20	  template: TemplateContract,
+    21	) {
+    22	  const artboard = template.artboard();
+    23	
+    24	  if (!artboard) {
+    25	    return;
+    26	  }
+    27	
+    28	  /*
+    29	   * Foto editorial principal de la hoja 4.
+    30	   */
+    31	  const heroImage = getImageForEditorialPage(
+    32	    ctx.property,
+    33	    "materials",
+    34	  );
+    35	
+    36	  const heroPlaceholder = template.dynamic(
+    37	    "Foto 1",
+    38	  );
+    39	
+    40	  if (heroImage && heroPlaceholder) {
+    41	    await drawImageCover(
+    42	      ctx.pdf,
+    43	      page,
+    44	      heroImage,
+    45	      heroPlaceholder.bounds,
+    46	      artboard,
+    47	    );
+    48	  }
+    49	
+    50	  /*
+    51	   * La propiedad guarda únicamente los IDs seleccionados
+    52	   * en el catálogo de materiales.
+    53	   */
+    54	  const selectedMaterialIds = Array.isArray(
+    55	    ctx.property.materials,
+    56	  )
+    57	    ? ctx.property.materials
+    58	        .filter(
+    59	          (value): value is string =>
+    60	            typeof value === "string" &&
+    61	            value.trim().length > 0,
+    62	        )
+    63	        .slice(0, 6)
+    64	    : [];
+    65	
+    66	  if (selectedMaterialIds.length === 0) {
+    67	    return;
+    68	  }
+    69	
+    70	  const font = await ctx.pdf.embedFont(
+    71	    StandardFonts.Helvetica,
+    72	  );
+    73	
+    74	  for (
+    75	    let index = 0;
+    76	    index < selectedMaterialIds.length;
+    77	    index++
+    78	  ) {
+    79	    const materialId =
+    80	      selectedMaterialIds[index];
+    81	
+    82	    const material = materialCatalog.find(
+    83	      (entry) => entry.id === materialId,
+    84	    );
+    85	
+    86	    if (!material) {
+    87	      continue;
+    88	    }
+    89	
+    90	    const slot = index + 1;
+    91	
+    92	    /*
+    93	     * Imagen de la muestra del catálogo.
+    94	     */
+    95	    const samplePlaceholder = template.dynamic(
+    96	      `MUESTRA MATERIAL ${slot}`,
+    97	    );
+    98	
+    99	    if (
+   100	      samplePlaceholder &&
+   101	      material.sample
+   102	    ) {
+   103	      await drawImageCover(
+   104	        ctx.pdf,
+   105	        page,
+   106	        material.sample,
+   107	        samplePlaceholder.bounds,
+   108	        artboard,
+   109	      );
+   110	    }
+   111	
+   112	    /*
+   113	     * Nombre visible del material.
+   114	     */
+   115	    const namePlaceholder = template.dynamic(
+   116	      `Nombre muestra ${slot}`,
+   117	    );
+   118	
+   119	    const materialName = cleanText(
+   120	      material.title,
+   121	    );
+   122	
+   123	    if (
+   124	      namePlaceholder &&
+   125	      materialName
+   126	    ) {
+   127	      drawCenteredText(
+   128	        page,
+   129	        namePlaceholder,
+   130	        artboard,
+   131	        materialName,
+   132	        font,
+   133	        9,
+   134	        rgb(1, 1, 1),
+   135	      );
+   136	    }
+   137	  }
+   138	}
+
+==========================================================
+RENDER AMENITIES
+==========================================================
+     1	import type { PDFPage } from "pdf-lib";
+     2	
+     3	import type { RenderContext } from "../../context";
+     4	import { render_text } from "./render-text";
+     5	
+     6	export async function render_amenities(
+     7	  ctx: RenderContext,
+     8	  page: PDFPage,
+     9	  template: any,
+    10	) {
+    11	  await render_text(
+    12	    ctx,
+    13	    page,
+    14	    template,
+    15	  );
+    16	
+    17	  // TODO:
+    18	  // Renderizar amenidades/factores cuando exista
+    19	  // el renderer definitivo.
+    20	}
+
+==========================================================
+RENDER FACTORS
+==========================================================
+     1	export async function render_factors() {
+     2	  // TODO
+     3	}
+
+==========================================================
+RENDER SCORE
+==========================================================
+     1	import { rgb, PDFPage } from "pdf-lib";
+     2	
+     3	import type { RenderContext } from "../../context";
+     4	import { loadFonts } from "../fonts";
+     5	import { drawCenteredText } from "../template-text";
+     6	import type { Artboard, TemplateItem } from "../types";
+     7	
+     8	export async function render_score(
+     9	  ctx: RenderContext,
+    10	  page: PDFPage,
+    11	  template: any,
+    12	) {
+    13	  const item =
+    14	    template.field("Numero score") as
+    15	      | TemplateItem
+    16	      | undefined;
+    17	
+    18	  if (!item) return;
+    19	
+    20	  const artboard =
+    21	    template.artboard() as Artboard;
+    22	
+    23	  const fonts =
+    24	    await loadFonts(ctx.pdf);
+    25	
+    26	  const property =
+    27	    ctx.property as typeof ctx.property & {
+    28	      luxuryScore?: number | null;
+    29	    };
+    30	
+    31	  drawCenteredText(
+    32	    page,
+    33	    item,
+    34	    artboard,
+    35	    property.luxuryScore != null
+    36	      ? String(property.luxuryScore)
+    37	      : "",
+    38	    fonts.trajanLight,
+    39	    item.size ?? 70,
+    40	    rgb(1,1,1),
+    41	  );
+    42	}
+
+==========================================================
+RENDER QR
+==========================================================
+     1	import type { PDFPage } from "pdf-lib";
+     2	
+     3	import type { RenderContext } from "../../context";
+     4	import { drawImageCover } from "../image-drawer";
+     5	
+     6	export async function render_qr(
+     7	  ctx: RenderContext,
+     8	  page: PDFPage,
+     9	  template: any,
+    10	) {
+    11	  const artboard = template.artboard();
+    12	
+    13	  if (!artboard) {
+    14	    return;
+    15	  }
+    16	
+    17	  const placeholder =
+    18	    template.dynamic("Qr");
+    19	
+    20	  if (!placeholder) {
+    21	    return;
+    22	  }
+    23	
+    24	  const qr =
+    25	    (ctx.property as any).qrImage ??
+    26	    (ctx.property as any).qr ??
+    27	    null;
+    28	
+    29	  if (!qr) {
+    30	    return;
+    31	  }
+    32	
+    33	  await drawImageCover(
+    34	    ctx.pdf,
+    35	    page,
+    36	    qr,
+    37	    placeholder.bounds,
+    38	    artboard,
+    39	  );
+    40	}
+
+==========================================================
+TEMPLATE TEXT
+==========================================================
+     1	import { PDFPage, PDFFont, rgb } from "pdf-lib";
+     2	import type { Bounds, Artboard, TemplateItem } from "./types";
+     3	
+     4	
+     5	export function cleanText(value: unknown): string {
+     6	  return String(value ?? "")
+     7	    .replace(/\s+/g, " ")
+     8	    .trim();
+     9	}
+    10	
+    11	export function toPdfBounds(
+    12	  bounds: Bounds,
+    13	  artboard: Artboard,
+    14	) {
+    15	  return {
+    16	    x: bounds.left - artboard.left,
+    17	    y: bounds.bottom - artboard.bottom,
+    18	    width: bounds.width,
+    19	    height: bounds.height,
+    20	  };
+    21	}
+    22	
+    23	export function drawCenteredText(
+    24	  page: PDFPage,
+    25	  item: TemplateItem,
+    26	  artboard: Artboard,
+    27	  text: string,
+    28	  font: PDFFont,
+    29	  preferredSize: number,
+    30	  color: ReturnType<typeof rgb>,
+    31	) {
+    32	  const box = toPdfBounds(item.bounds, artboard);
+    33	
+    34	  const size = preferredSize;
+    35	
+    36	  const textWidth = font.widthOfTextAtSize(
+    37	    text,
+    38	    size,
+    39	  );
+    40	
+    41	  page.drawRectangle({
+    42	    x: box.x - 3,
+    43	    y: box.y - 3,
+    44	    width: box.width + 6,
+    45	    height: box.height + 6,
+    46	    color: rgb(0, 0, 0),
+    47	  });
+    48	
+    49	  page.drawText(text, {
+    50	    x: box.x + (box.width - textWidth) / 2,
+    51	    y: box.y,
+    52	    size,
+    53	    font,
+    54	    color,
+    55	  });
+    56	}
+
+==========================================================
+IMAGE DRAWER
+==========================================================
+     1	import fs from "node:fs/promises";
+     2	import path from "node:path";
+     3	
+     4	import {
+     5	  PDFDocument,
+     6	  PDFPage,
+     7	} from "pdf-lib";
+     8	
+     9	import type { Artboard, Bounds } from "./types";
+    10	import { toPdfBounds } from "./template-text";
+    11	
+    12	function fitCover(
+    13	  imgWidth: number,
+    14	  imgHeight: number,
+    15	  boxWidth: number,
+    16	  boxHeight: number,
+    17	) {
+    18	  const scale = Math.max(
+    19	    boxWidth / imgWidth,
+    20	    boxHeight / imgHeight,
+    21	  );
+    22	
+    23	  return {
+    24	    width: imgWidth * scale,
+    25	    height: imgHeight * scale,
+    26	  };
+    27	}
+    28	
+    29	export async function drawImageCover(
+    30	  pdf: PDFDocument,
+    31	  page: PDFPage,
+    32	  imagePath: string,
+    33	  bounds: Bounds,
+    34	  artboard: Artboard,
+    35	) {
+    36	  console.log("IMAGE BOUNDS:", JSON.stringify(bounds));
+    37	  if (!imagePath) return;
+    38	
+    39	  let bytes: Uint8Array;
+    40	
+    41	  if (
+    42	    imagePath.startsWith("http://") ||
+    43	    imagePath.startsWith("https://")
+    44	  ) {
+    45	    console.log("DRAW IMAGE URL:", imagePath);
+    46	    const response = await fetch(imagePath);
+    47	    console.log("DRAW IMAGE STATUS:", response.status, response.ok);
+    48	
+    49	    if (!response.ok) {
+    50	      throw new Error(
+    51	        `No se pudo descargar la imagen: ${imagePath}`,
+    52	      );
+    53	    }
+    54	
+    55	    bytes = new Uint8Array(
+    56	      await response.arrayBuffer(),
+    57	    );
+    58	  } else {
+    59	    const absolute = path.join(
+    60	      process.cwd(),
+    61	      "public",
+    62	      imagePath.replace(/^\/+/, ""),
+    63	    );
+    64	
+    65	    bytes = await fs.readFile(absolute);
+    66	  }
+    67	
+    68	  const image =
+    69	    imagePath.toLowerCase().endsWith(".png")
+    70	      ? await pdf.embedPng(bytes)
+    71	      : await pdf.embedJpg(bytes);
+    72	
+    73	  const pdfBounds = toPdfBounds(
+    74	    bounds,
+    75	    artboard,
+    76	  );
+    77	
+    78	  const size = fitCover(
+    79	    image.width,
+    80	    image.height,
+    81	    pdfBounds.width,
+    82	    pdfBounds.height,
+    83	  );
+    84	
+    85	  page.drawImage(image, {
+    86	    x: pdfBounds.x - (size.width - pdfBounds.width) / 2,
+    87	    y: pdfBounds.y - (size.height - pdfBounds.height) / 2,
+    88	    width: size.width,
+    89	    height: size.height,
+    90	  });
+    91	}
+
+==========================================================
+IMAGE RESOLVER
+==========================================================
+     1	import type { Property } from "../context";
+     2	
+     3	export type EditorialImagePage =
+     4	  | "cover"
+     5	  | "architecture"
+     6	  | "spaces"
+     7	  | "materials"
+     8	  | "wellness"
+     9	  | "gallery"
+    10	  | "destination"
+    11	  | "investment"
+    12	  | "contact";
+    13	
+    14	type AssignmentMap = Record<string, EditorialImagePage>;
+    15	
+    16	function asStringArray(value: unknown): string[] {
+    17	  return Array.isArray(value)
+    18	    ? value.filter(
+    19	        (v): v is string => typeof v === "string"
+    20	      )
+    21	    : [];
+    22	}
+    23	
+    24	function asAssignmentMap(
+    25	  value: unknown,
+    26	): AssignmentMap {
+    27	  if (
+    28	    !value ||
+    29	    typeof value !== "object" ||
+    30	    Array.isArray(value)
+    31	  ) {
+    32	    return {};
+    33	  }
+    34	
+    35	  const result: AssignmentMap = {};
+    36	
+    37	  for (const [k, v] of Object.entries(value)) {
+    38	    if (typeof v === "string") {
+    39	      result[k] = v as EditorialImagePage;
+    40	    }
+    41	  }
+    42	
+    43	  return result;
+    44	}
+    45	
+    46	export function getImageForEditorialPage(
+    47	  property: Property,
+    48	  page: EditorialImagePage,
+    49	): string | null {
+    50	  console.log("IMAGE RESOLVER EXECUTED");
+    51	
+    52	  const pdfGallery = asStringArray(
+    53	    (property as any).pdfGallery,
+    54	  );
+    55	
+    56	  const assignments = asAssignmentMap(
+    57	    (property as any).pdfAssignments,
+    58	  );
+    59	
+    60	  for (const image of pdfGallery) {
+    61	    if (assignments[image] === page) {
+    62	      console.log("IMAGE RESOLVER RESULT:", page, image);
+    63	      return image;
+    64	    }
+    65	  }
+    66	
+    67	  return null;
+    68	}
+    69	
+    70	
+    71	export function getImagesForEditorialPage(
+    72	  property: Property,
+    73	  page: EditorialImagePage,
+    74	): string[] {
+    75	  const pdfGallery = asStringArray(
+    76	    (property as any).pdfGallery,
+    77	  );
+    78	
+    79	  const assignments = asAssignmentMap(
+    80	    (property as any).pdfAssignments,
+    81	  );
+    82	
+    83	  return pdfGallery.filter(
+    84	    (image) => assignments[image] === page,
+    85	  );
+    86	}
+
+==========================================================
+TYPES
+==========================================================
+     1	export type Bounds = {
+     2	  left: number;
+     3	  top: number;
+     4	  right: number;
+     5	  bottom: number;
+     6	  width: number;
+     7	  height: number;
+     8	};
+     9	
+    10	export type TemplateItem = {
+    11	  field?: string;
+    12	  name?: string;
+    13	  layer?: string;
+    14	  type?: string;
+    15	  text?: string;
+    16	  size?: number;
+    17	  bounds: Bounds;
+    18	};
+    19	
+    20	export type Artboard = {
+    21	  left: number;
+    22	  top: number;
+    23	  right: number;
+    24	  bottom: number;
+    25	  width: number;
+    26	  height: number;
+    27	};
+
+==========================================================
+TEMPLATE READER
+==========================================================
+     1	import { readFile } from "node:fs/promises";
+     2	import path from "node:path";
+     3	
+     4	import type {
+     5	  Artboard,
+     6	  TemplateItem,
+     7	} from "../core/types";
+     8	
+     9	interface TemplateDocument {
+    10	  name?: string;
+    11	  fullName?: string;
+    12	  colorSpace?: string;
+    13	  width?: number;
+    14	  height?: number;
+    15	  layers?: unknown[];
+    16	  artboards: Artboard[];
+    17	}
+    18	
+    19	interface TemplateJson {
+    20	  document: TemplateDocument;
+    21	  items: TemplateItem[];
+    22	}
+    23	
+    24	export interface TemplateContract {
+    25	  document(): TemplateDocument;
+    26	  artboard(index?: number): Artboard | undefined;
+    27	  field(name: string): TemplateItem | undefined;
+    28	  dynamic(name: string): TemplateItem | undefined;
+    29	}
+    30	
+    31	export async function loadTemplate(
+    32	  page: number,
+    33	): Promise<TemplateContract> {
+    34	  const file = path.join(
+    35	    process.cwd(),
+    36	    "lib",
+    37	    "pdf",
+    38	    "templates",
+    39	    `page${page}.json`,
+    40	  );
+    41	
+    42	  console.log("LOADING JSON FILE:", file);
+    43	
+    44	  const json = JSON.parse(
+    45	    await readFile(file, "utf8"),
+    46	  ) as TemplateJson;
+    47	
+    48	  const fields = new Map<string, TemplateItem>();
+    49	  const dynamics = new Map<string, TemplateItem>();
+    50	
+    51	  for (const item of json.items) {
+    52	    const contractItem =
+    53	      item as TemplateItem & {
+    54	        field?: string;
+    55	        name?: string;
+    56	      };
+    57	
+    58	    if (
+    59	      contractItem.field &&
+    60	      contractItem.field !== "dynamic" &&
+    61	      !fields.has(contractItem.field)
+    62	    ) {
+    63	      fields.set(
+    64	        contractItem.field,
+    65	        contractItem,
+    66	      );
+    67	    }
+    68	
+    69	    if (
+    70	      contractItem.layer === "Dinámico" &&
+    71	      contractItem.field === "dynamic" &&
+    72	      contractItem.name &&
+    73	      !dynamics.has(contractItem.name)
+    74	    ) {
+    75	      dynamics.set(
+    76	        contractItem.name,
+    77	        contractItem,
+    78	      );
+    79	    }
+    80	  }
+    81	
+    82	  return {
+    83	    document() {
+    84	      return json.document;
+    85	    },
+    86	
+    87	    artboard(index = 0) {
+    88	      return json.document.artboards[index];
+    89	    },
+    90	
+    91	    field(name: string) {
+    92	      return fields.get(name);
+    93	    },
+    94	
+    95	    dynamic(name: string) {
+    96	      return dynamics.get(name);
+    97	    },
+    98	  };
+    99	}
+
+==========================================================
+ENGINE RENDERER
+==========================================================
+     1	import { NextResponse } from "next/server";
+     2	import { PDFDocument } from "pdf-lib";
+     3	
+     4	import { prisma } from "@/lib/prisma";
+     5	
+     6	import { renderPage1 } from "./pages/page1";
+     7	import { renderPage2 } from "./pages/page2";
+     8	import { renderPage3 } from "./pages/page3";
+     9	import { renderPage4 } from "./pages/page4";
+    10	import { renderPage5 } from "./pages/page5";
+    11	import { renderPage6 } from "./pages/page6";
+    12	import { renderPage7 } from "./pages/page7";
+    13	import { renderPage8 } from "./pages/page8";
+    14	import { renderPage9 } from "./pages/page9";
+    15	
+    16	type PageProps = {
+    17	  params: Promise<{ id: string }>;
+    18	};
+    19	
+    20	function safeFileName(value: string) {
+    21	  return value
+    22	    .normalize("NFD")
+    23	    .replace(/[\u0300-\u036f]/g, "")
+    24	    .replace(/[^a-zA-Z0-9]+/g, "-")
+    25	    .replace(/^-+|-+$/g, "")
+    26	    .toLowerCase();
+    27	}
+    28	
+    29	export async function renderEditorialPdf(
+    30	  _request: Request,
+    31	  { params }: PageProps,
+    32	) {
+    33	  const { id } = await params;
+    34	
+    35	  console.log("\n==============================");
+    36	  console.log("PDF ID:", id);
+    37	
+    38	  console.log("\n==============================");
+    39	  console.log("PDF ID:", id);
+    40	
+    41	  const property = await prisma.brokerProperty.findUnique({
+    42	    where: { id },
+    43	  });
+    44	
+    45	  console.log("PROPERTY FOUND:", property?.title);
+    46	
+    47	  console.log("=================================================");
+    48	  console.log("PROPERTY KEYS");
+    49	  console.log(Object.keys(property ?? {}).sort());
+    50	  console.log("=================================================");
+    51	
+    52	  console.log("coverImage:", property?.coverImage);
+    53	  console.log("pdfAssignments:", property?.pdfAssignments);
+    54	  console.log("=================================================");
+    55	
+    56	  console.log("==============================\n");
+    57	
+    58	  console.log("PROPERTY FOUND:", property?.title);
+    59	  console.log("==============================\n");
+    60	
+    61	  if (!property) {
+    62	    return NextResponse.json(
+    63	      { error: "Propiedad no encontrada." },
+    64	      { status: 404 },
+    65	    );
+    66	  }
+    67	
+    68	  const pdf = await PDFDocument.create();
+    69	
+    70	  const ctx = {
+    71	    pdf,
+    72	    property,
+    73	  };
+    74	
+    75	  await renderPage1(ctx);
+    76	  await renderPage2(ctx);
+    77	  await renderPage3(ctx);
+    78	  await renderPage4(ctx);
+    79	  await renderPage5(ctx);
+    80	  await renderPage6(ctx);
+    81	  await renderPage7(ctx);
+    82	  await renderPage8(ctx);
+    83	  await renderPage9(ctx);
+    84	
+    85	  const bytes = await pdf.save();
+    86	
+    87	  return new NextResponse(
+    88	    new Uint8Array(bytes),
+    89	    {
+    90	      headers: {
+    91	        "Content-Type": "application/pdf",
+    92	        "Content-Disposition":
+    93	          `inline; filename="${safeFileName(property.title)}.pdf"`,
+    94	      },
+    95	    },
+    96	  );
+    97	}

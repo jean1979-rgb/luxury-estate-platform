@@ -2,7 +2,6 @@ import type { PDFPage } from "pdf-lib";
 
 import type { RenderContext } from "../../context";
 import { drawImageCover } from "../image-drawer";
-import { getImagesForEditorialPage } from "../image-resolver";
 
 export async function render_gallery(
   ctx: RenderContext,
@@ -15,22 +14,44 @@ export async function render_gallery(
     | "wellness",
   placeholderNames: string[],
 ) {
+  const artboard = template.artboard();
 
-  const images =
-    getImagesForEditorialPage(
-      ctx.property,
-      editorialPage,
-    );
-
-  if (!Array.isArray(images) || images.length === 0) {
+  if (!artboard) {
     return;
   }
 
-  const total =
-    Math.min(
-      placeholderNames.length,
-      images.length,
-    );
+  let images: string[] = [];
+
+  switch (editorialPage) {
+
+    case "gallery":
+      images = ctx.document.galeria.images;
+      break;
+
+    case "spaces":
+      images = ctx.document.espacios.images;
+      break;
+
+    case "materials":
+      images = ctx.document.materiales.heroImage
+        ? [ctx.document.materiales.heroImage]
+        : [];
+      break;
+
+    case "wellness":
+      images = ctx.document.amenidades.images;
+      break;
+
+  }
+
+  if (images.length === 0) {
+    return;
+  }
+
+  const total = Math.min(
+    placeholderNames.length,
+    images.length,
+  );
 
   for (let i = 0; i < total; i++) {
 
@@ -39,13 +60,16 @@ export async function render_gallery(
         placeholderNames[i],
       );
 
-    if (!placeholder) continue;
+    if (!placeholder) {
+      continue;
+    }
 
     await drawImageCover(
       ctx.pdf,
       page,
       images[i],
       placeholder.bounds,
+      artboard,
     );
   }
 }

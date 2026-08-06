@@ -23,18 +23,11 @@ export async function render_score(
   const fonts =
     await loadFonts(ctx.pdf);
 
-  const property =
-    ctx.property as typeof ctx.property & {
-      luxuryScore?: number | null;
-    };
-
   drawCenteredText(
     page,
     item,
     artboard,
-    property.luxuryScore != null
-      ? String(property.luxuryScore)
-      : "",
+    ctx.document.portada.luxuryScore,
     fonts.trajanLight,
     item.size ?? 70,
     rgb(1,1,1),

@@ -1,7 +1,6 @@
 import type { PDFPage } from "pdf-lib";
 
 import type { RenderContext } from "../../context";
-import { getImageForEditorialPage } from "../image-resolver";
 import { drawImageCover } from "../image-drawer";
 
 export type EditorialImagePage =
@@ -22,6 +21,12 @@ export async function render_single_image(
   editorialPage: EditorialImagePage,
   placeholderName = "Foto principal",
 ) {
+  const artboard = template.artboard();
+
+  if (!artboard) {
+    return;
+  }
+
   const placeholder =
     template.dynamic(placeholderName);
 
@@ -29,11 +34,39 @@ export async function render_single_image(
     return;
   }
 
-  const image =
-    getImageForEditorialPage(
-      ctx.property,
-      editorialPage,
-    );
+  let image: string | null = null;
+
+  switch (editorialPage) {
+
+    case "cover":
+      image = ctx.document.portada.coverImage;
+      break;
+
+    case "architecture":
+      image = ctx.document.arquitectura.image;
+      break;
+
+    case "materials":
+      image = ctx.document.materiales.heroImage;
+      break;
+
+    case "destination":
+      image = ctx.document.destino.mapImage;
+      break;
+
+    case "investment":
+      image = ctx.document.inversion.graph;
+      break;
+
+    case "contact":
+      image = ctx.document.cierre.qr;
+      break;
+
+    default:
+      image = null;
+      break;
+
+  }
 
   if (!image) {
     return;
@@ -44,5 +77,6 @@ export async function render_single_image(
     page,
     image,
     placeholder.bounds,
+    artboard,
   );
 }

@@ -33,6 +33,8 @@ export async function renderEditorialPage(
     pageNumber,
   );
 
+  console.log("NEW PAGE SIZE:", pdfTemplate.width, pdfTemplate.height);
+
   const page = ctx.pdf.addPage([
     pdfTemplate.width,
     pdfTemplate.height,

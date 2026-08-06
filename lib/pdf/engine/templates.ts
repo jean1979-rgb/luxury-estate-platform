@@ -6,6 +6,8 @@ export async function loadTemplatePage(
   pdfDoc: PDFDocument,
   pageNumber: number,
 ): Promise<PDFEmbeddedPage> {
+  console.log("LOADING TEMPLATE FILE:", path.join(process.cwd(),"lib","pdf","templates",`page${pageNumber}.ai`));
+
   const bytes = await readFile(
     path.join(
       process.cwd(),
@@ -24,5 +26,6 @@ export async function loadTemplatePage(
     );
   }
 
+  console.log("EMBEDDED PAGE SIZE:", pages[0].width, pages[0].height);
   return pages[0];
 }
