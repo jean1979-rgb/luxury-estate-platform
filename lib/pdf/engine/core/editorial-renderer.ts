@@ -94,12 +94,7 @@ async function renderPage1(
     ctx,
     page,
     template,
-  );
-
-  await render_score(
-    ctx,
-    page,
-    template,
+    true,
   );
 
   await render_single_image(

@@ -6,6 +6,7 @@ import type {
   EditorialArquitectura,
   EditorialCierre,
   EditorialDestino,
+  EditorialFactor,
   EditorialEspacios,
   EditorialGaleria,
   EditorialInversion,
@@ -163,10 +164,60 @@ function describeEnvironment(
     );
   }
 
+  const editorialFactors = [
+    profile.factors.oceanRelation
+      ? {
+          titulo: labelPemFactor(
+            profile.factors.oceanRelation,
+            "oceanRelation"
+          ),
+          descripcion: descriptionPemFactor(
+            profile.factors.oceanRelation,
+            "oceanRelation"
+          ),
+        }
+      : null,
+
+    profile.factors.viewQuality
+      ? {
+          titulo: labelPemFactor(
+            profile.factors.viewQuality,
+            "viewQuality"
+          ),
+          descripcion: descriptionPemFactor(
+            profile.factors.viewQuality,
+            "viewQuality"
+          ),
+        }
+      : null,
+
+    profile.factors.privacy
+      ? {
+          titulo: labelPemFactor(
+            profile.factors.privacy,
+            "privacy"
+          ),
+          descripcion: descriptionPemFactor(
+            profile.factors.privacy,
+            "privacy"
+          ),
+        }
+      : null,
+
+    ...(profile.factors.architecture ?? []).map(id => ({
+      titulo: labelPemFactor(id, "architecture"),
+      descripcion: descriptionPemFactor(id, "architecture"),
+    })),
+  ].filter(
+    (
+      factor
+    ): factor is EditorialFactor => factor !== null
+  );
+
   return {
     titulo: "Arquitectura y entorno",
     descripcion: lines.join(" "),
-    factores: [],
+    factores: editorialFactors,
   };
 }
 
@@ -394,6 +445,19 @@ function buildEditorialAmenities(
 
 
 
+
+function buildEditorialGaleria(
+  profile: PropertyProfile
+): EditorialGaleria {
+
+  return {
+    titulo: "Galería",
+    subtitulo: `Una selección de espacios que muestran la esencia residencial de ${profile.location}.`,
+  };
+
+}
+
+
 function buildEditorialDestino(
   profile: PropertyProfile
 ): EditorialDestino {
@@ -462,7 +526,7 @@ arquitectura: describeEnvironment(profile),
 
   amenidades: buildEditorialAmenities(profile),
 
-  galeria: {} as EditorialGaleria,
+  galeria: buildEditorialGaleria(profile),
 
   destino: buildEditorialDestino(profile),
 
