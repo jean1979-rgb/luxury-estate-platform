@@ -25,7 +25,7 @@ export interface TemplateContract {
   document(): TemplateDocument;
   artboard(index?: number): Artboard | undefined;
   field(name: string): TemplateItem | undefined;
-  dynamic(name: string): TemplateItem | undefined;
+  name(name: string): TemplateItem | undefined;
 }
 
 export async function loadTemplate(
@@ -46,7 +46,7 @@ export async function loadTemplate(
   ) as TemplateJson;
 
   const fields = new Map<string, TemplateItem>();
-  const dynamics = new Map<string, TemplateItem>();
+  const names = new Map<string, TemplateItem>();
 
   for (const item of json.items) {
     const contractItem =
@@ -67,12 +67,10 @@ export async function loadTemplate(
     }
 
     if (
-      contractItem.layer === "Dinámico" &&
-      contractItem.field === "dynamic" &&
       contractItem.name &&
-      !dynamics.has(contractItem.name)
+      !names.has(contractItem.name)
     ) {
-      dynamics.set(
+      names.set(
         contractItem.name,
         contractItem,
       );
@@ -92,8 +90,8 @@ export async function loadTemplate(
       return fields.get(name);
     },
 
-    dynamic(name: string) {
-      return dynamics.get(name);
+    name(name: string) {
+      return names.get(name);
     },
   };
 }

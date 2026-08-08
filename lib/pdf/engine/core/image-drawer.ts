@@ -32,6 +32,7 @@ export async function drawImageCover(
   imagePath: string,
   bounds: Bounds,
   artboard: Artboard,
+  placeholderName?: string,
 ) {
   console.log("IMAGE BOUNDS:", JSON.stringify(bounds));
   if (!imagePath) return;
@@ -70,10 +71,26 @@ export async function drawImageCover(
       ? await pdf.embedPng(bytes)
       : await pdf.embedJpg(bytes);
 
+  console.log("IMAGE SIZE");
+  console.log({
+    width: image.width,
+    height: image.height,
+  });
+
   const pdfBounds = toPdfBounds(
     bounds,
     artboard,
   );
+
+  console.log("======================================================");
+  console.log("DRAW IMAGE");
+  console.log("placeholder:", placeholderName ?? "(sin nombre)");
+  console.log("ILLUSTRATOR BOUNDS:", bounds);
+  console.log("PDF BOUNDS:", pdfBounds);
+
+
+  console.log("PDF BOUNDS");
+  console.log(pdfBounds);
 
   const size = fitCover(
     image.width,
@@ -81,6 +98,26 @@ export async function drawImageCover(
     pdfBounds.width,
     pdfBounds.height,
   );
+
+  console.log("DRAW SIZE");
+  console.log(size);
+
+  console.log("DRAW RECT");
+  console.log({
+    x: pdfBounds.x - (size.width - pdfBounds.width) / 2,
+    y: pdfBounds.y - (size.height - pdfBounds.height) / 2,
+    width: size.width,
+    height: size.height,
+  });
+
+  const drawRect = {
+    x: pdfBounds.x - (size.width - pdfBounds.width) / 2,
+    y: pdfBounds.y - (size.height - pdfBounds.height) / 2,
+    width: size.width,
+    height: size.height,
+  };
+
+  console.log("DRAW RECT:", drawRect);
 
   page.drawImage(image, {
     x: pdfBounds.x - (size.width - pdfBounds.width) / 2,

@@ -56,7 +56,7 @@ export async function render_gallery(
   for (let i = 0; i < total; i++) {
 
     const placeholder =
-      template.dynamic(
+      template.name(
         placeholderNames[i],
       );
 

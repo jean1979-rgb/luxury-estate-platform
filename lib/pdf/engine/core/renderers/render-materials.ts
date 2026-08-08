@@ -27,7 +27,7 @@ export async function render_materials(
     ctx.document.materiales.heroImage;
 
   const heroPlaceholder =
-    template.dynamic("Foto 1");
+    template.name("Foto 1");
 
   if (heroImage && heroPlaceholder) {
     await drawImageCover(
@@ -59,7 +59,7 @@ export async function render_materials(
     const slot = index + 1;
 
     const samplePlaceholder =
-      template.dynamic(
+      template.name(
         `MUESTRA MATERIAL ${slot}`,
       );
 
@@ -77,7 +77,7 @@ export async function render_materials(
     }
 
     const namePlaceholder =
-      template.dynamic(
+      template.name(
         `Nombre muestra ${slot}`,
       );
 

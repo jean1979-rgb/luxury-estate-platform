@@ -15,7 +15,7 @@ export async function render_qr(
   }
 
   const placeholder =
-    template.dynamic("Qr");
+    template.name("Qr");
 
   if (!placeholder) {
     return;

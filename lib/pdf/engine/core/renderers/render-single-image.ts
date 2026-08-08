@@ -28,7 +28,12 @@ export async function render_single_image(
   }
 
   const placeholder =
-    template.dynamic(placeholderName);
+    template.name(placeholderName);
+
+  console.log("===== SINGLE IMAGE =====");
+  console.log("editorialPage:", editorialPage);
+  console.log("placeholder :", placeholderName);
+  console.log("found       :", Boolean(placeholder));
 
   if (!placeholder) {
     return;
@@ -43,7 +48,8 @@ export async function render_single_image(
       break;
 
     case "architecture":
-      image = ctx.document.arquitectura.image;
+      image =
+        ctx.document.arquitectura.images[0] ?? null;
       break;
 
     case "materials":
@@ -68,6 +74,8 @@ export async function render_single_image(
 
   }
 
+  console.log("image:", image);
+
   if (!image) {
     return;
   }
@@ -78,5 +86,6 @@ export async function render_single_image(
     image,
     placeholder.bounds,
     artboard,
+    placeholderName,
   );
 }

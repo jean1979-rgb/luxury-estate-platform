@@ -18,6 +18,7 @@ export async function render_text(
   const artboard = template.artboard() as Artboard;
   const fonts = await loadFonts(ctx.pdf);
   const portada = ctx.document.portada;
+const arquitectura = ctx.document.arquitectura;
 
   const rawPrice = String(
     portada.price ?? "",
@@ -132,6 +133,56 @@ export async function render_text(
         ? 68
         : (item.size ?? defaultSize),
       color,
+    );
+  }
+
+  const editorialValues = new Map<string, string>();
+
+  editorialValues.set(
+    "Descripcion editorial",
+    arquitectura.descripcion ?? "",
+  );
+
+  arquitectura.factores.forEach((factor, index) => {
+    editorialValues.set(
+      `Factor ${index + 1}`,
+      factor.descripcion ?? "",
+    );
+
+    editorialValues.set(
+      `Titulo factor ${index + 1}`,
+      factor.titulo ?? "",
+    );
+  });
+
+  for (const [name, value] of editorialValues) {
+
+    console.log("TEXT PLACEHOLDER:", name);
+    console.log("TEXT VALUE:", value);
+
+    const item =
+      template.name(name) as TemplateItem | undefined;
+
+    console.log("================================");
+    console.log("TEXT PLACEHOLDER:", name);
+    console.log("FOUND:", !!item);
+
+    if (item) {
+      console.log("ITEM NAME:", item.name);
+      console.log("ITEM FIELD:", (item as any).field);
+      console.log("ITEM TYPE:", item.type);
+    }
+
+    if (!item) continue;
+
+    drawCenteredText(
+      page,
+      item,
+      artboard,
+      value,
+      fonts.trajanLight,
+      item.size ?? 10,
+      rgb(1, 1, 1),
     );
   }
 }

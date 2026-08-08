@@ -121,7 +121,30 @@ async function renderPage2(
     page,
     template,
     "architecture",
+    "Foto 1",
   );
+
+  if (
+    ctx.document.arquitectura.images.length > 1
+  ) {
+    const original =
+      ctx.document.arquitectura.images;
+
+    ctx.document.arquitectura.images = [
+      original[1],
+    ];
+
+    await render_single_image(
+      ctx,
+      page,
+      template,
+      "architecture",
+      "Foto 2",
+    );
+
+    ctx.document.arquitectura.images =
+      original;
+  }
 }
 
 async function renderPage3(
