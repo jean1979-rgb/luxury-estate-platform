@@ -30,7 +30,7 @@ export function isTokkoAdminItem(value: unknown): value is TokkoAdminItem {
 
 export function mapTokkoToAdminProperty(item: TokkoAdminItem): AdminPropertyInput {
   return {
-    id: `admin-${item.id}`,
+    id: `admin-tokko-${item.id}`,
     title: item.editorial?.title || item.base?.title || "Propiedad",
     slug: "",
     status: "draft",

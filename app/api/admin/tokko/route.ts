@@ -1,70 +1,179 @@
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-import { promises as fs } from "fs";
-import path from "path";
+import { prisma } from "@/lib/prisma";
 
-type TokkoAdminFeedItem = {
-  id?: string;
-  operationMode?: string;
-  base?: {
-    price?: string | number | null;
-    title?: string;
-    locationLabel?: string;
-    images?: string[];
+type TokkoRawItem = {
+  id?: number | string;
+  publication_title?: string;
+  address?: string;
+  location?: {
+    name?: string;
+    full_location?: string;
   };
-  editorial?: {
-    title?: string;
-  };
-  media?: Record<string, unknown>;
-  rental?: Record<string, unknown>;
-  status?: {
-    luxuryEligible?: boolean;
-    [key: string]: unknown;
-  };
+  operations?: Array<{
+    operation_type?: string;
+    prices?: Array<{
+      price?: number;
+      currency?: string;
+    }>;
+  }>;
+  photos?: Array<{
+    image?: string;
+    original?: string;
+    thumb?: string;
+  }>;
 };
 
-function parsePrice(value: unknown): number | null {
-  if (value === null || value === undefined || value === "") return null;
-  if (typeof value === "number") return Number.isFinite(value) ? value : null;
-
-  const cleaned = String(value).replace(/[^\d]/g, "");
-  return cleaned ? Number(cleaned) : null;
+function getSaleOperation(item: TokkoRawItem) {
+  return (
+    item.operations?.find((operation) =>
+      String(operation.operation_type || "")
+        .toLowerCase()
+        .includes("sale")
+    ) ||
+    item.operations?.[0] ||
+    null
+  );
 }
 
-function includeInAdminFeed(item: TokkoAdminFeedItem) {
-  const price = parsePrice(item.base?.price);
+function getPrice(item: TokkoRawItem) {
+  return getSaleOperation(item)?.prices?.[0]?.price ?? "";
+}
 
-  if (item.operationMode === "rent") return false;
-  if (typeof price === "number") return price >= 15000000;
-  return item.status?.luxuryEligible === true;
+function getCurrency(item: TokkoRawItem) {
+  return getSaleOperation(item)?.prices?.[0]?.currency || "MXN";
+}
+
+function getImages(item: TokkoRawItem) {
+  if (!Array.isArray(item.photos)) return [];
+
+  return item.photos
+    .map((photo) => photo.image || photo.original || photo.thumb || "")
+    .filter(Boolean);
+}
+
+function getLocation(item: TokkoRawItem) {
+  return (
+    item.location?.full_location ||
+    item.location?.name ||
+    item.address ||
+    ""
+  );
 }
 
 export async function GET() {
   try {
-    const file = path.join(process.cwd(), "data/platform/properties.json");
-    const raw = await fs.readFile(file, "utf8");
-    const parsed: unknown = JSON.parse(raw);
-    const json = Array.isArray(parsed) ? (parsed as TokkoAdminFeedItem[]) : [];
+    const profile = await prisma.brokerProfile.findUnique({
+      where: {
+        userId: "491119aa-ea2d-4593-bb14-5ed404c14848",
+      },
+      select: {
+        tokkoEnabled: true,
+        tokkoApiKey: true,
+      },
+    });
 
-    const items = json
-      .filter(includeInAdminFeed)
-      .map((item: any) => ({
-        id: item.id,
-        title: item.editorial?.title || item.base?.title || "Propiedad",
-        price: item.base?.price ?? "",
-        location: item.base?.locationLabel || "",
-        coverImage: item.base?.images?.[0] || "",
-        operationMode: item.operationMode || "sale",
-        base: item.base || {},
-        editorial: item.editorial || {},
-        media: item.media || {},
-        rental: item.rental || {},
-        status: item.status || {},
-      }));
+    if (!profile?.tokkoEnabled) {
+      return Response.json(
+        {
+          ok: false,
+          items: [],
+          error: "Tokko no está habilitado.",
+        },
+        { status: 400 }
+      );
+    }
 
-    return Response.json({ ok: true, items });
-  } catch {
-    return Response.json({ ok: false, items: [] }, { status: 500 });
+    if (!profile.tokkoApiKey) {
+      return Response.json(
+        {
+          ok: false,
+          items: [],
+          error: "Tokko API key no configurada.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const url =
+      "https://www.tokkobroker.com/api/v1/property/" +
+      "?lang=es_ar&format=json&limit=200&key=" +
+      encodeURIComponent(profile.tokkoApiKey);
+
+    const response = await fetch(url, {
+      headers: {
+        Accept: "application/json",
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return Response.json(
+        {
+          ok: false,
+          items: [],
+          error: `Tokko respondió HTTP ${response.status}.`,
+        },
+        { status: 502 }
+      );
+    }
+
+    const payload = await response.json();
+
+    const objects: TokkoRawItem[] = Array.isArray(payload?.objects)
+      ? payload.objects
+      : [];
+
+    const items = objects.map((item) => {
+      const id = String(item.id ?? "");
+      const title = item.publication_title || "Propiedad";
+      const price = getPrice(item);
+      const currency = getCurrency(item);
+      const location = getLocation(item);
+      const images = getImages(item);
+
+      return {
+        id,
+        title,
+        price,
+        location,
+        coverImage: images[0] || "",
+        operationMode: "sale",
+        base: {
+          title,
+          price,
+          currency,
+          locationLabel: location,
+          images,
+        },
+        editorial: {
+          title,
+        },
+        media: {},
+        rental: {},
+        status: {},
+      };
+    });
+
+    return Response.json({
+      ok: true,
+      items,
+      total: payload?.meta?.total_count ?? items.length,
+    });
+  } catch (error) {
+    console.error("[ADMIN TOKKO GET]", error);
+
+    return Response.json(
+      {
+        ok: false,
+        items: [],
+        error:
+          error instanceof Error
+            ? error.message
+            : "Error consultando Tokko.",
+      },
+      { status: 500 }
+    );
   }
 }

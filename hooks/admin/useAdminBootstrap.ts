@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { AdminPropertyInput, AdminPropertyRecord } from "@/types/admin";
 import type { TokkoAdminItem } from "@/lib/admin/tokko-helpers";
 import { mapScenesFromApi } from "@/lib/admin/scene-mappers";
@@ -138,15 +138,19 @@ export function useAdminBootstrap({
     loadScenesFromDB();
   }, [forcedPropertyId]);
 
+  const initialUrlSelectionApplied = useRef(false);
+
   useEffect(() => {
+    if (initialUrlSelectionApplied.current) return;
     if (!propertyIdFromUrl) return;
     if (!items.length) return;
 
     const target = items.find((item) => item.id === propertyIdFromUrl);
     if (!target) return;
 
+    initialUrlSelectionApplied.current = true;
     onSelectProperty(target);
-  }, [propertyIdFromUrl, items]);
+  }, [propertyIdFromUrl, items, onSelectProperty]);
 
   return {
     loadProperties,

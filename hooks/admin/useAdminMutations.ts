@@ -103,7 +103,12 @@ export function useAdminMutations({
       throw new Error("Tokko item inválido.");
     }
 
-    if (items.some((p) => p.source?.externalId === item.id)) {
+    if (
+      items.some((p) => {
+        const externalId = String(p.source?.externalId || "");
+        return externalId === String(item.id) || externalId === `tokko-${item.id}`;
+      })
+    ) {
       alert("Ya importada");
       return;
     }
