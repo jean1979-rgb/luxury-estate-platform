@@ -237,6 +237,10 @@ model PublicPartner {
   longDescription  String?
   logoUrl          String?
   coverImage       String?
+  heroVideoUrl    String?
+  heroVideoPoster String?
+  gallery          Json?
+  scenes360        Json?
   websiteUrl       String?
   ctaLabel         String?
   ctaHref          String?

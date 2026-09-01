@@ -5,6 +5,8 @@ import { getCasaDePlayaProperties } from "@/utils/catalog/properties";
 
 import { prisma } from "@/lib/prisma";
 import { getPublicPartners } from "@/lib/public-partners";
+import SeamlessVideoHero from "@/components/SeamlessVideoHero";
+import Viewer360Carousel from "@/components/Viewer360Carousel";
 
 function normalize(value: string) {
   return value
@@ -126,8 +128,132 @@ export default async function PartnerDetailPage({
   if (!partner) notFound();
 
   const heroImage = resolveHeroImage(partner);
-  const gallery = getPartnerGallery(slug, heroImage);
+
+  const heroVideoUrl =
+    "heroVideoUrl" in partner &&
+    typeof partner.heroVideoUrl === "string"
+      ? partner.heroVideoUrl
+      : "";
+
+  const heroVideoPoster =
+    "heroVideoPoster" in partner &&
+    typeof partner.heroVideoPoster === "string"
+      ? partner.heroVideoPoster
+      : "";
+
+  const fallbackGallery = getPartnerGallery(slug, heroImage);
+
+  const storedGallery =
+    "gallery" in partner && Array.isArray(partner.gallery)
+      ? partner.gallery.filter(
+          (item): item is string =>
+            typeof item === "string" && item.length > 10
+        )
+      : [];
+
+  const gallery = [
+    ...storedGallery,
+    ...fallbackGallery.filter((item) => !storedGallery.includes(item)),
+  ].slice(0, 4);
+
+  type PartnerScene360 = {
+    id: string;
+    title?: string;
+    image: string;
+    thumbnail?: string;
+    hotspots?: unknown[];
+    initialYaw?: number;
+    initialPitch?: number;
+  };
+
+  const rawScenes360 =
+    "scenes360" in partner && Array.isArray(partner.scenes360)
+      ? partner.scenes360
+      : [];
+
+  const scenes360: PartnerScene360[] = rawScenes360.flatMap(
+    (scene): PartnerScene360[] => {
+      if (!scene || typeof scene !== "object" || Array.isArray(scene)) {
+        return [];
+      }
+
+      const record = scene as Record<string, unknown>;
+
+      if (
+        typeof record.id !== "string" ||
+        typeof record.image !== "string" ||
+        record.image.length <= 10
+      ) {
+        return [];
+      }
+
+      return [
+        {
+          id: record.id,
+          title:
+            typeof record.title === "string"
+              ? record.title
+              : undefined,
+          image: record.image,
+          thumbnail:
+            typeof record.thumbnail === "string"
+              ? record.thumbnail
+              : undefined,
+          hotspots: Array.isArray(record.hotspots)
+            ? record.hotspots
+            : [],
+          initialYaw:
+            typeof record.initialYaw === "number"
+              ? record.initialYaw
+              : undefined,
+          initialPitch:
+            typeof record.initialPitch === "number"
+              ? record.initialPitch
+              : undefined,
+        },
+      ];
+    }
+  );
+
   const relatedResidences = getRelatedResidences(slug, properties);
+
+  const isCeleste = slug === "celeste-beach-house";
+
+  const editorialEyebrow = isCeleste
+    ? "Entre el Pacífico y Real Diamante"
+    : "Perspectiva editorial";
+
+  const editorialTitle = isCeleste
+    ? "Un día de playa que encuentra su propio ritmo."
+    : "La presencia no es una amenidad.\nEs parte del valor percibido del destino.";
+
+  const sideEyebrow = isCeleste
+    ? "Celeste at a glance"
+    : "Presencia dentro de Private Estates";
+
+  const sideTitle = isCeleste
+    ? "Playa, alberca, jardín y mesa"
+    : "Partner estratégico del destino";
+
+  const sideText = isCeleste
+    ? "Celeste reúne distintos momentos del día en un mismo lugar: llegar frente al Pacífico, instalarse junto al mar, nadar, comer y permanecer hasta que baja la luz."
+    : "Un partner aquí no es un directorio. Es una presencia curada dentro de una narrativa premium diseñada para elevar deseo, pertenencia y valor percibido alrededor de Acapulco.";
+
+  const residenceText = isCeleste
+    ? "Una selección de propiedades cercanas a Real Diamante y Acapulco Diamante, conectadas con una forma de vivir donde el mar y los espacios abiertos forman parte de la experiencia cotidiana."
+    : "Estas propiedades no solo destacan por ubicación o arquitectura, sino por cómo se integran con una vida social, visual y hospitalaria como la que Aurora activa dentro de Acapulco.";
+
+  const closingEyebrow = isCeleste
+    ? "Real Diamante"
+    : "Integración premium";
+
+  const closingTitle = isCeleste
+    ? "Una forma natural de vivir Acapulco frente al Pacífico."
+    : "Una marca debe sentirse inseparable del destino.";
+
+  const closingText = isCeleste
+    ? "Celeste Beach House forma parte del paisaje de Real Diamante: un punto de encuentro entre playa, gastronomía y vida al aire libre dentro de uno de los enclaves residenciales más reconocibles de Acapulco."
+    : "Private Estates Mexico construye un ecosistema editorial donde propiedades, experiences y partners se refuerzan entre sí para elevar la conversación del lujo en Acapulco.";
 
   const category =
     "category" in partner && typeof partner.category === "string"
@@ -156,10 +282,17 @@ export default async function PartnerDetailPage({
   return (
     <main className="min-h-screen bg-[#070707] text-white">
       <section className="relative h-[92vh] min-h-[720px] w-full overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url("${heroImage}")` }}
-        />
+        {heroVideoUrl ? (
+          <SeamlessVideoHero
+            src={heroVideoUrl}
+            poster={heroVideoPoster || heroImage}
+          />
+        ) : (
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url("${heroImage}")` }}
+          />
+        )}
         <div className="absolute inset-0 bg-black/32" />
         <div className="absolute inset-0 bg-gradient-to-b from-black/18 via-black/22 to-[#070707]" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#070707] to-transparent" />
@@ -219,16 +352,31 @@ export default async function PartnerDetailPage({
         </div>
       </section>
 
+      {scenes360.length > 0 ? (
+        <section className="border-b border-white/8 px-6 py-16 md:px-10 md:py-20">
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-8">
+              <p className="text-[10px] uppercase tracking-[0.4em] text-white/46">
+                Experiencia 360
+              </p>
+              <h2 className="mt-4 text-3xl font-light md:text-4xl">
+                Explorar el espacio
+              </h2>
+            </div>
+
+            <Viewer360Carousel scenes={scenes360} initialTab="360" />
+          </div>
+        </section>
+      ) : null}
+
       <section className="border-b border-white/8 px-6 py-16 md:px-10 md:py-24">
         <div className="mx-auto max-w-5xl">
           <p className="text-[10px] uppercase tracking-[0.4em] text-white/46">
-            Perspectiva editorial
+            {editorialEyebrow}
           </p>
 
-          <h2 className="mt-6 max-w-4xl text-3xl font-light leading-tight text-white md:text-5xl">
-            La presencia no es una amenidad.
-            <br />
-            Es parte del valor percibido del destino.
+          <h2 className="mt-6 max-w-4xl whitespace-pre-line text-3xl font-light leading-tight text-white md:text-5xl">
+            {editorialTitle}
           </h2>
         </div>
       </section>
@@ -268,26 +416,35 @@ export default async function PartnerDetailPage({
             <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/50 to-black/70" />
             <div className="relative">
               <p className="text-[10px] uppercase tracking-[0.34em] text-white/48">
-                Presencia dentro de Private Estates
+                {sideEyebrow}
               </p>
 
               <h3 className="mt-5 text-2xl font-light leading-tight">
-                Partner estratégico del destino
+                {sideTitle}
               </h3>
 
               <p className="mt-5 text-sm leading-8 text-white/74">
-                Un partner aquí no es un directorio. Es una presencia curada dentro de
-                una narrativa premium diseñada para elevar deseo, pertenencia y valor
-                percibido alrededor de Acapulco.
+                {sideText}
               </p>
 
               <div className="mt-8 h-px w-16 bg-white/20" />
 
-              <div className="mt-8 space-y-4 text-sm leading-7 text-white/74">
-                <p>— Escena social y hospitalidad</p>
-                <p>— Integración con experiences</p>
-                <p>— Posicionamiento premium del destino</p>
-              </div>
+              {isCeleste ? (
+                <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-4 text-sm leading-7 text-white/74">
+                  <p>Playa</p>
+                  <p>Albercas</p>
+                  <p>Gastronomía</p>
+                  <p>Jardín</p>
+                  <p>Ambiente familiar</p>
+                  <p>Pet friendly</p>
+                </div>
+              ) : (
+                <div className="mt-8 space-y-4 text-sm leading-7 text-white/74">
+                  <p>— Escena social y hospitalidad</p>
+                  <p>— Integración con experiences</p>
+                  <p>— Posicionamiento premium del destino</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -299,31 +456,52 @@ export default async function PartnerDetailPage({
             className="min-h-[320px] bg-cover bg-center"
             style={{ backgroundImage: `url("${gallery[2]}")` }}
           />
-          <div className="flex flex-col justify-between p-10 md:p-12">
-            <div className="max-w-2xl">
-              <p className="text-[10px] uppercase tracking-[0.34em] text-white/48">
-                Experience relacionada
-              </p>
 
-              <h3 className="mt-4 text-3xl font-light leading-tight md:text-4xl">
-                Aurora Sunset Social
-              </h3>
+          {isCeleste ? (
+            <div className="flex flex-col justify-center p-10 md:p-12">
+              <div className="max-w-2xl">
+                <p className="text-[10px] uppercase tracking-[0.34em] text-white/48">
+                  Un día en Celeste
+                </p>
 
-              <p className="mt-5 text-sm leading-8 text-white/74 md:text-base">
-                Una narrativa de atardecer, ritmo social y vida frente a la bahía que
-                convierte a Aurora en una experiencia, no solo en un lugar.
-              </p>
+                <h3 className="mt-4 text-3xl font-light leading-tight md:text-4xl">
+                  Del desayuno frente al mar a la última luz de la tarde.
+                </h3>
+
+                <p className="mt-5 text-sm leading-8 text-white/74 md:text-base">
+                  La experiencia cambia naturalmente a lo largo del día: playa y
+                  alberca por la mañana, una mesa abierta a los sabores del litoral
+                  al mediodía y una tarde que transcurre entre jardín, mar y descanso.
+                </p>
+              </div>
             </div>
+          ) : (
+            <div className="flex flex-col justify-between p-10 md:p-12">
+              <div className="max-w-2xl">
+                <p className="text-[10px] uppercase tracking-[0.34em] text-white/48">
+                  Experience relacionada
+                </p>
 
-            <div className="mt-8">
-              <Link
-                href="/experiences/aurora-sunset-social"
-                className="inline-flex border border-white/15 px-6 py-3 text-[10px] uppercase tracking-[0.32em] text-white transition hover:border-white/30 hover:bg-white hover:text-black"
-              >
-                Explorar experience
-              </Link>
+                <h3 className="mt-4 text-3xl font-light leading-tight md:text-4xl">
+                  Aurora Sunset Social
+                </h3>
+
+                <p className="mt-5 text-sm leading-8 text-white/74 md:text-base">
+                  Una narrativa de atardecer, ritmo social y vida frente a la bahía que
+                  convierte a Aurora en una experiencia, no solo en un lugar.
+                </p>
+              </div>
+
+              <div className="mt-8">
+                <Link
+                  href="/experiences/aurora-sunset-social"
+                  className="inline-flex border border-white/15 px-6 py-3 text-[10px] uppercase tracking-[0.32em] text-white transition hover:border-white/30 hover:bg-white hover:text-black"
+                >
+                  Explorar experience
+                </Link>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -339,9 +517,7 @@ export default async function PartnerDetailPage({
             </h2>
 
             <p className="mt-5 text-sm leading-8 text-white/74 md:text-base">
-              Estas propiedades no solo destacan por ubicación o arquitectura, sino
-              por cómo se integran con una vida social, visual y hospitalaria como la
-              que Aurora activa dentro de Acapulco.
+              {residenceText}
             </p>
           </div>
 
@@ -392,17 +568,15 @@ export default async function PartnerDetailPage({
         <div className="mx-auto flex max-w-6xl flex-col justify-between gap-8 border border-white/12 bg-[#111111] rounded-[30px] p-10 md:flex-row md:items-end md:p-12">
           <div className="max-w-2xl">
             <p className="text-[10px] uppercase tracking-[0.34em] text-white/48">
-              Integración premium
+              {closingEyebrow}
             </p>
 
             <h3 className="mt-4 text-3xl font-light leading-tight md:text-4xl">
-              Una marca debe sentirse inseparable del destino.
+              {closingTitle}
             </h3>
 
             <p className="mt-5 text-sm leading-8 text-white/74 md:text-base">
-              Private Estates Mexico construye un ecosistema editorial donde
-              propiedades, experiences y partners se refuerzan entre sí para elevar
-              la conversación del lujo en Acapulco.
+              {closingText}
             </p>
           </div>
 

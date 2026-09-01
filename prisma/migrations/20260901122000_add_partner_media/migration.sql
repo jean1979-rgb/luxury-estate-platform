@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "PublicPartner"
+ADD COLUMN IF NOT EXISTS "gallery" JSONB,
+ADD COLUMN IF NOT EXISTS "scenes360" JSONB;
