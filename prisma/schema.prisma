@@ -241,6 +241,12 @@ model PublicPartner {
   heroVideoPoster String?
   gallery          Json?
   scenes360        Json?
+  editorialEyebrow String?
+  editorialTitle   String?
+  sideEyebrow      String?
+  sideTitle        String?
+  sideText         String?
+  sideHighlights   Json?
   websiteUrl       String?
   ctaLabel         String?
   ctaHref          String?

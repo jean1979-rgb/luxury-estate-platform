@@ -28,6 +28,14 @@ export async function POST(req: Request) {
       heroVideoPoster: body.heroVideoPoster ?? "",
       gallery: Array.isArray(body.gallery) ? body.gallery : [],
       scenes360: Array.isArray(body.scenes360) ? body.scenes360 : [],
+      editorialEyebrow: body.editorialEyebrow ?? "",
+      editorialTitle: body.editorialTitle ?? "",
+      sideEyebrow: body.sideEyebrow ?? "",
+      sideTitle: body.sideTitle ?? "",
+      sideText: body.sideText ?? "",
+      sideHighlights: Array.isArray(body.sideHighlights)
+        ? body.sideHighlights
+        : [],
       websiteUrl: body.websiteUrl ?? "",
       ctaLabel: body.ctaLabel ?? "",
       ctaHref: body.ctaHref ?? "",

@@ -80,6 +80,12 @@ export default function PublicPartnerForm({ id }: { id?: string }) {
     heroVideoPoster: "",
     gallery: [],
     scenes360: [],
+    editorialEyebrow: "",
+    editorialTitle: "",
+    sideEyebrow: "",
+    sideTitle: "",
+    sideText: "",
+    sideHighlights: [],
     websiteUrl: "",
     ctaLabel: "",
     ctaHref: "",
@@ -105,6 +111,9 @@ export default function PublicPartnerForm({ id }: { id?: string }) {
           ...data,
           gallery: Array.isArray(data?.gallery) ? data.gallery : [],
           scenes360: Array.isArray(data?.scenes360) ? data.scenes360 : [],
+          sideHighlights: Array.isArray(data?.sideHighlights)
+            ? data.sideHighlights
+            : [],
           isVisible: Boolean(data?.isVisible),
           isFeatured: Boolean(data?.isFeatured),
           sortOrder: Number(data?.sortOrder ?? 0),
@@ -354,6 +363,87 @@ export default function PublicPartnerForm({ id }: { id?: string }) {
           onChange={(e) => update("coverImage", e.target.value)}
         />
       </div>
+
+      <section className="space-y-6 rounded-3xl border border-white/10 p-6">
+        <div>
+          <div className="text-lg">Contenido editorial</div>
+          <div className="mt-1 text-xs text-white/45">
+            Controla los textos editoriales de la página pública.
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="text-sm uppercase tracking-[0.2em] text-white/50">
+            Perspectiva editorial
+          </div>
+
+          <input
+            className="w-full rounded-xl border border-white/20 bg-black p-3"
+            placeholder="Etiqueta — ej. PERSPECTIVA EDITORIAL"
+            value={form.editorialEyebrow || ""}
+            onChange={(e) => update("editorialEyebrow", e.target.value)}
+          />
+
+          <textarea
+            className="min-h-24 w-full rounded-xl border border-white/20 bg-black p-3"
+            placeholder="Titular de perspectiva editorial"
+            value={form.editorialTitle || ""}
+            onChange={(e) => update("editorialTitle", e.target.value)}
+          />
+        </div>
+
+        <div className="h-px bg-white/10" />
+
+        <div className="space-y-4">
+          <div className="text-sm uppercase tracking-[0.2em] text-white/50">
+            Tarjeta editorial lateral
+          </div>
+
+          <input
+            className="w-full rounded-xl border border-white/20 bg-black p-3"
+            placeholder="Etiqueta — ej. AURORA AT A GLANCE"
+            value={form.sideEyebrow || ""}
+            onChange={(e) => update("sideEyebrow", e.target.value)}
+          />
+
+          <input
+            className="w-full rounded-xl border border-white/20 bg-black p-3"
+            placeholder="Titular de la tarjeta"
+            value={form.sideTitle || ""}
+            onChange={(e) => update("sideTitle", e.target.value)}
+          />
+
+          <textarea
+            className="min-h-28 w-full rounded-xl border border-white/20 bg-black p-3"
+            placeholder="Texto de la tarjeta"
+            value={form.sideText || ""}
+            onChange={(e) => update("sideText", e.target.value)}
+          />
+
+          <textarea
+            className="min-h-32 w-full rounded-xl border border-white/20 bg-black p-3"
+            placeholder="Puntos destacados — uno por línea"
+            value={
+              Array.isArray(form.sideHighlights)
+                ? form.sideHighlights.join("\n")
+                : ""
+            }
+            onChange={(e) =>
+              update(
+                "sideHighlights",
+                e.target.value
+                  .split("\n")
+                  .map((item) => item.trim())
+                  .filter(Boolean)
+              )
+            }
+          />
+
+          <div className="text-xs text-white/40">
+            Escribe un punto destacado por línea.
+          </div>
+        </div>
+      </section>
 
       <section className="space-y-4 rounded-3xl border border-white/10 p-6">
         <div>
