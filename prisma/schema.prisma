@@ -237,8 +237,8 @@ model PublicPartner {
   longDescription  String?
   logoUrl          String?
   coverImage       String?
-  heroVideoUrl    String?
-  heroVideoPoster String?
+  heroVideoUrl     String?
+  heroVideoPoster  String?
   gallery          Json?
   scenes360        Json?
   editorialEyebrow String?
@@ -256,6 +256,7 @@ model PublicPartner {
   createdAt        DateTime                   @default(now())
   updatedAt        DateTime                   @updatedAt
   destinations     PublicDestinationPartner[]
+  experiences      PublicExperience[]
 }
 
 model PublicExperience {
@@ -266,14 +267,28 @@ model PublicExperience {
   shortDescription String?
   longDescription  String?
   coverImage       String?
+  heroVideoUrl     String?
+  heroVideoPoster  String?
+  gallery          Json?
+  scenes360        Json?
+  editorialEyebrow String?
+  editorialTitle   String?
+  sideEyebrow      String?
+  sideTitle        String?
+  sideText         String?
+  sideHighlights   Json?
   ctaLabel         String?
   ctaHref          String?
+  partnerId        String?
+  partner          PublicPartner?                @relation(fields: [partnerId], references: [id], onDelete: SetNull)
   isVisible        Boolean                       @default(true)
   isFeatured       Boolean                       @default(false)
   sortOrder        Int                           @default(0)
   createdAt        DateTime                      @default(now())
   updatedAt        DateTime                      @updatedAt
   destinations     PublicDestinationExperience[]
+
+  @@index([partnerId])
 }
 
 model PublicDestinationPartner {
