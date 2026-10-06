@@ -28,6 +28,7 @@ type Viewer360CoreProps = {
   onViewChange?: (view: { yaw: number; pitch: number }) => void;
   onHotspotClick?: (targetSceneId?: string) => void;
   onSceneClick?: (coords: { yaw: number; pitch: number }) => void;
+  onReady?: () => void;
   introEnabled?: boolean;
 };
 
@@ -59,7 +60,7 @@ type RuntimeState = {
   sphereTexture: THREE.Texture | null;
   frameId: number;
   disposed: boolean;
-  mode: "loading" | "planet-hold" | "planet-move" | "viewer";
+  mode: "loading" | "planet-hold" | "planet-move" | "viewer" | "push-move";
   interactionEnabled: boolean;
   viewerUnlockAt: number;
   holdStart: number;
@@ -71,6 +72,14 @@ type RuntimeState = {
   pointerStartY: number;
   dragStartYaw: number;
   dragStartPitch: number;
+
+  pushStart: number;
+  pushStartYaw: number;
+  pushStartPitch: number;
+  pushStartFov: number;
+  pushTargetYaw: number;
+  pushTargetPitch: number;
+  pushTargetSceneId?: string;
 };
 
 const DEFAULT_FOV = 90;
@@ -83,12 +92,15 @@ const MAX_PITCH = 85;
 const SPHERE_RADIUS = 500;
 const HOTSPOT_RADIUS = 505;
 
-const INTRO_HOLD_MS = 300;
+const INTRO_HOLD_MS = 500;
 const INTRO_MOVE_MS = 2600;
-const INTRO_VIEWER_LOCK_THRESHOLD = 0.985;
+const INTRO_VIEWER_LOCK_THRESHOLD = 0.88;
 const VIEWER_UNLOCK_DELAY_MS = 30;
 const VIEW_CHANGE_THRESHOLD_DEG = 0.05;
-const PLANET_YAW_OFFSET_DEG = -12;
+const PLANET_YAW_OFFSET_DEG = 0;
+
+const PUSH_MOVE_MS = 720;
+const PUSH_END_FOV = 45;
 
 const VERTEX_SHADER = `
 varying vec2 vUv;
@@ -323,6 +335,7 @@ export default function Viewer360Core({
   onViewChange,
   onHotspotClick,
   onSceneClick,
+  onReady,
   introEnabled = false,
 }: Viewer360CoreProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -331,6 +344,9 @@ export default function Viewer360Core({
   const onViewChangeRef = useRef(onViewChange);
   const onHotspotClickRef = useRef(onHotspotClick);
   const onSceneClickRef = useRef(onSceneClick);
+  const onReadyRef = useRef(onReady);
+
+  onReadyRef.current = onReady;
 
   const targetViewRef = useRef({
     yaw: initialYaw,
@@ -478,6 +494,7 @@ export default function Viewer360Core({
         hotspotId: hotspot.id,
         targetSceneId: richHotspot.targetSceneId,
         label: richHotspot.label,
+        hotspot,
       };
 
       runtime.perspectiveScene.add(sprite);
@@ -534,7 +551,7 @@ export default function Viewer360Core({
     });
 
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setClearColor(0x000000, 1);
+    renderer.setClearColor(0xffffff, 1);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.domElement.style.position = "absolute";
     renderer.domElement.style.inset = "0";
@@ -633,6 +650,14 @@ export default function Viewer360Core({
       pointerStartY: 0,
       dragStartYaw: initialYaw,
       dragStartPitch: initialPitch,
+
+      pushStart: 0,
+      pushStartYaw: initialYaw,
+      pushStartPitch: initialPitch,
+      pushStartFov: initialFov,
+      pushTargetYaw: initialYaw,
+      pushTargetPitch: initialPitch,
+      pushTargetSceneId: undefined,
     };
 
     runtimeRef.current = runtime;
@@ -769,9 +794,32 @@ export default function Viewer360Core({
       if (hadPointerDown && !moved) {
         const hotspotHit = getHotspotIntersection(event);
         if (hotspotHit) {
-          onHotspotClickRef.current?.(
-            (hotspotHit.object.userData?.targetSceneId as string | undefined) ?? undefined
-          );
+          const hotspot = hotspotHit.object.userData as {
+            targetSceneId?: string;
+            hotspot?: Viewer360Hotspot;
+          };
+
+          const targetSceneId = hotspot.targetSceneId;
+          const hotspotData = hotspot.hotspot;
+
+          if (targetSceneId && hotspotData) {
+            runtime.interactionEnabled = false;
+            runtime.mode = "push-move";
+            runtime.pushStart = performance.now();
+
+            runtime.pushStartYaw = liveViewRef.current.yaw;
+            runtime.pushStartPitch = liveViewRef.current.pitch;
+            runtime.pushStartFov = liveViewRef.current.fov;
+
+            runtime.pushTargetYaw = Number(hotspotData.yaw || 0);
+            runtime.pushTargetPitch = Number(hotspotData.pitch || 0);
+            runtime.pushTargetSceneId = targetSceneId;
+
+            updateCursor(event);
+            return;
+          }
+
+          onHotspotClickRef.current?.(targetSceneId);
           updateCursor(event);
           return;
         }
@@ -829,10 +877,23 @@ export default function Viewer360Core({
 
     const END_YAW = -Math.PI / 2 - THREE.MathUtils.degToRad(introTarget.yaw + PLANET_YAW_OFFSET_DEG);
     const START_YAW = END_YAW + Math.PI;
-    const START_ZOOM = 8.2;
-    const END_ZOOM = 0.78;
-    const START_TILT = THREE.MathUtils.degToRad(0.0);
+    const ORIGINAL_START_ZOOM = 8.2;
+    const END_ZOOM = 0.66;
+    const ORIGINAL_START_TILT = THREE.MathUtils.degToRad(0.0);
     const END_TILT = THREE.MathUtils.degToRad(90 - introTarget.pitch);
+
+    // Arranca visualmente aprox. donde antes estaba al segundo 1.
+    const INTRO_START_PROGRESS = 0.228;
+    const START_ZOOM = THREE.MathUtils.lerp(
+      ORIGINAL_START_ZOOM,
+      END_ZOOM,
+      INTRO_START_PROGRESS
+    );
+    const START_TILT = THREE.MathUtils.lerp(
+      ORIGINAL_START_TILT,
+      END_TILT,
+      INTRO_START_PROGRESS
+    );
 
     loader.load(
       image,
@@ -889,6 +950,12 @@ export default function Viewer360Core({
             introTarget.fov
           );
         }
+
+        window.requestAnimationFrame(() => {
+          if (!currentRuntime.disposed) {
+            onReadyRef.current?.();
+          }
+        });
       },
       undefined,
       (err) => {
@@ -939,7 +1006,7 @@ export default function Viewer360Core({
           };
           currentRuntime.mode = "viewer";
           currentRuntime.interactionEnabled = false;
-          currentRuntime.viewerUnlockAt = now + 900;
+          currentRuntime.viewerUnlockAt = now + 120;
           emitView(true);
           renderViewer(
             currentRuntime,
@@ -959,6 +1026,67 @@ export default function Viewer360Core({
         renderer.render(orthoScene, orthoCamera);
 
         currentRuntime.frameId = window.requestAnimationFrame(animate);
+        return;
+      }
+
+      if (currentRuntime.mode === "push-move") {
+        const rawT = clamp01(
+          (now - currentRuntime.pushStart) / PUSH_MOVE_MS
+        );
+        const t = easeInOutCubic(rawT);
+
+        const yawDelta = (() => {
+          let delta =
+            normalizeYaw(currentRuntime.pushTargetYaw) -
+            normalizeYaw(currentRuntime.pushStartYaw);
+
+          if (delta > 180) delta -= 360;
+          if (delta < -180) delta += 360;
+
+          return delta;
+        })();
+
+        const nextYaw = normalizeYaw(
+          currentRuntime.pushStartYaw + yawDelta * t
+        );
+
+        const nextPitch = THREE.MathUtils.lerp(
+          currentRuntime.pushStartPitch,
+          currentRuntime.pushTargetPitch,
+          t
+        );
+
+        const nextFov = THREE.MathUtils.lerp(
+          currentRuntime.pushStartFov,
+          PUSH_END_FOV,
+          t
+        );
+
+        liveViewRef.current = {
+          yaw: nextYaw,
+          pitch: nextPitch,
+          fov: nextFov,
+        };
+
+        renderViewer(
+          currentRuntime,
+          nextYaw,
+          nextPitch,
+          nextFov
+        );
+
+        if (rawT >= 1) {
+          const targetSceneId = currentRuntime.pushTargetSceneId;
+
+          currentRuntime.pushTargetSceneId = undefined;
+
+          if (targetSceneId) {
+            onHotspotClickRef.current?.(targetSceneId);
+          }
+        }
+
+        currentRuntime.frameId =
+          window.requestAnimationFrame(animate);
         return;
       }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Viewer360Core from "./Viewer360Core";
 import Viewer360FullscreenShell from "./Viewer360FullscreenShell";
 import type {
@@ -17,6 +17,8 @@ type Viewer360StageProps = {
   className?: string;
 };
 
+const SCENE_CROSSFADE_MS = 280;
+
 export default function Viewer360Stage({
   scenes,
   initialIndex = 0,
@@ -28,18 +30,65 @@ export default function Viewer360Stage({
   );
 
   const [index, setIndex] = useState(initialIndex);
+
+  const [pendingIndex, setPendingIndex] = useState<number | null>(null);
+  const [pendingReady, setPendingReady] = useState(false);
+  const [committing, setCommitting] = useState(false);
+
   const [mode, setMode] = useState<Viewer360StageMode>("inline");
   const [fullscreenMounted, setFullscreenMounted] = useState(false);
   const [fullscreenVisible, setFullscreenVisible] = useState(false);
   const [originRect, setOriginRect] = useState<Viewer360Rect | null>(null);
-  const [viewport, setViewport] = useState<Viewer360FullscreenState | null>(null);
+  const [viewport, setViewport] =
+    useState<Viewer360FullscreenState | null>(null);
+
+  const [fullscreenEntrySceneId, setFullscreenEntrySceneId] =
+    useState<string | null>(null);
 
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const transitionTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (transitionTimerRef.current !== null) {
+        window.clearTimeout(transitionTimerRef.current);
+      }
+    };
+  }, []);
 
   const current = safeScenes[index] ?? safeScenes[0];
-  const targetView = resolveSceneTargetView(current, { yaw: 0, pitch: 0 });
+
+  const pending =
+    typeof pendingIndex === "number"
+      ? safeScenes[pendingIndex]
+      : undefined;
+
+  const targetView = resolveSceneTargetView(current, {
+    yaw: 0,
+    pitch: 0,
+  });
+
+  const pendingTargetView = pending
+    ? resolveSceneTargetView(pending, {
+        yaw: 0,
+        pitch: 0,
+      })
+    : null;
+
+  function resetTransition() {
+    if (transitionTimerRef.current !== null) {
+      window.clearTimeout(transitionTimerRef.current);
+      transitionTimerRef.current = null;
+    }
+
+    setPendingIndex(null);
+    setPendingReady(false);
+    setCommitting(false);
+  }
 
   function openFullscreen() {
+    if (pendingIndex !== null) return;
+
     const rect = cardRef.current?.getBoundingClientRect();
     if (!rect || !current) return;
 
@@ -55,42 +104,114 @@ export default function Viewer360Stage({
       height: window.innerHeight,
     });
 
+    setFullscreenEntrySceneId(current.id);
     setFullscreenVisible(true);
     setFullscreenMounted(true);
     setMode("interactive");
   }
 
   function closeFullscreen() {
+    resetTransition();
+
     setFullscreenVisible(false);
     setFullscreenMounted(false);
+    setFullscreenEntrySceneId(null);
     setOriginRect(null);
     setViewport(null);
     setMode("inline");
   }
 
-  function jumpTo(nextIndex: number) {
+  function requestScene(nextIndex: number) {
     if (!safeScenes[nextIndex]) return;
-    setIndex(nextIndex);
+    if (nextIndex === index) return;
+    if (pendingIndex !== null) return;
+
+    setPendingReady(false);
+    setCommitting(false);
+    setPendingIndex(nextIndex);
+  }
+
+  function handlePendingReady() {
+    if (pendingIndex === null) return;
+    if (pendingReady || committing) return;
+
+    setPendingReady(true);
+
+    const nextIndex = pendingIndex;
+
+    if (transitionTimerRef.current !== null) {
+      window.clearTimeout(transitionTimerRef.current);
+    }
+
+    transitionTimerRef.current = window.setTimeout(() => {
+      setCommitting(true);
+      setIndex(nextIndex);
+      transitionTimerRef.current = null;
+    }, SCENE_CROSSFADE_MS);
+  }
+
+  function handleCommittedReady() {
+    if (!committing) return;
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        setPendingIndex(null);
+        setPendingReady(false);
+        setCommitting(false);
+      });
+    });
   }
 
   function goPrev() {
-    if (safeScenes.length <= 1) return;
-    jumpTo((index - 1 + safeScenes.length) % safeScenes.length);
+    if (safeScenes.length <= 1 || pendingIndex !== null) return;
+
+    requestScene(
+      (index - 1 + safeScenes.length) % safeScenes.length
+    );
   }
 
   function goNext() {
-    if (safeScenes.length <= 1) return;
-    jumpTo((index + 1) % safeScenes.length);
+    if (safeScenes.length <= 1 || pendingIndex !== null) return;
+
+    requestScene((index + 1) % safeScenes.length);
   }
 
   function handleHotspotSceneChange(targetSceneId?: string) {
     if (!targetSceneId) return;
-    const nextIndex = safeScenes.findIndex((scene) => scene.id === targetSceneId);
+
+    const nextIndex = safeScenes.findIndex(
+      (scene) => scene.id === targetSceneId
+    );
+
     if (nextIndex === -1) return;
-    jumpTo(nextIndex);
+    if (nextIndex === index) return;
+
+    requestScene(nextIndex);
   }
 
   if (!current) return null;
+
+  /*
+   * El intro pertenece únicamente a la escena con la que se abrió
+   * fullscreen. No cambia al comenzar una precarga.
+   */
+  const fullscreenIntroEnabled =
+    fullscreenEntrySceneId === current.id;
+
+  /*
+   * Durante el commit, pendingIndex sigue apuntando a la nueva escena.
+   * La capa pending permanece visible mientras el Core principal de esa
+   * misma escena termina de cargar. Sólo entonces se desmonta.
+   */
+  const showInlinePending =
+    !!pending &&
+    !!pendingTargetView &&
+    !fullscreenMounted;
+
+  const showFullscreenPending =
+    !!pending &&
+    !!pendingTargetView &&
+    fullscreenMounted;
 
   return (
     <>
@@ -99,16 +220,46 @@ export default function Viewer360Stage({
           ref={cardRef}
           className="relative overflow-hidden rounded-[28px] border border-white/10 bg-black"
         >
-          <div className="relative aspect-[16/10] w-full bg-black">
-            <Viewer360Core
-              key={`inline-${current.id}`}
-              image={current.image}
-              initialYaw={targetView.yaw}
-              initialPitch={targetView.pitch}
-              hotspots={current.hotspots || []}
-              interactive={true}
-              introEnabled={false}
-            />
+          <div className="relative aspect-[16/9] w-full bg-black">
+            <div className="absolute inset-0">
+              <Viewer360Core
+                key={`inline-${current.id}`}
+                image={current.image}
+                initialYaw={targetView.yaw}
+                initialPitch={targetView.pitch}
+                hotspots={current.hotspots || []}
+                interactive={pendingIndex === null}
+                introEnabled={false}
+                onHotspotClick={handleHotspotSceneChange}
+                onReady={
+                  committing && !fullscreenMounted
+                    ? handleCommittedReady
+                    : undefined
+                }
+              />
+            </div>
+
+            {showInlinePending && pending && pendingTargetView ? (
+              <div
+                className={`pointer-events-none absolute inset-0 transition-opacity ${
+                  pendingReady ? "opacity-100" : "opacity-0"
+                }`}
+                style={{
+                  transitionDuration: `${SCENE_CROSSFADE_MS}ms`,
+                }}
+              >
+                <Viewer360Core
+                  key={`inline-pending-${pending.id}`}
+                  image={pending.image}
+                  initialYaw={pendingTargetView.yaw}
+                  initialPitch={pendingTargetView.pitch}
+                  hotspots={pending.hotspots || []}
+                  interactive={false}
+                  introEnabled={false}
+                  onReady={handlePendingReady}
+                />
+              </div>
+            ) : null}
 
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/20" />
 
@@ -117,11 +268,13 @@ export default function Viewer360Stage({
                 <p className="text-[10px] uppercase tracking-[0.34em] text-white/45">
                   Vista 360
                 </p>
+
                 <h3 className="mt-2 text-2xl font-light text-white">
                   {current.title || `Escena ${index + 1}`}
                 </h3>
+
                 <p className="mt-2 text-xs text-white/45">
-                  Preview estático · fullscreen en laboratorio
+                  Arrastra para explorar
                 </p>
               </div>
 
@@ -141,7 +294,8 @@ export default function Viewer360Stage({
             <button
               type="button"
               onClick={goPrev}
-              className="rounded-full border border-white/15 px-4 py-2 text-xs uppercase tracking-[0.24em] text-white/80 transition hover:bg-white hover:text-black"
+              disabled={pendingIndex !== null}
+              className="rounded-full border border-white/15 px-4 py-2 text-xs uppercase tracking-[0.24em] text-white/80 transition hover:bg-white hover:text-black disabled:cursor-wait disabled:opacity-40"
             >
               ← Prev
             </button>
@@ -153,7 +307,8 @@ export default function Viewer360Stage({
             <button
               type="button"
               onClick={goNext}
-              className="rounded-full border border-white/15 px-4 py-2 text-xs uppercase tracking-[0.24em] text-white/80 transition hover:bg-white hover:text-black"
+              disabled={pendingIndex !== null}
+              className="rounded-full border border-white/15 px-4 py-2 text-xs uppercase tracking-[0.24em] text-white/80 transition hover:bg-white hover:text-black disabled:cursor-wait disabled:opacity-40"
             >
               Next →
             </button>
@@ -169,16 +324,45 @@ export default function Viewer360Stage({
         onClose={closeFullscreen}
       >
         <div className="relative h-full w-full bg-black">
-          <Viewer360Core
-            key={`fullscreen-${current.id}`}
-            image={current.image}
-            initialYaw={targetView.yaw}
-            initialPitch={targetView.pitch}
-            hotspots={current.hotspots || []}
-            interactive={true}
-            introEnabled={true}
-            onHotspotClick={handleHotspotSceneChange}
-          />
+          <div className="absolute inset-0">
+            <Viewer360Core
+              key={`fullscreen-${current.id}`}
+              image={current.image}
+              initialYaw={targetView.yaw}
+              initialPitch={targetView.pitch}
+              hotspots={current.hotspots || []}
+              interactive={pendingIndex === null}
+              introEnabled={fullscreenIntroEnabled}
+              onHotspotClick={handleHotspotSceneChange}
+              onReady={
+                committing && fullscreenMounted
+                  ? handleCommittedReady
+                  : undefined
+              }
+            />
+          </div>
+
+          {showFullscreenPending && pending && pendingTargetView ? (
+            <div
+              className={`pointer-events-none absolute inset-0 transition-opacity ${
+                pendingReady ? "opacity-100" : "opacity-0"
+              }`}
+              style={{
+                transitionDuration: `${SCENE_CROSSFADE_MS}ms`,
+              }}
+            >
+              <Viewer360Core
+                key={`fullscreen-pending-${pending.id}`}
+                image={pending.image}
+                initialYaw={pendingTargetView.yaw}
+                initialPitch={pendingTargetView.pitch}
+                hotspots={pending.hotspots || []}
+                interactive={false}
+                introEnabled={false}
+                onReady={handlePendingReady}
+              />
+            </div>
+          ) : null}
 
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/30" />
 
@@ -187,6 +371,7 @@ export default function Viewer360Stage({
               <p className="text-[10px] uppercase tracking-[0.34em] text-white/45">
                 Fullscreen 360
               </p>
+
               <h3 className="mt-2 text-3xl font-light text-white">
                 {current.title || `Escena ${index + 1}`}
               </h3>
