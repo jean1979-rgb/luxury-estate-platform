@@ -17,7 +17,7 @@ type Viewer360StageProps = {
   className?: string;
 };
 
-const SCENE_CROSSFADE_MS = 280;
+const SCENE_CROSSFADE_MS = 220;
 
 export default function Viewer360Stage({
   scenes,
