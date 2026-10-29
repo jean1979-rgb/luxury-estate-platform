@@ -89,15 +89,18 @@ export default function AdminScenes360Tab({
             <label className="inline-flex cursor-pointer items-center rounded-2xl border border-white/15 px-5 py-4 text-[15px] text-white transition hover:bg-white/10">
               <input
                 type="file"
+                multiple
                 accept="image/png,image/jpeg,image/jpg,image/webp"
                 className="hidden"
+                disabled={uploadingScenes}
                 onChange={async (e) => {
                   const input = e.currentTarget;
-                  const file = input.files?.[0];
-                  if (file) {
+                  const files = Array.from(input.files || []);
+                  input.value = "";
+
+                  for (const file of files) {
                     await onUploadScene(file);
                   }
-                  input.value = "";
                 }}
               />
               {uploadingScenes ? "Subiendo..." : "Subir panorama"}
