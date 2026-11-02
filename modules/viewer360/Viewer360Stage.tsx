@@ -33,7 +33,10 @@ export default function Viewer360Stage({
 
   const [pendingIndex, setPendingIndex] = useState<number | null>(null);
   const [pendingReady, setPendingReady] = useState(false);
-  const [committing, setCommitting] = useState(false);
+  const [activeLayer, setActiveLayer] = useState<0 | 1>(0);
+  const [layerScenes, setLayerScenes] = useState<
+    [number | null, number | null]
+  >([initialIndex, null]);
 
   const [mode, setMode] = useState<Viewer360StageMode>("inline");
   const [fullscreenMounted, setFullscreenMounted] = useState(false);
@@ -58,22 +61,9 @@ export default function Viewer360Stage({
 
   const current = safeScenes[index] ?? safeScenes[0];
 
-  const pending =
-    typeof pendingIndex === "number"
-      ? safeScenes[pendingIndex]
-      : undefined;
-
-  const targetView = resolveSceneTargetView(current, {
-    yaw: 0,
-    pitch: 0,
-  });
-
-  const pendingTargetView = pending
-    ? resolveSceneTargetView(pending, {
-        yaw: 0,
-        pitch: 0,
-      })
-    : null;
+  const targetView = current
+    ? resolveSceneTargetView(current, { yaw: 0, pitch: 0 })
+    : { yaw: 0, pitch: 0 };
 
   function resetTransition() {
     if (transitionTimerRef.current !== null) {
@@ -83,7 +73,11 @@ export default function Viewer360Stage({
 
     setPendingIndex(null);
     setPendingReady(false);
-    setCommitting(false);
+    setLayerScenes((previous) => {
+      const next = [...previous] as [number | null, number | null];
+      next[activeLayer === 0 ? 1 : 0] = null;
+      return next;
+    });
   }
 
   function openFullscreen() {
@@ -123,43 +117,40 @@ export default function Viewer360Stage({
 
   function requestScene(nextIndex: number) {
     if (!safeScenes[nextIndex]) return;
-    if (nextIndex === index) return;
-    if (pendingIndex !== null) return;
+    if (nextIndex === index || pendingIndex !== null) return;
 
     setPendingReady(false);
-    setCommitting(false);
+    setLayerScenes((previous) => {
+      const next = [...previous] as [number | null, number | null];
+      next[activeLayer === 0 ? 1 : 0] = nextIndex;
+      return next;
+    });
     setPendingIndex(nextIndex);
   }
 
   function handlePendingReady() {
-    if (pendingIndex === null) return;
-    if (pendingReady || committing) return;
+    if (pendingIndex === null || pendingReady) return;
 
     setPendingReady(true);
-
-    const nextIndex = pendingIndex;
 
     if (transitionTimerRef.current !== null) {
       window.clearTimeout(transitionTimerRef.current);
     }
 
+    const nextIndex = pendingIndex;
+
     transitionTimerRef.current = window.setTimeout(() => {
-      setCommitting(true);
+      setActiveLayer((layer) => (layer === 0 ? 1 : 0));
       setIndex(nextIndex);
+      setPendingIndex(null);
+      setPendingReady(false);
+      setLayerScenes((previous) => {
+        const next = [...previous] as [number | null, number | null];
+        next[activeLayer] = null;
+        return next;
+      });
       transitionTimerRef.current = null;
     }, SCENE_CROSSFADE_MS);
-  }
-
-  function handleCommittedReady() {
-    if (!committing) return;
-
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => {
-        setPendingIndex(null);
-        setPendingReady(false);
-        setCommitting(false);
-      });
-    });
   }
 
   function goPrev() {
@@ -198,21 +189,6 @@ export default function Viewer360Stage({
   const fullscreenIntroEnabled =
     fullscreenEntrySceneId === current.id;
 
-  /*
-   * Durante el commit, pendingIndex sigue apuntando a la nueva escena.
-   * La capa pending permanece visible mientras el Core principal de esa
-   * misma escena termina de cargar. Sólo entonces se desmonta.
-   */
-  const showInlinePending =
-    !!pending &&
-    !!pendingTargetView &&
-    !fullscreenMounted;
-
-  const showFullscreenPending =
-    !!pending &&
-    !!pendingTargetView &&
-    fullscreenMounted;
-
   return (
     <>
       <div className={className}>
@@ -221,45 +197,45 @@ export default function Viewer360Stage({
           className="relative overflow-hidden rounded-[28px] border border-white/10 bg-black"
         >
           <div className="relative aspect-[16/9] w-full bg-black">
-            <div className="absolute inset-0">
-              <Viewer360Core
-                key={`inline-${current.id}`}
-                image={current.image}
-                initialYaw={targetView.yaw}
-                initialPitch={targetView.pitch}
-                hotspots={current.hotspots || []}
-                interactive={pendingIndex === null}
-                introEnabled={false}
-                onHotspotClick={handleHotspotSceneChange}
-                onReady={
-                  committing && !fullscreenMounted
-                    ? handleCommittedReady
-                    : undefined
-                }
-              />
-            </div>
+            {([0, 1] as const).map((layer) => {
+              const sceneIndex = layerScenes[layer];
+              const item =
+                sceneIndex === null ? null : safeScenes[sceneIndex];
+              if (!item) return null;
 
-            {showInlinePending && pending && pendingTargetView ? (
-              <div
-                className={`pointer-events-none absolute inset-0 transition-opacity ${
-                  pendingReady ? "opacity-100" : "opacity-0"
-                }`}
-                style={{
-                  transitionDuration: `${SCENE_CROSSFADE_MS}ms`,
-                }}
-              >
-                <Viewer360Core
-                  key={`inline-pending-${pending.id}`}
-                  image={pending.image}
-                  initialYaw={pendingTargetView.yaw}
-                  initialPitch={pendingTargetView.pitch}
-                  hotspots={pending.hotspots || []}
-                  interactive={false}
-                  introEnabled={false}
-                  onReady={handlePendingReady}
-                />
-              </div>
-            ) : null}
+              const isActive = layer === activeLayer;
+              const view = resolveSceneTargetView(item, {
+                yaw: 0,
+                pitch: 0,
+              });
+
+              return (
+                <div
+                  key={`inline-layer-${layer}`}
+                  className="absolute inset-0"
+                  style={{
+                    zIndex: isActive ? 10 : 1,
+                    opacity: isActive ? 1 : pendingReady ? 1 : 0,
+                    transition: isActive
+                      ? "none"
+                      : `opacity ${SCENE_CROSSFADE_MS}ms ease`,
+                    pointerEvents: isActive ? "auto" : "none",
+                  }}
+                >
+                  <Viewer360Core
+                    key={item.id}
+                    image={item.image}
+                    initialYaw={view.yaw}
+                    initialPitch={view.pitch}
+                    hotspots={item.hotspots || []}
+                    interactive={isActive && pendingIndex === null}
+                    introEnabled={false}
+                    onHotspotClick={handleHotspotSceneChange}
+                    onReady={!isActive ? handlePendingReady : undefined}
+                  />
+                </div>
+              );
+            })}
 
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/20" />
 
@@ -324,45 +300,45 @@ export default function Viewer360Stage({
         onClose={closeFullscreen}
       >
         <div className="relative h-full w-full bg-black">
-          <div className="absolute inset-0">
-            <Viewer360Core
-              key={`fullscreen-${current.id}`}
-              image={current.image}
-              initialYaw={targetView.yaw}
-              initialPitch={targetView.pitch}
-              hotspots={current.hotspots || []}
-              interactive={pendingIndex === null}
-              introEnabled={fullscreenIntroEnabled}
-              onHotspotClick={handleHotspotSceneChange}
-              onReady={
-                committing && fullscreenMounted
-                  ? handleCommittedReady
-                  : undefined
-              }
-            />
-          </div>
+          {([0, 1] as const).map((layer) => {
+            const sceneIndex = layerScenes[layer];
+            const item =
+              sceneIndex === null ? null : safeScenes[sceneIndex];
+            if (!item) return null;
 
-          {showFullscreenPending && pending && pendingTargetView ? (
-            <div
-              className={`pointer-events-none absolute inset-0 transition-opacity ${
-                pendingReady ? "opacity-100" : "opacity-0"
-              }`}
-              style={{
-                transitionDuration: `${SCENE_CROSSFADE_MS}ms`,
-              }}
-            >
-              <Viewer360Core
-                key={`fullscreen-pending-${pending.id}`}
-                image={pending.image}
-                initialYaw={pendingTargetView.yaw}
-                initialPitch={pendingTargetView.pitch}
-                hotspots={pending.hotspots || []}
-                interactive={false}
-                introEnabled={false}
-                onReady={handlePendingReady}
-              />
-            </div>
-          ) : null}
+            const isActive = layer === activeLayer;
+            const view = resolveSceneTargetView(item, {
+              yaw: 0,
+              pitch: 0,
+            });
+
+            return (
+              <div
+                key={`fullscreen-layer-${layer}`}
+                className="absolute inset-0"
+                style={{
+                  zIndex: isActive ? 10 : 1,
+                  opacity: isActive ? 1 : pendingReady ? 1 : 0,
+                  transition: isActive
+                    ? "none"
+                    : `opacity ${SCENE_CROSSFADE_MS}ms ease`,
+                  pointerEvents: isActive ? "auto" : "none",
+                }}
+              >
+                <Viewer360Core
+                  key={item.id}
+                  image={item.image}
+                  initialYaw={view.yaw}
+                  initialPitch={view.pitch}
+                  hotspots={item.hotspots || []}
+                  interactive={isActive && pendingIndex === null}
+                  introEnabled={isActive && fullscreenEntrySceneId === item.id}
+                  onHotspotClick={handleHotspotSceneChange}
+                  onReady={!isActive ? handlePendingReady : undefined}
+                />
+              </div>
+            );
+          })}
 
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/30" />
 

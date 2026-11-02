@@ -813,7 +813,10 @@ export default function Viewer360Core({
 
             runtime.pushTargetYaw = Number(hotspotData.yaw || 0);
             runtime.pushTargetPitch = Number(hotspotData.pitch || 0);
-            runtime.pushTargetSceneId = targetSceneId;
+
+            // Precargar la escena mientras ocurre el acercamiento.
+            runtime.pushTargetSceneId = undefined;
+            onHotspotClickRef.current?.(targetSceneId);
 
             updateCursor(event);
             return;
