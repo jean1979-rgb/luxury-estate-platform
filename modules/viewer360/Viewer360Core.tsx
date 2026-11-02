@@ -683,10 +683,42 @@ export default function Viewer360Core({
     };
 
     const getHotspotIntersection = (event: PointerEvent) => {
-      getPointer(event);
-      runtime.raycaster.setFromCamera(runtime.pointer, perspectiveCamera);
-      const intersections = runtime.raycaster.intersectObjects(runtime.hotspotMeshes, false);
-      return intersections[0] ?? null;
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (!rect.width || !rect.height) return null;
+
+      perspectiveCamera.updateMatrixWorld();
+
+      const cameraPosition = new THREE.Vector3();
+      const cameraDirection = new THREE.Vector3();
+      perspectiveCamera.getWorldPosition(cameraPosition);
+      perspectiveCamera.getWorldDirection(cameraDirection);
+
+      let closest: THREE.Sprite | null = null;
+      let closestDistance = Infinity;
+      const hitRadius = 32;
+
+      for (const sprite of runtime.hotspotMeshes) {
+        const worldPosition = new THREE.Vector3();
+        sprite.getWorldPosition(worldPosition);
+
+        const towardHotspot = worldPosition.clone().sub(cameraPosition);
+        if (towardHotspot.dot(cameraDirection) <= 0) continue;
+
+        const projected = worldPosition.project(perspectiveCamera);
+        if (projected.z < -1 || projected.z > 1) continue;
+
+        const x = rect.left + (projected.x + 1) * rect.width / 2;
+        const y = rect.top + (1 - projected.y) * rect.height / 2;
+
+        const distance = Math.hypot(event.clientX - x, event.clientY - y);
+
+        if (distance <= hitRadius && distance < closestDistance) {
+          closest = sprite;
+          closestDistance = distance;
+        }
+      }
+
+      return closest ? { object: closest } : null;
     };
 
     const getSphereIntersection = (event: PointerEvent) => {
