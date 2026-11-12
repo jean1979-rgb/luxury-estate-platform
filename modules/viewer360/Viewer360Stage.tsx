@@ -19,6 +19,10 @@ type Viewer360StageProps = {
 
 const SCENE_CROSSFADE_MS = 180;
 
+// Precarga conservadora para evitar saturar dispositivos móviles.
+const SCENE_PREFETCH_LIMIT = 3;
+const SCENE_PREFETCH_DELAY_MS = 600;
+
 export default function Viewer360Stage({
   scenes,
   initialIndex = 0,
@@ -60,6 +64,118 @@ export default function Viewer360Stage({
   }, []);
 
   const current = safeScenes[index] ?? safeScenes[0];
+
+  useEffect(() => {
+    if (!current || safeScenes.length <= 1) return;
+    if (pendingIndex !== null) return;
+
+    const connection = (
+      navigator as Navigator & {
+        connection?: {
+          saveData?: boolean;
+          effectiveType?: string;
+        };
+      }
+    ).connection;
+
+    // No anticipar descargas cuando el usuario ahorra datos
+    // o dispone de una conexión especialmente lenta.
+    if (
+      connection?.saveData ||
+      connection?.effectiveType === "slow-2g" ||
+      connection?.effectiveType === "2g"
+    ) {
+      return;
+    }
+
+    const candidates: string[] = [];
+
+    const addCandidate = (scene?: Viewer360Scene) => {
+      if (!scene?.image) return;
+      if (scene.image === current.image) return;
+      if (candidates.includes(scene.image)) return;
+
+      candidates.push(scene.image);
+    };
+
+    // Prioridad 1: escenas conectadas mediante hotspots.
+    for (const hotspot of current.hotspots || []) {
+      if (!hotspot.targetSceneId) continue;
+
+      const target = safeScenes.find(
+        (scene) => scene.id === hotspot.targetSceneId
+      );
+
+      addCandidate(target);
+    }
+
+    // Prioridad 2: navegación secuencial.
+    addCandidate(safeScenes[(index + 1) % safeScenes.length]);
+
+    addCandidate(
+      safeScenes[
+        (index - 1 + safeScenes.length) % safeScenes.length
+      ]
+    );
+
+    const queue = candidates.slice(0, SCENE_PREFETCH_LIMIT);
+
+    if (!queue.length) return;
+
+    let cancelled = false;
+    let position = 0;
+    let activeImage: HTMLImageElement | null = null;
+
+    const preloadNext = () => {
+      if (cancelled || position >= queue.length) return;
+
+      const url = queue[position++];
+      const image = new Image();
+
+      activeImage = image;
+
+      // Coincidir con el modo CORS de THREE.TextureLoader.
+      image.crossOrigin = "anonymous";
+      image.decoding = "async";
+      image.fetchPriority = "low";
+
+      const finish = () => {
+        image.onload = null;
+        image.onerror = null;
+
+        if (activeImage === image) {
+          activeImage = null;
+        }
+
+        if (!cancelled) {
+          preloadNext();
+        }
+      };
+
+      image.onload = finish;
+      image.onerror = finish;
+
+      image.src = url;
+    };
+
+    // Dar prioridad a la panorámica actual.
+    const timer = window.setTimeout(
+      preloadNext,
+      SCENE_PREFETCH_DELAY_MS
+    );
+
+    return () => {
+      cancelled = true;
+
+      window.clearTimeout(timer);
+
+      if (activeImage) {
+        activeImage.onload = null;
+        activeImage.onerror = null;
+        activeImage = null;
+      }
+    };
+  }, [current, index, safeScenes, pendingIndex]);
 
   const targetView = current
     ? resolveSceneTargetView(current, { yaw: 0, pitch: 0 })
@@ -131,11 +247,11 @@ export default function Viewer360Stage({
   function handlePendingReady() {
     if (pendingIndex === null || pendingReady) return;
 
-    setPendingReady(true);
+    // Una segunda notificación no debe reiniciar
+    // una transición que ya está en curso.
+    if (transitionTimerRef.current !== null) return;
 
-    if (transitionTimerRef.current !== null) {
-      window.clearTimeout(transitionTimerRef.current);
-    }
+    setPendingReady(true);
 
     const nextIndex = pendingIndex;
 
@@ -214,7 +330,7 @@ export default function Viewer360Stage({
                   key={`inline-layer-${layer}`}
                   className="absolute inset-0"
                   style={{
-                    zIndex: isActive ? 10 : 1,
+                    zIndex: isActive ? 10 : pendingReady ? 11 : 1,
                     opacity: isActive ? 1 : pendingReady ? 1 : 0,
                     transition: isActive
                       ? "none"
@@ -228,10 +344,19 @@ export default function Viewer360Stage({
                     initialYaw={view.yaw}
                     initialPitch={view.pitch}
                     hotspots={item.hotspots || []}
-                    interactive={isActive && pendingIndex === null}
+                    interactive={
+                      isActive &&
+                      pendingIndex === null &&
+                      !fullscreenMounted
+                    }
+                    renderSuspended={fullscreenMounted}
                     introEnabled={false}
                     onHotspotClick={handleHotspotSceneChange}
-                    onReady={!isActive ? handlePendingReady : undefined}
+                    onReady={
+                      !isActive && !fullscreenMounted
+                        ? handlePendingReady
+                        : undefined
+                    }
                   />
                 </div>
               );
@@ -317,7 +442,7 @@ export default function Viewer360Stage({
                 key={`fullscreen-layer-${layer}`}
                 className="absolute inset-0"
                 style={{
-                  zIndex: isActive ? 10 : 1,
+                  zIndex: isActive ? 10 : pendingReady ? 11 : 1,
                   opacity: isActive ? 1 : pendingReady ? 1 : 0,
                   transition: isActive
                     ? "none"
@@ -334,7 +459,11 @@ export default function Viewer360Stage({
                   interactive={isActive && pendingIndex === null}
                   introEnabled={isActive && fullscreenEntrySceneId === item.id}
                   onHotspotClick={handleHotspotSceneChange}
-                  onReady={!isActive ? handlePendingReady : undefined}
+                  onReady={
+                    !isActive && fullscreenMounted
+                      ? handlePendingReady
+                      : undefined
+                  }
                 />
               </div>
             );

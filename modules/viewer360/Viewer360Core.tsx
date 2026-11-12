@@ -24,6 +24,7 @@ type Viewer360CoreProps = {
   maxFov?: number;
   hotspots?: Viewer360Hotspot[];
   interactive?: boolean;
+  renderSuspended?: boolean;
   editable?: boolean;
   onViewChange?: (view: { yaw: number; pitch: number }) => void;
   onHotspotClick?: (targetSceneId?: string) => void;
@@ -331,6 +332,7 @@ export default function Viewer360Core({
   maxFov = MAX_FOV,
   hotspots = [],
   interactive = true,
+  renderSuspended = false,
   editable = false,
   onViewChange,
   onHotspotClick,
@@ -361,6 +363,7 @@ export default function Viewer360Core({
   });
 
   const interactiveRef = useRef(interactive);
+  const renderSuspendedRef = useRef(renderSuspended);
   const editableRef = useRef(editable);
   const minFovRef = useRef(minFov);
   const maxFovRef = useRef(maxFov);
@@ -379,6 +382,7 @@ export default function Viewer360Core({
   };
 
   interactiveRef.current = interactive;
+  renderSuspendedRef.current = renderSuspended;
   editableRef.current = editable;
   minFovRef.current = minFov;
   maxFovRef.current = maxFov;
@@ -1097,28 +1101,48 @@ export default function Viewer360Core({
       image,
       (texture) => {
         const currentRuntime = runtimeRef.current;
-        if (!currentRuntime || currentRuntime.disposed) {
+
+        if (
+          !currentRuntime ||
+          currentRuntime.disposed ||
+          currentRuntime !== runtime
+        ) {
           texture.dispose();
           return;
         }
 
-        currentRuntime.loadedTexture = texture;
-        currentRuntime.loadedTexture.colorSpace = THREE.SRGBColorSpace;
-        currentRuntime.loadedTexture.minFilter = THREE.LinearFilter;
-        currentRuntime.loadedTexture.magFilter = THREE.LinearFilter;
-        currentRuntime.loadedTexture.generateMipmaps = false;
-        currentRuntime.loadedTexture.flipY = false;
-        currentRuntime.loadedTexture.needsUpdate = true;
+        // Configuración común de la panorámica.
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
 
-        currentRuntime.sphereTexture = currentRuntime.loadedTexture.clone();
-        currentRuntime.sphereTexture.colorSpace = THREE.SRGBColorSpace;
-        currentRuntime.sphereTexture.minFilter = THREE.LinearFilter;
-        currentRuntime.sphereTexture.magFilter = THREE.LinearFilter;
-        currentRuntime.sphereTexture.generateMipmaps = false;
-        currentRuntime.sphereTexture.flipY = true;
-        currentRuntime.sphereTexture.needsUpdate = true;
+        if (introEnabled) {
+          // El efecto planeta necesita una orientación distinta
+          // de la textura utilizada por la esfera inmersiva.
+          texture.flipY = false;
+          texture.needsUpdate = true;
 
-        uniforms.uTexture.value = currentRuntime.loadedTexture;
+          currentRuntime.loadedTexture = texture;
+
+          const sphereTexture = texture.clone();
+
+          sphereTexture.flipY = true;
+          sphereTexture.needsUpdate = true;
+
+          currentRuntime.sphereTexture = sphereTexture;
+
+          uniforms.uTexture.value = texture;
+        } else {
+          // Navegación normal: utilizar directamente la textura
+          // descargada, sin crear una segunda textura.
+          texture.flipY = true;
+          texture.needsUpdate = true;
+
+          currentRuntime.loadedTexture = null;
+          currentRuntime.sphereTexture = texture;
+        }
+
         sphereMaterial.map = currentRuntime.sphereTexture;
         sphereMaterial.needsUpdate = true;
 
@@ -1164,6 +1188,14 @@ export default function Viewer360Core({
     const animate = (now: number) => {
       const currentRuntime = runtimeRef.current;
       if (!currentRuntime || currentRuntime.disposed) return;
+
+      // Conservar el motor y sus texturas, pero evitar
+      // renderizado continuo cuando el visor está oculto.
+      if (renderSuspendedRef.current) {
+        currentRuntime.frameId =
+          window.requestAnimationFrame(animate);
+        return;
+      }
 
       if (currentRuntime.mode === "loading") {
         currentRuntime.frameId = window.requestAnimationFrame(animate);
@@ -1330,11 +1362,10 @@ export default function Viewer360Core({
       currentRuntime.shaderMaterial.dispose();
       currentRuntime.sphereGeometry.dispose();
 
-      if (currentRuntime.sphereMaterial.map) {
-        currentRuntime.sphereMaterial.map.dispose();
-      }
+      currentRuntime.sphereMaterial.map = null;
       currentRuntime.sphereMaterial.dispose();
 
+      // Cada textura se libera una sola vez.
       currentRuntime.loadedTexture?.dispose();
       currentRuntime.sphereTexture?.dispose();
 
