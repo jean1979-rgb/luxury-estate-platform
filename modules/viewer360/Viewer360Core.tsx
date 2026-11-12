@@ -540,7 +540,7 @@ export default function Viewer360Core({
     let resizeHandler: (() => void) | null = null;
     let pointerMoveHandler: ((event: PointerEvent) => void) | null = null;
     let pointerUpHandler: ((event: PointerEvent) => void) | null = null;
-    let pointerCancelHandler: (() => void) | null = null;
+    let pointerCancelHandler: ((event: PointerEvent) => void) | null = null;
     let pointerDownHandler: ((event: PointerEvent) => void) | null = null;
     let wheelHandler: ((event: WheelEvent) => void) | null = null;
 
@@ -559,8 +559,6 @@ export default function Viewer360Core({
     renderer.domElement.style.height = "100%";
     renderer.domElement.style.overscrollBehavior = "contain";
     renderer.domElement.style.display = "block";
-    renderer.domElement.style.touchAction = "none";
-    renderer.domElement.style.touchAction = "none";
     renderer.domElement.style.touchAction = "none";
     renderer.domElement.style.userSelect = "none";
 
@@ -745,8 +743,75 @@ export default function Viewer360Core({
       renderer.domElement.style.cursor = runtime.isPointerDown ? "grabbing" : "grab";
     };
 
+    // Estado de gestos independiente para cada instancia del visor.
+    const activeTouches = new Map<number, { x: number; y: number }>();
+
+    let pinchStartDistance = 0;
+    let pinchStartFov = 0;
+    let gestureHadPinch = false;
+
+    const getPinchDistance = () => {
+      const points = Array.from(activeTouches.values());
+
+      if (points.length < 2) return 0;
+
+      return Math.hypot(
+        points[0].x - points[1].x,
+        points[0].y - points[1].y
+      );
+    };
+
+    const beginPinch = () => {
+      pinchStartDistance = Math.max(getPinchDistance(), 1);
+      pinchStartFov = liveViewRef.current.fov;
+      gestureHadPinch = true;
+      runtime.pointerMoved = true;
+    };
+
+    const resumeSingleTouch = () => {
+      const remaining = Array.from(activeTouches.entries())[0];
+
+      if (!remaining) return;
+
+      const [pointerId, point] = remaining;
+
+      runtime.activePointerId = pointerId;
+      runtime.isPointerDown = true;
+      runtime.pointerMoved = true;
+
+      runtime.pointerStartX = point.x;
+      runtime.pointerStartY = point.y;
+
+      runtime.dragStartYaw = liveViewRef.current.yaw;
+      runtime.dragStartPitch = liveViewRef.current.pitch;
+    };
+
     pointerDownHandler = (event: PointerEvent) => {
       if (!runtime.interactionEnabled || !interactiveRef.current || runtime.mode !== "viewer") {
+        return;
+      }
+
+      if (event.pointerType === "touch") {
+        if (activeTouches.size === 0) {
+          gestureHadPinch = false;
+          pinchStartDistance = 0;
+        }
+
+        activeTouches.set(event.pointerId, {
+          x: event.clientX,
+          y: event.clientY,
+        });
+
+        try {
+          renderer.domElement.setPointerCapture(event.pointerId);
+        } catch {}
+
+        if (activeTouches.size >= 2) {
+          beginPinch();
+          updateCursor(event);
+          return;
+        }
+      } else if (runtime.isPointerDown) {
         return;
       }
 
@@ -771,6 +836,44 @@ export default function Viewer360Core({
       if (!runtime.interactionEnabled || !interactiveRef.current || runtime.mode !== "viewer") {
         updateCursor(event);
         return;
+      }
+
+      if (event.pointerType === "touch") {
+        if (!activeTouches.has(event.pointerId)) return;
+
+        activeTouches.set(event.pointerId, {
+          x: event.clientX,
+          y: event.clientY,
+        });
+
+        if (activeTouches.size >= 2) {
+          const distance = Math.max(getPinchDistance(), 1);
+
+          if (pinchStartDistance <= 0) {
+            beginPinch();
+          }
+
+          // Zoom proporcional mediante el campo de visión.
+          const ratio = pinchStartDistance / distance;
+
+          const nextFov = THREE.MathUtils.radToDeg(
+            2 * Math.atan(
+              Math.tan(THREE.MathUtils.degToRad(pinchStartFov) / 2) * ratio
+            )
+          );
+
+          liveViewRef.current.fov = clamp(
+            nextFov,
+            minFovRef.current,
+            maxFovRef.current
+          );
+
+          runtime.pointerMoved = true;
+          gestureHadPinch = true;
+
+          updateCursor(event);
+          return;
+        }
       }
 
       if (!runtime.isPointerDown) {
@@ -802,6 +905,40 @@ export default function Viewer360Core({
 
     pointerUpHandler = (event: PointerEvent) => {
       if (!runtimeRef.current) return;
+
+      if (event.pointerType === "touch") {
+        if (!activeTouches.has(event.pointerId)) return;
+
+        activeTouches.delete(event.pointerId);
+
+        try {
+          renderer.domElement.releasePointerCapture(event.pointerId);
+        } catch {}
+
+        if (activeTouches.size >= 2) {
+          beginPinch();
+          return;
+        }
+
+        if (activeTouches.size === 1) {
+          pinchStartDistance = 0;
+          resumeSingleTouch();
+          return;
+        }
+
+        if (gestureHadPinch) {
+          runtime.isPointerDown = false;
+          runtime.pointerMoved = false;
+          runtime.activePointerId = null;
+
+          pinchStartDistance = 0;
+          gestureHadPinch = false;
+
+          updateCursor(event);
+          return;
+        }
+      }
+
       if (runtime.activePointerId !== null && event.pointerId !== runtime.activePointerId) {
         return;
       }
@@ -870,10 +1007,37 @@ export default function Viewer360Core({
       updateCursor(event);
     };
 
-    pointerCancelHandler = () => {
+    pointerCancelHandler = (event: PointerEvent) => {
+      if (
+        !activeTouches.has(event.pointerId) &&
+        runtime.activePointerId !== event.pointerId
+      ) {
+        return;
+      }
+
+      const capturedPointers = Array.from(activeTouches.keys());
+
+      if (runtime.activePointerId !== null) {
+        capturedPointers.push(runtime.activePointerId);
+      }
+
+      activeTouches.clear();
+
+      pinchStartDistance = 0;
+      gestureHadPinch = false;
+
       runtime.isPointerDown = false;
       runtime.pointerMoved = false;
       runtime.activePointerId = null;
+
+      for (const pointerId of capturedPointers) {
+        try {
+          if (renderer.domElement.hasPointerCapture(pointerId)) {
+            renderer.domElement.releasePointerCapture(pointerId);
+          }
+        } catch {}
+      }
+
       updateCursor();
     };
 
@@ -895,7 +1059,6 @@ export default function Viewer360Core({
     window.addEventListener("pointerup", pointerUpHandler);
     window.addEventListener("pointercancel", pointerCancelHandler);
     renderer.domElement.addEventListener("pointerdown", pointerDownHandler);
-    renderer.domElement.addEventListener("pointermove", pointerMoveHandler);
     renderer.domElement.addEventListener("wheel", wheelHandler, { passive: false });
 
     syncHotspots();
@@ -1140,6 +1303,11 @@ export default function Viewer360Core({
       if (!currentRuntime) return;
 
       currentRuntime.disposed = true;
+
+      activeTouches.clear();
+      pinchStartDistance = 0;
+      gestureHadPinch = false;
+
       window.cancelAnimationFrame(currentRuntime.frameId);
 
       if (resizeHandler) window.removeEventListener("resize", resizeHandler);
@@ -1149,9 +1317,6 @@ export default function Viewer360Core({
 
       if (pointerDownHandler) {
         renderer.domElement.removeEventListener("pointerdown", pointerDownHandler);
-      }
-      if (pointerMoveHandler) {
-        renderer.domElement.removeEventListener("pointermove", pointerMoveHandler);
       }
       if (wheelHandler) {
         renderer.domElement.removeEventListener("wheel", wheelHandler);

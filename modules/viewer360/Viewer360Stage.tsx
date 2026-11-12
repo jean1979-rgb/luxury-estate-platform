@@ -196,7 +196,7 @@ export default function Viewer360Stage({
           ref={cardRef}
           className="relative overflow-hidden rounded-[28px] border border-white/10 bg-black"
         >
-          <div className="relative aspect-[16/9] w-full bg-black">
+          <div className="relative aspect-[4/5] w-full bg-black sm:aspect-[16/9]">
             {([0, 1] as const).map((layer) => {
               const sceneIndex = layerScenes[layer];
               const item =
@@ -239,17 +239,17 @@ export default function Viewer360Stage({
 
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/20" />
 
-            <div className="absolute inset-x-0 bottom-0 z-20 flex items-end justify-between gap-4 p-5">
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-end justify-between gap-3 p-3 sm:gap-4 sm:p-5">
               <div className="pointer-events-none">
                 <p className="text-[10px] uppercase tracking-[0.34em] text-white/45">
                   Vista 360
                 </p>
 
-                <h3 className="mt-2 text-2xl font-light text-white">
+                <h3 className="mt-1 text-lg font-light text-white sm:mt-2 sm:text-2xl">
                   {current.title || `Escena ${index + 1}`}
                 </h3>
 
-                <p className="mt-2 text-xs text-white/45">
+                <p className="mt-1 text-[10px] text-white/60 sm:mt-2 sm:text-xs sm:text-white/45">
                   Arrastra para explorar
                 </p>
               </div>
@@ -257,7 +257,7 @@ export default function Viewer360Stage({
               <button
                 type="button"
                 onClick={openFullscreen}
-                className="rounded-full border border-white/15 bg-black/35 px-5 py-3 text-[11px] uppercase tracking-[0.28em] text-white backdrop-blur-md transition hover:bg-white hover:text-black"
+                className="pointer-events-auto flex min-h-[44px] shrink-0 items-center justify-center rounded-full border border-white/15 bg-black/35 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-white backdrop-blur-md transition hover:bg-white hover:text-black sm:px-5 sm:py-3 sm:text-[11px] sm:tracking-[0.28em]"
               >
                 Expandir
               </button>
@@ -271,7 +271,7 @@ export default function Viewer360Stage({
               type="button"
               onClick={goPrev}
               disabled={pendingIndex !== null}
-              className="rounded-full border border-white/15 px-4 py-2 text-xs uppercase tracking-[0.24em] text-white/80 transition hover:bg-white hover:text-black disabled:cursor-wait disabled:opacity-40"
+              className="min-h-[44px] rounded-full border border-white/15 px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-white/80 transition hover:bg-white hover:text-black disabled:cursor-wait disabled:opacity-40 sm:min-h-0 sm:text-xs sm:tracking-[0.24em]"
             >
               ← Prev
             </button>
@@ -284,7 +284,7 @@ export default function Viewer360Stage({
               type="button"
               onClick={goNext}
               disabled={pendingIndex !== null}
-              className="rounded-full border border-white/15 px-4 py-2 text-xs uppercase tracking-[0.24em] text-white/80 transition hover:bg-white hover:text-black disabled:cursor-wait disabled:opacity-40"
+              className="min-h-[44px] rounded-full border border-white/15 px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-white/80 transition hover:bg-white hover:text-black disabled:cursor-wait disabled:opacity-40 sm:min-h-0 sm:text-xs sm:tracking-[0.24em]"
             >
               Next →
             </button>
